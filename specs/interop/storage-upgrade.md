@@ -1,5 +1,7 @@
 # Migrated Liquidity storage update
 
+**Disclaimer:** This content should be placed in the protocol upgrade folder when it becomes available.
+
 ## Overview
 
 To fully migrate liquidity from `OptimismMintableERC20` tokens to `OptimismSuperchainERC20`, the `OptimismMintableERC20Factory` needs to track its deployment history.
@@ -7,7 +9,9 @@ To fully migrate liquidity from `OptimismMintableERC20` tokens to `OptimismSuper
 To achieve this, a [Hash Onion](https://github.com/ethereum-optimism/design-docs/blob/main/protocol/superchain-erc20/storage-upgrade.md#2-hash-onion) solution will be used:
 
 - The `OptimismMintableERC20Factory` predeploy will include functionality to set and store the Hash Onion, as well as verify and record deployment data.
+
 - A Foundry script will be added to generate the Hash Onion from a list of local and remote tokens.
+
 - A `superchain-ops` task will be added to set the Hash Onion from the L2 `ProxyAdmin` owner.
 
 ## `OptimismMintableERC20Factory` predeploy
@@ -78,3 +82,9 @@ function generateHashOnion(
 Each chain will need to generate its own hash onion based on its specific token list. This onion will then be set via the setter function in the `OptimismMintableERC20Factory` predeploy.
 
 The L2 `ProxyAdmin` owner will be responsible for performing the upgrade. On OP Mainnet, this is the aliased L1 governance multisig. To facilitate this, a task will be added to the [`superchain-ops` repository](https://github.com/ethereum-optimism/superchain-ops), enabling the multisig to execute it.
+
+## Additional Notes
+
+- The token list should be proposed and approved through governance and made accessible for anyone to decode.
+
+- Tokens in the innermost layers will need to prove all external layers before they can be converted. While Merkle trees were considered, they were discarded in favor of hash onions due to easier proof generation and verification. However, the dataset should be sorted so that the most popular tokens are in the outermost layers, allowing them to be decoded first.
