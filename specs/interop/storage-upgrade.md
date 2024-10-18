@@ -15,60 +15,61 @@ To achieve this, a [Hash Onion](https://github.com/ethereum-optimism/design-docs
 Create a new `OptimismMintableERC20FactoryInterop` contract that inherits from `OptimismMintableERC20Factory` and add the following functionality:
 
 ```solidity
-bytes32 public onionHash;
+bytes32 public hashOnion;
 
-function setOnionHash(bytes32 _onionHash) external {
+function setHashOnion(bytes32 _hashOnion) external {
     if (msg.sender != Predeploys.PROXY_ADMIN) revert("Unauthorized");
     if (hashOnion != 0) revert("Already initialized");
 
-    onionHash = _onionHash;
+    hashOnion = _hashOnion;
 }
 
 function verifyAndStore(
-	address localToken,
-	address remoteToken,
-	bytes32 innerLayer
-) public {
-	// Concatenate localToken and remoteToken using abi.encodePacked
-	bytes memory data = abi.encodePacked(localToken, remoteToken);
+    address[] calldata _localTokens,
+    address[] calldata _remoteTokens,
+    bytes32 _startingInnerLayer
+)
+    external
+{
+    if (hashOnion == keccak256(abi.encode(0))) revert AlreadyDecoded();
+    if (_localTokens.length != _remoteTokens.length) revert TokensLengthMismatch();
 
-	// Recompute the hash of the previous layer + data
-	bytes32 computedHash = keccak256(abi.encodePacked(innerLayer, data));
+    // Unpeel the hash onion and store the deployments
+    bytes32 innerLayer = _startingInnerLayer;
+    for (uint256 i; i < _localTokens.length; i++) {
+        innerLayer = keccak256(abi.encodePacked(innerLayer, abi.encodePacked(_localTokens[i], _remoteTokens[i])));
 
-	// Ensure the computed hash matches the current stored layer
-	require(computedHash == hashOnion, "Invalid layer provided.");
+        deployments[_localTokens[i]] = _remoteTokens[i];
 
-	// Store the localToken and remoteToken in the mapping
-	deployments[localToken] = remoteToken;
+        emit DeploymentStored(_localTokens[i], _remoteTokens[i]);
+    }
 
-	// Emit event for logging
-	emit AddressesStored(localToken, remoteToken);
+    if (innerLayer != hashOnion) revert InvalidHashOnion();
 
-	// Update the current layer to the previous one for the next submission
-	onionHash = innerLayer;
+    assembly {
+        sstore(HASH_ONION_SLOT, _startingInnerLayer)
+    }
 }
 ```
-
-Also a function that receives local and remote tokens arrays can be implemented so that many layers can be verified and stored together.
 
 ## Generate Hash Onion
 
 Create a Foundry script that generate the final onion hash based on a list of local and remote tokens.
 
 ```solidity
-function generateOnionHash(
+function generateHashOnion(
 	address[] calldata localTokens,
     address[] calldata remoteTokens
 ) public {
     require(localTokens.length == remoteTokens.length, "Invalid arrays");
 
-    bytes32 onionHash = keccak256(0);
+    bytes32 hashOnion = keccak256(abi.encode(0));
 
 	for (uint256 i; i < localTokens.length; i++) {
-        onionHash = keccak256(abi.encodePacked(onionHash, abi.encodePacked(localTokens[i], remoteTokens[i])));
+        hashOnion = keccak256(abi.encodePacked(hashOnion, abi.encodePacked(localTokens[i], remoteTokens[i])));
     }
 
-    return onionHash;
+    return hashOnion;
 }
 ```
 
