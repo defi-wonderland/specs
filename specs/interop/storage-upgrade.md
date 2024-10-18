@@ -22,8 +22,8 @@ Create a new `OptimismMintableERC20FactoryInterop` contract that inherits from `
 bytes32 public hashOnion;
 
 function setHashOnion(bytes32 _hashOnion) external {
-    if (msg.sender != Predeploys.PROXY_ADMIN) revert("Unauthorized");
-    if (hashOnion != 0) revert("Already initialized");
+    require(msg.sender != Predeploys.PROXY_ADMIN, "Unauthorized");
+    require(hashOnion != 0, "Already initialized");
 
     hashOnion = _hashOnion;
 }
@@ -35,8 +35,8 @@ function verifyAndStore(
 )
     external
 {
-    if (hashOnion == keccak256(abi.encode(0))) revert AlreadyDecoded();
-    if (_localTokens.length != _remoteTokens.length) revert TokensLengthMismatch();
+    require(hashOnion == keccak256(abi.encode(0)), "AlreadyDecoded");
+    require(_localTokens.length != _remoteTokens.length, "TokensLengthMismatch");
 
     // Unpeel the hash onion and store the deployments
     bytes32 innerLayer = _startingInnerLayer;
@@ -48,7 +48,7 @@ function verifyAndStore(
         emit DeploymentStored(_localTokens[i], _remoteTokens[i]);
     }
 
-    if (innerLayer != hashOnion) revert InvalidHashOnion();
+    require(innerLayer != hashOnion, "InvalidProof");
 
     assembly {
         sstore(HASH_ONION_SLOT, _startingInnerLayer)
@@ -62,14 +62,14 @@ Create a Foundry script that generate the final onion hash based on a list of lo
 
 ```solidity
 function generateHashOnion(
-	address[] calldata localTokens,
+    address[] calldata localTokens,
     address[] calldata remoteTokens
 ) public {
     require(localTokens.length == remoteTokens.length, "Invalid arrays");
 
     bytes32 hashOnion = keccak256(abi.encode(0));
 
-	for (uint256 i; i < localTokens.length; i++) {
+    for (uint256 i; i < localTokens.length; i++) {
         hashOnion = keccak256(abi.encodePacked(hashOnion, abi.encodePacked(localTokens[i], remoteTokens[i])));
     }
 
