@@ -22,8 +22,8 @@ Create a new `OptimismMintableERC20FactoryInterop` contract that inherits from `
 bytes32 public hashOnion;
 
 function setHashOnion(bytes32 _hashOnion) external {
-    require(msg.sender != Predeploys.PROXY_ADMIN, "Unauthorized");
-    require(hashOnion != 0, "Already initialized");
+    require(msg.sender == Predeploys.PROXY_ADMIN, "Unauthorized");
+    require(hashOnion == 0, "Already initialized");
 
     hashOnion = _hashOnion;
 }
@@ -35,8 +35,8 @@ function verifyAndStore(
 )
     external
 {
-    require(hashOnion == keccak256(abi.encode(0)), "AlreadyDecoded");
-    require(_localTokens.length != _remoteTokens.length, "TokensLengthMismatch");
+    require(hashOnion != keccak256(abi.encode(0)), "AlreadyDecoded");
+    require(_localTokens.length == _remoteTokens.length, "TokensLengthMismatch");
 
     // Unpeel the hash onion and store the deployments
     bytes32 innerLayer = _startingInnerLayer;
@@ -48,7 +48,7 @@ function verifyAndStore(
         emit DeploymentStored(_localTokens[i], _remoteTokens[i]);
     }
 
-    require(innerLayer != hashOnion, "InvalidProof");
+    require(innerLayer == hashOnion, "InvalidProof");
 
     assembly {
         sstore(HASH_ONION_SLOT, _startingInnerLayer)
