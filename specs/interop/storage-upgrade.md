@@ -76,6 +76,9 @@ function verifyAndStore(
 }
 ```
 
+The L2 `ProxyAdmin` owner will be responsible for setting the hash onion, on OP Mainnet this is the aliased L1
+governance multisig. All chains will need to be owned by the L1 governance multisig to be part of interop.
+
 ## Generate Hash Onion
 
 Create a Foundry script that generate the final onion hash based on a list of local and remote tokens.
