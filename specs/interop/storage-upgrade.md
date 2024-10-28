@@ -76,8 +76,9 @@ function verifyAndStore(
 }
 ```
 
-The L2 `ProxyAdmin` owner will be responsible for setting the hash onion, on OP Mainnet this is the aliased L1
-governance multisig. All chains will need to be owned by the L1 governance multisig to be part of interop.
+All chains will need to be owned by the L1 governance multisig to be part of interop.
+Each L2 `ProxyAdmin` owner will be responsible for setting the hash onion.
+On OP Mainnet this address corresponds to the aliased L1 governance multisig.
 
 ## Generate Hash Onion
 
