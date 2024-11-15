@@ -2,7 +2,6 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
 - [Overview](#overview)
@@ -197,8 +196,8 @@ Calls `lockETH` on the `SharedLockbox` with the `msg.value`.
 Calls `unlockETH` on the `SharedLockbox` with the `tx.value`.
 
 - The function MUST call `unlockETH` on the `SharedLockbox` if:
-- The token is `ETHER`.
-- `tx.value` is greater than zero.
+  - The token is `ETHER`.
+  - `tx.value` is greater than zero.
 - The function MUST NOT affect the handling of non-ETH tokens or existing verification logic.
 
 ## Reference implementation
