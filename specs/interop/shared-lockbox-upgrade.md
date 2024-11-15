@@ -6,6 +6,7 @@
 
 - [Overview](#overview)
 - [Batch transaction process](#batch-transaction-process)
+  - [Diagram](#diagram)
 - [Future Considerations / Additional Notes](#future-considerations--additional-notes)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -87,6 +88,47 @@ it has the authority to perform the first two steps.
 For the third step, the L1PAO has to be set as authorized for adding a chain to the op-governed dependency set
 on the `SuperchainConfig` when initializing.
 This process can be set as a [superchain-ops](https://github.com/ethereum-optimism/superchain-ops) task.
+
+### Diagram
+
+```mermaid
+sequenceDiagram
+    participant L1PAO as L1 ProxyAdmin Owner
+    participant ProxyAdmin as ProxyAdmin
+    participant SystemConfigProxy as SystemConfig
+    participant StorageSetter
+    participant SuperchainConfig
+    participant OptimismPortalProxy as OptimismPortal
+    participant LiquidityMigrator
+    participant SharedLockbox
+
+    Note over L1PAO: Start batch
+
+    %% Step 1: Upgrade SystemConfig to StorageSetter to zero out initialized slot
+    L1PAO->>ProxyAdmin: upgradeAndCall()
+    ProxyAdmin->>SystemConfigProxy: Upgrade to StorageSetter
+    SystemConfigProxy->>StorageSetter: Call to set initialized slot to zero
+
+    %% Step 2: Upgrade SystemConfig and initialize with SuperchainConfig
+    L1PAO->>ProxyAdmin: upgradeAndCall()
+    ProxyAdmin->>SystemConfigProxy: Upgrade to new SystemConfig implementation
+    ProxyAdmin->>SystemConfigProxy: Call initialize(...SuperchainConfig address)
+
+    %% Step 3: Add chain to SuperchainConfig
+    L1PAO->>SuperchainConfig: addChain(chainId, SystemConfig address)
+
+    %% Step 4: Upgrade OptimismPortal to intermediate implementation that transfers ETH
+    L1PAO->>ProxyAdmin: upgradeAndCall()
+    ProxyAdmin->>OptimismPortalProxy: Upgrade to LiquidityMigrator
+    OptimismPortalProxy->>LiquidityMigrator: Call migrateETH()
+    OptimismPortalProxy->>SharedLockbox: Transfer entire ETH balance
+
+    %% Step 5: Upgrade OptimismPortal to final implementation
+    L1PAO->>ProxyAdmin: upgrade()
+    ProxyAdmin->>OptimismPortalProxy: Upgrade to new OptimismPortal implementation
+
+    Note over L1PAO: End batch
+```
 
 ## Future Considerations / Additional Notes
 
