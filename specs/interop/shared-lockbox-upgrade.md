@@ -13,21 +13,21 @@
 
 ## Overview
 
-Based on the decision that a chain joining the dependency set is an irreversible process,
+Based on the assumption that a chain joining the dependency set is an irreversible process,
 the on-chain chains list is simplified by assuming that joining the Shared Lockbox is
 equivalent to joining the op-governed dependency set.
 
 The migration process consists of four main points:
 
-- `OptimismPortal` code upgrade (includes the `SharedLockbox` integration)
+- Upgrade the code of `OptimismPortal` to include the `SharedLockbox` integration
 - Move ETH liquidity from `OptimismPortal` to `SharedLockbox`
 - Set `SuperchainConfig` as dependency manager on `SystemConfig`
 - Add the chain to the op-governed dependency set
 
-The migration process needs some prerequisites:
+The migration process also requires that first:
 
-- `SharedLockbox` deployed
-- `SuperchainConfig` upgraded to manage the dependency set
+- `SharedLockbox` is deployed
+- `SuperchainConfig` is upgraded to manage the dependency set
 
 **`OptimismPortal` code upgrade**
 
@@ -36,28 +36,27 @@ It will continue to handle deposits and withdrawals but won't directly hold the 
 To set this up, the upgrade function will be called via `ProxyAdmin` to implement the new code,
 which includes the necessary `SharedLockbox` integration.
 The `SharedLockbox` address will be set during the `initialize` function. After this step,
-the portal will not be able to process deposits and withdrawals until the chain is registered in `SuperchainConfig`.
+the `OptimismPortal` will not be able to process deposits and withdrawals until the chain is registered
+in `SuperchainConfig`.
 
 **Migrate ETH liquidity from `OptimismPortal` to `SharedLockbox`**
 
 The ETH will be transferred from the `OptimismPortal` to the `SharedLockbox` using an intermediate contract.
-This contract functions similarly to the `StorageSetter`, being updated prior to the real implementation.
+This contract functions similarly to the `StorageSetter`, being updated immediately before to the real implementation.
 Its sole purpose is to transfer the ETH balance.
 This approach eliminates the need for additional code to move the liquidity to the lockbox later.
 
 **Set `SuperchainConfig` as dependency manager on `SystemConfig`**
 
-The `SystemConfig` manages the dependency updates from L1 to L2 by making a deposit through the portal.
+The `SystemConfig` manages the dependency updates from L1 to L2 by making a deposit through the `OptimismPortal`.
 It uses access control, allowing only a designated `dependencyManager` to call it.
 The `SuperchainConfig` must be set as the `dependencyManager` since it will be the contract
 responsible for handling the op-governed dependency set. This step is crucial before adding a
 chain to the dependency set, as it is necessary for keeping the dependency set synchronized
 between L1 and L2.
 
-There are two alternatives to accomplish this:
-
-- Upgrade the code to `SystemConfigInterop` and call `initialize` with the dependency manager address
-- Add a setter function for the dependency manager
+To accomplish this, the code needs to be updated to `SystemConfigInterop` and `initialize` be called
+with the dependency manager address
 
 **Add the chain to the op-governed dependency set**
 
@@ -83,7 +82,7 @@ This transaction will consist of:
 5. Call `upgrade` in the `ProxyAdmin` for the `OptimismPortal`
    - The `SharedLockbox` address is set as immutable in the new implementation
 
-The L1 ProxyAdmin owner will execute this transaction. As the entity responsible for updating contracts,
+The L1 ProxyAdmin owner (L1PAO) will execute this transaction. As the entity responsible for updating contracts,
 it has the authority to perform the first two steps.
 For the third step, the L1PAO has to be set as authorized for adding a chain to the op-governed dependency set
 on the `SuperchainConfig` when initializing.

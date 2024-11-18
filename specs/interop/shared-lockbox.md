@@ -6,12 +6,18 @@
 
 - [Overview](#overview)
 - [Design](#design)
-  - [Contracts inroductions](#contracts-inroductions)
+  - [Contracts introductions](#contracts-introductions)
     - [`SharedLockbox`](#sharedlockbox)
+      - [**Interface and properties**](#interface-and-properties)
+      - [**Events**](#events)
     - [`LiquidityMigrator`](#liquiditymigrator)
+      - [**Interface and properties**](#interface-and-properties-1)
   - [Contracts upgrades](#contracts-upgrades)
     - [`SuperchainConfig`](#superchainconfig)
+      - [**Interface and properties**](#interface-and-properties-2)
+      - [**Events**](#events-1)
     - [`OptimismPortal`](#optimismportal)
+      - [**Interface and properties**](#interface-and-properties-3)
 - [Reference implementation](#reference-implementation)
   - [`SharedLockbox`](#sharedlockbox-1)
   - [`LiquidityMigrator`](#liquiditymigrator-1)
@@ -22,33 +28,32 @@
 
 ## Overview
 
-With interoperable ETH, withdrawals may fail if the referenced `OptimismPortal` lacks sufficient ETH
-— making it mandatory to withdraw from the L2 where the ETH was originally deposited.
+With interoperable ETH, withdrawals will fail if the referenced `OptimismPortal` lacks sufficient ETH.
 The `SharedLockbox` improves the Superchain's interoperable ETH withdrawal user experience and avoid this issue.
-To do so, it unifies ETH L1 liquidity in a single contract, enabling seamless withdrawals of ETH from any OP chain
-in the Superchain, regardless of where the ETH was initially deposited.
+To do so, it unifies ETH L1 liquidity in a single contract (`SharedLockbox`), enabling seamless withdrawals of ETH
+from any OP chain in the Superchain, regardless of where the ETH was initially deposited.
 
 ## Design
 
-### Contracts inroductions
+### Contracts introductions
 
 #### `SharedLockbox`
 
 The `SharedLockbox` contract is designed to manage the unified ETH liquidity for the Superchain.
-It provides two main functions: `lockETH` for depositing ETH into the lockbox,
+It implements two main functions: `lockETH` for depositing ETH into the lockbox,
 and `unlockETH` for withdrawing ETH from the lockbox.
 These functions are called by the `OptimismPortal` contracts to manage the shared ETH liquidity
 when making deposits or finalizing withdrawals.
 
-**Interface and properties:**
+##### **Interface and properties**
 
 **`lockETH`**
 
 Deposits and locks ETH into the lockbox's liquidity pool.
 
 - The function MUST accept ETH.
-- Only authorized `OptimismPortal` addresses MUST be allowed to interact.
-- The function MUST emit the `ETHLocked` event with the correct `portal` and `amount`.
+- Only authorized `OptimismPortal` addresses SHOULD be allowed to interact.
+- The function MUST emit the `ETHLocked` event with the `portal` that called it and the `amount`.
 
 ```solidity
 function lockETH() external payable;
@@ -58,8 +63,8 @@ function lockETH() external payable;
 
 Withdraws a specified amount of ETH from the lockbox's liquidity pool.
 
-- Only authorized `OptimismPortal` addresses MUST be allowed to interact.
-- The function MUST emit the `ETHUnlocked` event with the correct `portal` and `amount`.
+- Only authorized `OptimismPortal` addresses SHOULD be allowed to interact.
+- The function MUST emit the `ETHUnlocked` event with the `portal` that called it and the `amount`.
 
 ```solidity
 function unlockETH(uint256 _value) external;
@@ -69,17 +74,19 @@ function unlockETH(uint256 _value) external;
 
 Grants authorization to a specific `OptimismPortal` contract.
 
-- Only `SuperchainConfig` address MUST be allowed to interact.
+- Only `SuperchainConfig` address SHOULD be allowed to interact.
 - The function MUST add the specified address to the mapping of authorized portals.
-- The function MUST emit the `AuthorizedPortal` event when a portal is successfully added.
+- The function MUST emit the [`AuthorizedPortal`](#events) event when a portal is successfully added.
 
 ```solidity
 function authorizePortal(address _portal) external;
 ```
 
+##### **Events**
+
 **`ETHLocked`**
 
-MUST trigger when `lockETH` is called
+MUST be triggered when `lockETH` is called
 
 ```solidity
 event ETHLocked(address indexed portal, uint256 amount);
@@ -87,7 +94,7 @@ event ETHLocked(address indexed portal, uint256 amount);
 
 **`ETHUnlocked`**
 
-MUST trigger when `unlockETH` is called
+MUST be triggered when `unlockETH` is called
 
 ```solidity
 event ETHUnlocked(address indexed portal, uint256 amount);
@@ -95,7 +102,7 @@ event ETHUnlocked(address indexed portal, uint256 amount);
 
 **`AuthorizedPortal`**
 
-MUST trigger when `authorizePortal` is called
+MUST be triggered when `authorizePortal` is called
 
 ```solidity
 event AuthorizedPortal(address indexed portal);
@@ -103,14 +110,15 @@ event AuthorizedPortal(address indexed portal);
 
 #### `LiquidityMigrator`
 
-This contract is meant to be used as intermediate step for the liquidity migration.
-It main purpose is to transfer the whole ETH balance from the `OptimismPortal` to the `SharedLockbox`.
+This contract is meant to be used as an intermediate step for the liquidity migration.
+Its unique purpose is to transfer the whole ETH balance from `OptimismPortal` to `SharedLockbox`.
+This approach avoids adding extra code to the `initialize` function, which could be prone to errors in future updates.
 
-**Interface and properties:**
+##### **Interface and properties**
 
 **`migrateETH`**
 
-Transfers the entire ETH balance from the OptimismPortal to the SharedLockbox.
+Transfers the entire ETH balance from the `OptimismPortal` to the `SharedLockbox`.
 
 - It MUST transfer the whole ETH balance to the `SharedLockbox` when called.
 
@@ -122,19 +130,19 @@ function migrateETH() external;
 
 #### `SuperchainConfig`
 
-This contract will be updated to manage and keep track the dependency graph.
+This contract will be updated to manage and keep track of the dependency graph.
 It will be queried as the source of truth to get which chains are part of the Superchain.
 It assumes the role of a `dependencyManager` per `SystemConfig` contract involved.
 It will also allow to add a chain to the op-governed cluster and update each chain’s dependency set.
 
-**Interface and properties**
+##### **Interface and properties**
 
 The `SuperchainConfig` contract will add the following storage layout and function:
 
 **`SHARED_LOCKBOX`**
 
 - An immutable address pointing to the `SharedLockbox` contract.
-- This address MUST immutable because there's only one `SharedLockbox` for each cluster.
+- This address MUST be immutable because there's only one `SharedLockbox` for each cluster.
 
 **`systemConfigs`**
 
@@ -150,36 +158,47 @@ The `SuperchainConfig` contract will add the following storage layout and functi
 
 The `addChain` function adds a new chain to the op-governed cluster.
 
-- The function MUST only be callable by the authorized `updater` role of the `SuperchainConfig`.
+- The function SHOULD only be callable by the authorized `updater` role of the `SuperchainConfig`.
 - The function MUST NOT add a chain ID to the dependency set if it is already included.
-- The function MUST update dependencies to form a complete mesh graph,
-  linking the new chain with all existing chains in the set.
-- The function MUST store the provided `SystemConfig` address in the systemConfigs mapping.
-- The function MUST whitelist the new chain's portal in the `SharedLockbox`.
-- The function MUST emit the `ChainAdded` event.
+- The function MUST update all chains dependencies through deposit txs to form a complete mesh graph.
+- The function MUST store the provided `SystemConfig` address in the `systemConfigs` mapping.
+- The function MUST allowlist the new chain's `OptimismPortal` in the `SharedLockbox`.
+- The function MUST emit the `ChainAdded` event with the `chainId` and
+  its corresponding `SystemConfig` and `OptimismPortal`.
 
 ```solidity
 function addChain(uint256 _chainId, address _systemConfig) external;
+```
+
+##### **Events**
+
+**`ChainAdded`**
+
+MUST be triggered when `addChain` is called
+
+```solidity
+event ChainAdded(uint256 indexed chainId, address indexed systemConfig, address indexed portal);
 ```
 
 #### `OptimismPortal`
 
 This contract will need an upgrade to integrate the `SharedLockbox` and start using the shared ETH liquidity.
 
-**Interface and properties**
+##### **Interface and properties**
 
 The `OptimismPortal` contract will add the following storage layout and modified functions:
 
 **`SHARED_LOCKBOX`**
 
 - An immutable address pointing to the `SharedLockbox` contract.
-- This address MUST immutable because all portals will point to the same lockbox, and this address SHOULD not change.
+- This address MUST be immutable because all `OptimismPortals` will point to the same `SharedLockbox`,
+  and this address SHOULD not change.
 
 **Integrating `SharedLockbox`**
 
 The integration with the `SharedLockbox` involves adding extra steps when executing deposit transactions
 or finalizing withdrawal transactions.
-These steps include locking and unlocking ETH without altering other aspects of the current portal implementation.
+These steps include locking and unlocking ETH without altering other aspects of the current `OptimismPortal` implementation.
 To implement this solution, the following changes are needed:
 
 **`depositTransaction`**
@@ -189,7 +208,6 @@ Calls `lockETH` on the `SharedLockbox` with the `msg.value`.
 - The function MUST call `lockETH` on the `SharedLockbox` if:
   - The token is `ETHER`.
   - `msg.value` is greater than zero.
-- The function MUST NOT alter the handling of non-ETH tokens or other logic.
 
 **`finalizeWithdrawalTransactionExternalProof`**
 
@@ -198,7 +216,6 @@ Calls `unlockETH` on the `SharedLockbox` with the `tx.value`.
 - The function MUST call `unlockETH` on the `SharedLockbox` if:
   - The token is `ETHER`.
   - `tx.value` is greater than zero.
-- The function MUST NOT affect the handling of non-ETH tokens or existing verification logic.
 
 ## Reference implementation
 
@@ -236,7 +253,7 @@ function authorizePortal(address _portal) external {
 
 ### `LiquidityMigrator`
 
-A possible migrate function implementation can be:
+A possible migrate function implementation could be:
 
 ```solidity
 // The Shared Lockbox contract
@@ -249,7 +266,7 @@ function migrateETH() external {
 
 ### `SuperchainConfig`
 
-An example implementation could look like this:
+An example implementation could look as follow:
 
 ```solidity
 // The Shared Lockbox contract
@@ -260,6 +277,8 @@ mapping(uint256 _chainId => ISystemConfig) public systemConfigs;
 
 // Current dependency set list
 EnumerableSet.UintSet internal _dependencySet;
+
+event ChainAdded(uint256 indexed chainId, address indexed systemConfig, address indexed portal);
 
 function addChain(uint256 _chainId, address _systemConfig) external {
     require(msg.sender == updater(), "Unauthorized");
