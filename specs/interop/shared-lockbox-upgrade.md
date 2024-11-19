@@ -63,7 +63,7 @@ with the dependency manager address
 The `SuperchainConfig` contract will be responsible for storing and managing the dependency set.
 Its `addChain` function will add a chain to the dependency set and call the `SystemConfig` of each chain
 to keep them in sync.
-It will also whitelist the corresponding `OptimismPortal`, enabling it to lock and unlock ETH from the `SharedLockbox`.
+It will also allowlist the corresponding `OptimismPortal`, enabling it to lock and unlock ETH from the `SharedLockbox`.
 Once this process is complete, the system will be ready to process deposits and withdrawals.
 
 ## Batch transaction process

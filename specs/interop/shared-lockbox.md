@@ -29,7 +29,7 @@
 ## Overview
 
 With interoperable ETH, withdrawals will fail if the referenced `OptimismPortal` lacks sufficient ETH.
-The `SharedLockbox` improves the Superchain's interoperable ETH withdrawal user experience and avoid this issue.
+The `SharedLockbox` improves the Superchain's interoperable ETH withdrawal user experience and avoids this issue.
 To do so, it unifies ETH L1 liquidity in a single contract (`SharedLockbox`), enabling seamless withdrawals of ETH
 from any OP chain in the Superchain, regardless of where the ETH was initially deposited.
 
@@ -253,7 +253,7 @@ function authorizePortal(address _portal) external {
 
 ### `LiquidityMigrator`
 
-A possible migrate function implementation could be:
+A possible migration function implementation could be:
 
 ```solidity
 // The Shared Lockbox contract
@@ -266,7 +266,7 @@ function migrateETH() external {
 
 ### `SuperchainConfig`
 
-An example implementation could look as follow:
+An example implementation could look as follows:
 
 ```solidity
 // The Shared Lockbox contract
@@ -275,7 +275,7 @@ address internal immutable SHARED_LOCKBOX;
 // Mapping from chainId to SystemConfig address
 mapping(uint256 _chainId => ISystemConfig) public systemConfigs;
 
-// Current dependency set list
+// Current dependency set
 EnumerableSet.UintSet internal _dependencySet;
 
 event ChainAdded(uint256 indexed chainId, address indexed systemConfig, address indexed portal);
