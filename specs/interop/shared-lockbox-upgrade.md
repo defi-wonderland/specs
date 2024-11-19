@@ -21,13 +21,13 @@ The migration process consists of four main points:
 
 - Upgrade the code of `OptimismPortal` to include the `SharedLockbox` integration
 - Move ETH liquidity from `OptimismPortal` to `SharedLockbox`
-- Set `SuperchainConfig` as dependency manager on `SystemConfig`
 - Add the chain to the op-governed dependency set
 
 The migration process also requires that first:
 
 - `SharedLockbox` is deployed
 - `SuperchainConfig` is upgraded to manage the dependency set
+- `SystemConfig` is upgraded to the interop contract version
 
 **`OptimismPortal` code upgrade**
 
@@ -46,18 +46,6 @@ This contract functions similarly to the `StorageSetter`, being updated immediat
 Its sole purpose is to transfer the ETH balance.
 This approach eliminates the need for additional code to move the liquidity to the lockbox later.
 
-**Set `SuperchainConfig` as dependency manager on `SystemConfig`**
-
-The `SystemConfig` manages the dependency updates from L1 to L2 by making a deposit through the `OptimismPortal`.
-It uses access control, allowing only a designated `dependencyManager` to call it.
-The `SuperchainConfig` must be set as the `dependencyManager` since it will be the contract
-responsible for handling the op-governed dependency set. This step is crucial before adding a
-chain to the dependency set, as it is necessary for keeping the dependency set synchronized
-between L1 and L2.
-
-To accomplish this, the code needs to be updated to `SystemConfigInterop` and `initialize` be called
-with the dependency manager address
-
 **Add the chain to the op-governed dependency set**
 
 The `SuperchainConfig` contract will be responsible for storing and managing the dependency set.
@@ -71,15 +59,11 @@ Once this process is complete, the system will be ready to process deposits and 
 The most efficient approach is to handle the entire migration process in a single batched transaction.
 This transaction will consist of:
 
-1. Call `upgradeAndCall` in the `ProxyAdmin` for the `SystemConfig`
-   - Updating provisionally to the `StorageSetter` to zero out the initialized slot.
-2. Call `upgradeAndCall` in the `ProxyAdmin` for the `SystemConfig`
-   - Calling `initialize` with the `SuperchainConfig` address as the dependency manager
-3. Call `addChain` in the `SuperchainConfig`
+1. Call `addChain` in the `SuperchainConfig`
    - Sending chain ID + system config address
-4. Call `upgradeAndCall` in the `ProxyAdmin` for the `OptimismPortal`
+2. Call `upgradeAndCall` in the `ProxyAdmin` for the `OptimismPortal`
    - Update provisionally to the `LiquidityMigrator` to transfer the whole ETH balance to the `SharedLockbox` in this call.
-5. Call `upgrade` in the `ProxyAdmin` for the `OptimismPortal`
+3. Call `upgrade` in the `ProxyAdmin` for the `OptimismPortal`
    - The `SharedLockbox` address is set as immutable in the new implementation
 
 The L1 ProxyAdmin owner (L1PAO) will execute this transaction. As the entity responsible for updating contracts,
@@ -94,8 +78,6 @@ This process can be set as a [superchain-ops](https://github.com/ethereum-optimi
 sequenceDiagram
     participant L1PAO as L1 ProxyAdmin Owner
     participant ProxyAdmin as ProxyAdmin
-    participant SystemConfigProxy as SystemConfig
-    participant StorageSetter
     participant SuperchainConfig
     participant OptimismPortalProxy as OptimismPortal
     participant LiquidityMigrator
@@ -103,26 +85,16 @@ sequenceDiagram
 
     Note over L1PAO: Start batch
 
-    %% Step 1: Upgrade SystemConfig to StorageSetter to zero out initialized slot
-    L1PAO->>ProxyAdmin: upgradeAndCall()
-    ProxyAdmin->>SystemConfigProxy: Upgrade to StorageSetter
-    SystemConfigProxy->>StorageSetter: Call to set initialized slot to zero
-
-    %% Step 2: Upgrade SystemConfig and initialize with SuperchainConfig
-    L1PAO->>ProxyAdmin: upgradeAndCall()
-    ProxyAdmin->>SystemConfigProxy: Upgrade to new SystemConfig implementation
-    ProxyAdmin->>SystemConfigProxy: Call initialize(...SuperchainConfig address)
-
-    %% Step 3: Add chain to SuperchainConfig
+    %% Step 1: Add chain to SuperchainConfig
     L1PAO->>SuperchainConfig: addChain(chainId, SystemConfig address)
 
-    %% Step 4: Upgrade OptimismPortal to intermediate implementation that transfers ETH
+    %% Step 2: Upgrade OptimismPortal to intermediate implementation that transfers ETH
     L1PAO->>ProxyAdmin: upgradeAndCall()
     ProxyAdmin->>OptimismPortalProxy: Upgrade to LiquidityMigrator
     OptimismPortalProxy->>LiquidityMigrator: Call migrateETH()
     OptimismPortalProxy->>SharedLockbox: Transfer entire ETH balance
 
-    %% Step 5: Upgrade OptimismPortal to final implementation
+    %% Step 3: Upgrade OptimismPortal to final implementation
     L1PAO->>ProxyAdmin: upgrade()
     ProxyAdmin->>OptimismPortalProxy: Upgrade to new OptimismPortal implementation
 

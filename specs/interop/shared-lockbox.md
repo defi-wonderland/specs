@@ -132,7 +132,6 @@ function migrateETH() external;
 
 This contract will be updated to manage and keep track of the dependency graph.
 It will be queried as the source of truth to get which chains are part of the Superchain.
-It assumes the role of a `dependencyManager` per `SystemConfig` contract involved.
 It will also allow to add a chain to the op-governed cluster and update each chain’s dependency set.
 
 ##### **Interface and properties**
