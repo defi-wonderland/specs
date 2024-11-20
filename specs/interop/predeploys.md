@@ -325,13 +325,13 @@ chain is included instead.
 
 The following functions are used for sending messages between domains:
 
-Can be relayed on the destination chain any address.
+__Permissionless:__ Can be relayed on the destination chain by any address.
 
 ```solidity
 function sendMessage(uint256 _destination, address _target, bytes calldata _message) external returns (bytes32);
 ```
 
-Can be relayed on the destination chain only by the `_entrypoint` address.
+__Using Entrypoint:__ Can be relayed on the destination chain only by the `_entrypoint` address.
 
 ```solidity
 function sendMessage(uint256 _destination, address _target, bytes calldata _message, address _entrypoint) external returns (bytes32);
@@ -435,7 +435,7 @@ function relayMessage(ICrossL2Inbox.Identifier calldata _id, bytes calldata _sen
 
 Note that the `relayMessage` function is `payable` to enable relayers to earn in the gas paying asset.
 
-Additionally, if the `_entrypoint` is not `address(0)` and the caller is not `_entrypoint`, the transaction is going to revert.
+Additionally, if the `_entrypoint` is not `address(0)` and the caller is not `_entrypoint`, the transaction MUST revert.
 
 To enable cross chain authorization patterns, both the `_sender` and the `_source` MUST be exposed via `public`
 getters.
