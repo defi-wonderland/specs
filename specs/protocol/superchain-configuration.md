@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -70,13 +71,13 @@ When the Pause is activated, the following methods are disabled:
 
 ## Dependency manager
 
-This contract will be updated to manage and keep track of the dependency graph.
+The `SuperchainConfig` contract will manage and keep track of the dependency graph.
 It will be queried as the source of truth to get which chains are part of the Superchain.
 It will also allow to add a chain to the op-governed cluster and update each chain’s dependency set.
 
 ### Interface and properties
 
-The `SuperchainConfig` contract will add the following storage layout and function:
+The contract will add the following storage layout and function:
 
 **`SHARED_LOCKBOX`**
 
