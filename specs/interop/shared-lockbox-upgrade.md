@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -78,8 +79,8 @@ in `SuperchainConfig`.
 
 ## Batch transaction process
 
-The approach consists on handling the entire migration process in a single batched transaction.
-This transaction will consist of:
+The approach consists of handling the entire migration process in a single batched transaction.
+This transaction will include:
 
 1. Call `addChain` in the `SuperchainConfig`
    - Sending chain ID + system config address

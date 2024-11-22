@@ -100,7 +100,7 @@ The `addChain` function adds a new chain to the op-governed cluster.
 
 - The function SHOULD only be callable by the authorized `updater` role of the `SuperchainConfig`.
 - The function MUST NOT add a chain ID to the dependency set if it is already included.
-- The function MUST update all chains dependencies through deposit txs to form a complete mesh graph.
+- The function MUST update all chain dependencies through deposit txs to form a complete mesh graph.
 - The function MUST store the provided `SystemConfig` address in the `systemConfigs` mapping.
 - The function MUST allowlist the new chain's `OptimismPortal` in the `SharedLockbox`.
 - The function MUST emit the `ChainAdded` event with the `chainId` and
