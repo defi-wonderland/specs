@@ -15,6 +15,8 @@
 ## Overview
 
 With interoperable ETH, withdrawals will fail if the referenced `OptimismPortal` lacks sufficient ETH.
+This is due to having the possibility to move ETH liquidity accross the different chains and it could happen
+that a chain ends up with more liquidity than its `OptimismPortal`.
 The `SharedLockbox` improves the Superchain's interoperable ETH withdrawal user experience and avoids this issue.
 To do so, it unifies ETH L1 liquidity in a single contract (`SharedLockbox`), enabling seamless withdrawals of ETH
 from any OP chain in the Superchain, regardless of where the ETH was initially deposited.
@@ -26,6 +28,8 @@ It implements two main functions: `lockETH` for depositing ETH into the lockbox,
 and `unlockETH` for withdrawing ETH from the lockbox.
 These functions are called by the `OptimismPortal` contracts to manage the shared ETH liquidity
 when making deposits or finalizing withdrawals.
+These `OptimismPortals` will be allowlisted by the `SuperchanConfig` using the `authorizePortal` function
+when a chain is added.
 
 ### Interface and properties
 
@@ -58,7 +62,7 @@ Grants authorization to a specific `OptimismPortal` contract.
 
 - Only `SuperchainConfig` address SHOULD be allowed to interact.
 - The function MUST add the specified address to the mapping of authorized portals.
-- The function MUST emit the [`AuthorizedPortal`](#events) event when a portal is successfully added.
+- The function MUST emit the [`PortalAuthorized`](#events) event when a portal is successfully added.
 
 ```solidity
 function authorizePortal(address _portal) external;
@@ -82,12 +86,12 @@ MUST be triggered when `unlockETH` is called
 event ETHUnlocked(address indexed portal, uint256 amount);
 ```
 
-**`AuthorizedPortal`**
+**`PortalAuthorized`**
 
 MUST be triggered when `authorizePortal` is called
 
 ```solidity
-event AuthorizedPortal(address indexed portal);
+event PortalAuthorized(address indexed portal);
 ```
 
 ## Reference implementation
@@ -118,6 +122,6 @@ function authorizePortal(address _portal) external {
 
     _authorizedPortals[_portal] = true;
 
-    emit AuthorizedPortal(_portal);
+    emit PortalAuthorized(_portal);
 }
 ```

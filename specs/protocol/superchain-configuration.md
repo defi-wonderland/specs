@@ -19,7 +19,7 @@
 ## Overview
 
 The SuperchainConfig contract is used to manage global configuration values for multiple OP Chains within
-a single Superchain network.
+a single Superchain network. Also is in charge of managing and keeping track of the network's dependency set.
 
 ## Configurable values
 
@@ -86,23 +86,24 @@ The contract will add the following storage layout and function:
 **`systemConfigs`**
 
 - A mapping that associates chain IDs with their respective SystemConfig addresses.
-- This will be used when updating dependencies along each chain.
+- It will be used when updating dependencies along each chain.
 
 **`dependencySet`**
 
 - An `EnumerableSet` that stores the current list of chain IDs in the dependency set.
-- This MUST replicate the same state as the one stored in the `L1BlockInterop` on L2 for each chain.
+- It MUST contain the same chain IDs as the one stored in the `L1BlockInterop` on L2 for each chain.
 
 **`addChain`**
 
 The `addChain` function adds a new chain to the op-governed cluster.
 
-- The function SHOULD only be callable by the authorized `updater` role of the `SuperchainConfig`.
-- The function MUST NOT add a chain ID to the dependency set if it is already included.
-- The function MUST update all chain dependencies through deposit txs to form a complete mesh graph.
-- The function MUST store the provided `SystemConfig` address in the `systemConfigs` mapping.
-- The function MUST allowlist the new chain's `OptimismPortal` in the `SharedLockbox`.
-- The function MUST emit the `ChainAdded` event with the `chainId` and
+- It SHOULD only be callable by the authorized `updater` role of the `SuperchainConfig`.
+- It MUST NOT add a chain ID to the dependency set if it is already included.
+- It MUST check that the new chain dependency set size is zero.
+- It MUST update all chain dependencies through deposit txs to form a complete mesh graph.
+- It MUST store the provided `SystemConfig` address in the `systemConfigs` mapping.
+- It MUST allowlist the new chain's `OptimismPortal` in the `SharedLockbox`.
+- It MUST emit the `ChainAdded` event with the `chainId` and
   its corresponding `SystemConfig` and `OptimismPortal`.
 
 ```solidity

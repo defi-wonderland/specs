@@ -46,3 +46,4 @@ Calls `unlockETH` on the `SharedLockbox` with the `tx.value`.
 - The function MUST call `unlockETH` on the `SharedLockbox` if:
   - The token is `ETHER`.
   - `tx.value` is greater than zero.
+- The ETH is received by the `OptimismPortal` and then sent with the withdrawal transaction

@@ -21,13 +21,13 @@ Based on the assumption that a chain joining the dependency set is an irreversib
 the on-chain chains list is simplified by assuming that joining the Shared Lockbox is
 equivalent to joining the op-governed dependency set.
 
-The migration process consists of three main points:
+The upgrade process consists of three main points:
 
 - Add the chain to the op-governed dependency set
 - Move ETH liquidity from `OptimismPortal` to `SharedLockbox`
 - Upgrade the code of `OptimismPortal` to include the `SharedLockbox` integration
 
-The migration process also requires that:
+This process also requires that:
 
 - `SharedLockbox` is deployed
 - `SuperchainConfig` is upgraded to manage the dependency set
@@ -36,7 +36,7 @@ The migration process also requires that:
 ### Add the chain to the op-governed dependency set
 
 The `SuperchainConfig` contract will be responsible for storing and managing the dependency set.
-Its `addChain` function will add a chain to the dependency set and call the `SystemConfig` of each chain
+Its `addChain` function will be used to add the chain to the dependency set and call the `SystemConfig` of each chain
 to keep them in sync.
 It will also allowlist the corresponding `OptimismPortal`, enabling it to lock and unlock ETH from the `SharedLockbox`.
 Once this process is complete, the system will be ready to process deposits and withdrawals.
@@ -46,7 +46,7 @@ Once this process is complete, the system will be ready to process deposits and 
 The ETH will be transferred from the `OptimismPortal` to the `SharedLockbox` using an intermediate contract.
 This contract functions similarly to upgrades using the `StorageSetter`, being updated immediately before to the real implementation.
 Its sole purpose is to transfer the ETH balance.
-This approach eliminates the need for additional code to move the liquidity to the lockbox later.
+This approach eliminates the need for adding code to move the liquidity to the lockbox that won't be used again.
 
 #### `LiquidityMigrator`
 
@@ -89,8 +89,8 @@ This transaction will include:
    - The `SharedLockbox` address is set as immutable in the new implementation
 
 The L1 ProxyAdmin owner (L1PAO) will execute this transaction. As the entity responsible for updating contracts,
-it has the authority to perform the first two steps.
-For the third step, the L1PAO has to be set as authorized for adding a chain to the op-governed dependency set
+it has the authority to perform the second and third steps.
+For the first step, the L1PAO has to be set as authorized for adding a chain to the op-governed dependency set
 on the `SuperchainConfig` when initializing.
 This process can be set as a [superchain-ops](https://github.com/ethereum-optimism/superchain-ops) task.
 
