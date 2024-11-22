@@ -12,7 +12,7 @@
 
 ## Overview
 
-This contract will need an upgrade to integrate the `SharedLockbox` and start using the shared ETH liquidity.
+The `OptimismPortal` contract is upgraded to integrate the `SharedLockbox` and start using the shared ETH liquidity.
 
 ### Interface and properties
 
