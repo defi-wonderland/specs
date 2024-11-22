@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -28,7 +29,7 @@ It implements two main functions: `lockETH` for depositing ETH into the lockbox,
 and `unlockETH` for withdrawing ETH from the lockbox.
 These functions are called by the `OptimismPortal` contracts to manage the shared ETH liquidity
 when making deposits or finalizing withdrawals.
-These `OptimismPortals` will be allowlisted by the `SuperchanConfig` using the `authorizePortal` function
+These `OptimismPortal`s will be allowlisted by the `SuperchanConfig` using the `authorizePortal` function
 when a chain is added.
 
 ### Interface and properties

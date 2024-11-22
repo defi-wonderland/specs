@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -91,7 +92,7 @@ The contract will add the following storage layout and function:
 **`dependencySet`**
 
 - An `EnumerableSet` that stores the current list of chain IDs in the dependency set.
-- It MUST contain the same chain IDs as the one stored in the `L1BlockInterop` on L2 for each chain.
+- It MUST contain all the chain IDs of the chains that integrate the corresponding Superchain network.
 
 **`addChain`**
 
