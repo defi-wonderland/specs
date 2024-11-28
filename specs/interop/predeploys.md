@@ -275,8 +275,17 @@ as well as domain binding, ie the executing transaction can only be valid on a s
 
 ### `relayMessage` Invariants
 
+- It MUST NOT be possible to call the function more than once per execution
 - The `Identifier.origin` MUST be `address(L2ToL2CrossDomainMessenger)`
 - The `_destination` chain id MUST be equal to the local chain id
+- Messages MUST NOT be relayed more than once
+- The `msg.sender` MUST be equal to the `entrypoint` address, if set
+- If `entrypoint` is not set, anyone MUST be able to relay the message
+
+### `sendMessage` Invariants
+
+- Sent Messages MUST be uniquely identifiable
+- It must emit the `SentMessage` event
 
 ### Message Versioning
 
@@ -317,8 +326,7 @@ __Using Entrypoint:__ Can be relayed on the destination chain only by the `_entr
 function sendMessage(uint256 _destination, address _target, bytes calldata _message, address _entrypoint) external returns (bytes32);
 ```
 
-Both functions return the hash of the message being sent,
-which is used to track whether the message has successfully been relayed.
+Both functions return the hash of the message being sent, which is used to track whether the message has successfully been relayed.
 They emit a `SentMessage` event with the necessary metadata to execute when relayed on the destination chain.
 
 ```solidity
