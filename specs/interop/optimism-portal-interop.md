@@ -5,7 +5,6 @@
 **Table of Contents**
 
 - [Overview](#overview)
-  - [Interface and properties](#interface-and-properties)
   - [Integrating `SharedLockbox`](#integrating-sharedlockbox)
   - [Invariants](#invariants)
 
@@ -17,21 +16,11 @@ The `OptimismPortal` contract is upgraded to integrate the `SharedLockbox` and s
 This liquidity consists of every ETH balance migrated from each `OptimismPortal`
 when joining the op-governed dependency set.
 
-### Interface and properties
-
-The `OptimismPortal` contract will add the following storage layout and modified functions:
-
-**`SHARED_LOCKBOX`**
-
-- An immutable address pointing to the `SharedLockbox` contract.
-- This address MUST be immutable because all `OptimismPortals` will point to the same `SharedLockbox`,
-  and this address SHOULD not change.
-
 ### Integrating `SharedLockbox`
 
-The integration with the `SharedLockbox` involves extra steps when executing deposit transactions
-or finalizing withdrawal transactions.
-These steps are locking and unlocking ETH without altering other aspects of the current `OptimismPortal` implementation.
+The integration with the `SharedLockbox` locking ETH when executing deposit transactions and unlocking ETH
+when finalizing withdrawal transactions, without altering other aspects of the current `OptimismPortal` implementation.
+
 To implement this solution, the following changes are needed:
 
 **`depositTransaction`**

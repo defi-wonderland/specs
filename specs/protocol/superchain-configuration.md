@@ -47,6 +47,7 @@ StandardBridge --> SuperchainConfig
 L1ERC721Bridge --> SuperchainConfig
 L1CrossDomainMessenger --> SuperchainConfig
 OptimismPortal --> SuperchainConfig
+SharedLockbox --> SuperchainConfig
 ```
 
 ### Pausability

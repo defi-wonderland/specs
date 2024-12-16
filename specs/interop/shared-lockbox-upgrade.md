@@ -18,7 +18,7 @@
 ## Overview
 
 Based on the assumption that a chain joining the op-governed dependency set is an irreversible process,
-it is assume that joining the Shared Lockbox is equivalent to it.
+it is assumed that joining the Shared Lockbox is equivalent to it.
 
 The upgrade process consists of three main points:
 
