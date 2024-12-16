@@ -30,6 +30,7 @@ Calls `lockETH` on the `SharedLockbox` with the `msg.value`.
 - The function MUST call `lockETH` with `msg.value` on the `SharedLockbox` if:
   - The token is `ETHER`.
   - `msg.value` is greater than zero.
+  - `OptimismPortal` address is authorized to interact with the `SharedLockbox`.
 
 ```mermaid
 sequenceDiagram
@@ -49,6 +50,7 @@ Calls `unlockETH` on the `SharedLockbox` with the `tx.value`.
 - The function MUST call `unlockETH` on the `SharedLockbox` if:
   - The token is `ETHER`.
   - `tx.value` is greater than zero.
+  - `OptimismPortal` address is authorized to interact with the `SharedLockbox`.
 - The ETH is received by the `OptimismPortal` and then sent with the withdrawal transaction
 
 ```mermaid
@@ -67,6 +69,11 @@ sequenceDiagram
 
 - It MUST lock the ETH amount on the `SharedLockbox` when on a deposit transaction with value greater than zero
 
+- Only MUST lock ETH if the `OptimismPortal` is authorized to interact with the `SharedLockbox`.
+
 - It MUST unlock the ETH amount being withdrawn from the `SharedLockbox` if it is greater than zero
 
+- Only MUST unlock ETH if the `OptimismPortal` is authorized to interact with the `SharedLockbox`.
+
 - It MUST NOT hold any ETH balance from any deposit transaction
+  if the `OptimismPortal` is authorized to interact with the `SharedLockbox`.
