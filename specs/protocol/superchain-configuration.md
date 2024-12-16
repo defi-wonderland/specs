@@ -35,6 +35,7 @@ The `SuperchainConfig` contract manages the following configuration values:
 
 - `PAUSED_SLOT`: A boolean value indicating whether the Superchain is paused.
 - `GUARDIAN_SLOT`: The address of the guardian, which can pause and unpause the system.
+- `UPGRADER_SLOT`: The address of the upgrader, which can add a chain to the depenceny set.
 
 ## Configuration data flow
 
@@ -106,7 +107,7 @@ The contract will add the following storage layout and function:
 
 The `addChain` function adds a new chain to the op-governed cluster.
 
-It can only be called by the `upgrader` role (TBD) in the `SuperchainConfig` and ensures that the chain ID
+It can only be called by the `UPGRADER` role in the `SuperchainConfig` and ensures that the chain ID
 is not already included in the dependency set.
 
 Before proceeding, it verifies that the new chain's dependency set size is zero.
@@ -132,7 +133,7 @@ event ChainAdded(uint256 indexed chainId, address indexed systemConfig, address 
 
 ### Invariants
 
-- Only the `upgrader` role (to be defined) MUST be able to add a new chain to the dependency set
+- Only the `UPGRADER` role MUST be able to add a new chain to the dependency set
 
 - The chain being added MUST NOT have any other dependencies before joining a cluster
 
