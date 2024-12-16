@@ -18,7 +18,7 @@ when joining the op-governed dependency set.
 
 ### Integrating `SharedLockbox`
 
-The integration with the `SharedLockbox` locking ETH when executing deposit transactions and unlocking ETH
+The integration with the `SharedLockbox` involves locking ETH when executing deposit transactions and unlocking ETH
 when finalizing withdrawal transactions, without altering other aspects of the current `OptimismPortal` implementation.
 
 To implement this solution, the following changes are needed:
