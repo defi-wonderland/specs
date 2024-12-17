@@ -13,6 +13,7 @@
 - [Dependency manager](#dependency-manager)
   - [Interface and properties](#interface-and-properties)
     - [`SHARED_LOCKBOX`](#shared_lockbox)
+    - [`upgrader`](#upgrader)
     - [`systemConfigs`](#systemconfigs)
     - [`dependencySet`](#dependencyset)
     - [`addChain`](#addchain)
@@ -84,6 +85,9 @@ The `SuperchainConfig` contract will manage and keep track of the dependency gra
 It will be queried as the source of truth to get which chains are part of the Superchain.
 It will also allow to add a chain to the op-governed cluster and update each chain’s dependency set.
 
+The `SuperchainConfig` contract is updated with a new `UPGRADER` role that has the ability
+to add a chain to the dependency set.
+
 ### Interface and properties
 
 The contract will add the following storage layout and function:
@@ -92,6 +96,11 @@ The contract will add the following storage layout and function:
 
 - An immutable address pointing to the `SharedLockbox` contract.
 - This address MUST be immutable because there's only one `SharedLockbox` for each cluster.
+
+#### `upgrader`
+
+- An address with the ability to add a chain to the dependency set.
+- The `upgrader` can only be set during initialization.
 
 #### `systemConfigs`
 

@@ -6,6 +6,8 @@
 
 - [Overview](#overview)
   - [Integrating `SharedLockbox`](#integrating-sharedlockbox)
+    - [`depositTransaction`](#deposittransaction)
+    - [`finalizeWithdrawalTransactionExternalProof`](#finalizewithdrawaltransactionexternalproof)
   - [Invariants](#invariants)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -16,6 +18,9 @@ The `OptimismPortal` contract is upgraded to integrate the `SharedLockbox` and s
 This liquidity consists of every ETH balance migrated from each `OptimismPortal`
 when joining the op-governed dependency set.
 
+It is possible to upgrade to this version without being part of the op-governed dependency set. In this case,
+the corresponding chain would need to deploy and manage its own `SharedLockbox` and `SuperchainConfig`.
+
 ### Integrating `SharedLockbox`
 
 The integration with the `SharedLockbox` involves locking ETH when executing deposit transactions and unlocking ETH
@@ -23,14 +28,13 @@ when finalizing withdrawal transactions, without altering other aspects of the c
 
 To implement this solution, the following changes are needed:
 
-**`depositTransaction`**
+#### `depositTransaction`
 
 Calls `lockETH` on the `SharedLockbox` with the `msg.value`.
 
 - The function MUST call `lockETH` with `msg.value` on the `SharedLockbox` if:
   - The token is `ETHER`.
   - `msg.value` is greater than zero.
-  - `OptimismPortal` address is authorized to interact with the `SharedLockbox`.
 
 ```mermaid
 sequenceDiagram
@@ -43,14 +47,13 @@ sequenceDiagram
     OptimismPortal->>OptimismPortal: emit TransactionDeposited()
 ```
 
-**`finalizeWithdrawalTransactionExternalProof`**
+#### `finalizeWithdrawalTransactionExternalProof`
 
 Calls `unlockETH` on the `SharedLockbox` with the `tx.value`.
 
 - The function MUST call `unlockETH` on the `SharedLockbox` if:
   - The token is `ETHER`.
   - `tx.value` is greater than zero.
-  - `OptimismPortal` address is authorized to interact with the `SharedLockbox`.
 - The ETH is received by the `OptimismPortal` and then sent with the withdrawal transaction
 
 ```mermaid
@@ -69,11 +72,6 @@ sequenceDiagram
 
 - It MUST lock the ETH amount on the `SharedLockbox` when on a deposit transaction with value greater than zero
 
-- Only MUST lock ETH if the `OptimismPortal` is authorized to interact with the `SharedLockbox`.
-
 - It MUST unlock the ETH amount being withdrawn from the `SharedLockbox` if it is greater than zero
 
-- Only MUST unlock ETH if the `OptimismPortal` is authorized to interact with the `SharedLockbox`.
-
-- It MUST NOT hold any ETH balance from any deposit transaction
-  if the `OptimismPortal` is authorized to interact with the `SharedLockbox`.
+- It MUST NOT hold any ETH balance from any deposit transaction.
