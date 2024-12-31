@@ -5,6 +5,7 @@
 **Table of Contents**
 
 - [Chain ID](#chain-id)
+- [Updating the Dependency Set](#updating-the-dependency-set)
 - [Security Considerations](#security-considerations)
   - [Layer 1 as Part of the Dependency Set](#layer-1-as-part-of-the-dependency-set)
 
@@ -43,6 +44,11 @@ configuration of the chain should deterministically map to a chain id and with c
 changes, all possible OP Stack chains in the superchain will be able to exist counterfactually.
 
 It is a known issue that not all software in the Ethereum can handle 32 byte chain ids.
+
+## Updating the Dependency Set
+
+The `SuperchainConfig` is updated to manage the dependency set.
+More details can be found on the [dependency manager section](./../protocol/superchain-configuration.md#dependency-manager).
 
 ## Security Considerations
 

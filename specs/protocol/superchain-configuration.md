@@ -82,7 +82,6 @@ When the Pause is activated, the following methods are disabled:
 
 The `SuperchainConfig` contract will manage and keep track of the dependency graph.
 It will be queried as the source of truth to get which chains are part of the Superchain.
-It will also allow to add a dependency to the op-governed cluster.
 
 The `SuperchainConfig` contract is updated with a new `DEPENDENCY_MANAGER` role that has the ability
 to add a dependency to the dependency set.
@@ -114,7 +113,7 @@ It can only be called by the `DEPENDENCY_MANAGER` role in the `SuperchainConfig`
 is not already included in the dependency set.
 
 Before proceeding, it verifies that the dependency set is not full (`type(uint8).max`).
-The function allowlists the new chain's `OptimismPortal` in the `SharedLockbox`.
+This function allowlists the new chain's `OptimismPortal` in the `SharedLockbox`.
 
 Finally, it emits the `DependencyAdded` event with the `chainId`, its corresponding `SystemConfig`, and `OptimismPortal`.
 
@@ -136,9 +135,9 @@ event DependencyAdded(uint256 indexed chainId, address indexed systemConfig, add
 
 - Only the `DEPENDENCY_MANAGER` role MUST be able to add a new dependency to the dependency set
 
-- The dependency set MUST NOT be at it's max size before adding a new dependency
+- A new chain CAN NOT be added to the dependency set once the maximum size is reached.
 
-- The chain ID MUST be different to the current `block.chainid`
+- The chain ID MUST be different from the current `block.chainid`
 
 - The same chain MUST NOT be added more than once
 
