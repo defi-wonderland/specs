@@ -12,13 +12,15 @@
   - [Initialization](#initialization)
   - [Interface](#interface)
     - [Fee Vault Config](#fee-vault-config)
-      - [`setBaseFeeVaultConfig`](#setbasefeevaultconfig)
-      - [`setL1FeeVaultConfig`](#setl1feevaultconfig)
-      - [`setSequencerFeeVaultConfig`](#setsequencerfeevaultconfig)
+      - [`setFeeVaultConfig`](#setfeevaultconfig)
+    - [Fee Admin](#fee-admin)
+      - [`feeAdmin`](#feeadmin)
+  - [Invariants](#invariants)
 - [`OptimismPortal`](#optimismportal)
   - [Interface](#interface-1)
     - [`setConfig`](#setconfig)
     - [`upgrade`](#upgrade)
+  - [Invariants](#invariants-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -33,16 +35,16 @@ configurability.
 
 The `ConfigType` enum represents configuration that can be modified.
 
-| Name | Value | Description |
-| ---- | ----- | --- |
-| `GAS_PAYING_TOKEN` | `uint8(0)` | Modifies the gas paying token for the chain |
-| `BASE_FEE_VAULT_CONFIG` | `uint8(1)` | Sets the Fee Vault Config for the `BaseFeeVault` |
-| `L1_FEE_VAULT_CONFIG` | `uint8(2)` | Sets the Fee Vault Config for the `L1FeeVault` |
-| `SEQUENCER_FEE_VAULT_CONFIG` | `uint8(3)` | Sets the Fee Vault Config for the `SequencerFeeVault` |
-| `L1_CROSS_DOMAIN_MESSENGER_ADDRESS` | `uint8(4)` | Sets the `L1CrossDomainMessenger` address |
-| `L1_ERC_721_BRIDGE_ADDRESS` | `uint8(5)` | Sets the `L1ERC721Bridge` address |
-| `L1_STANDARD_BRIDGE_ADDRESS` | `uint8(6)` | Sets the `L1StandardBridge` address |
-| `REMOTE_CHAIN_ID` | `uint8(7)` | Sets the chain id of the base chain |
+| Name                                | Value      | Description                                           |
+| ----------------------------------- | ---------- | ----------------------------------------------------- |
+| `GAS_PAYING_TOKEN`                  | `uint8(0)` | Modifies the gas paying token for the chain           |
+| `BASE_FEE_VAULT_CONFIG`             | `uint8(1)` | Sets the Fee Vault Config for the `BaseFeeVault`      |
+| `L1_FEE_VAULT_CONFIG`               | `uint8(2)` | Sets the Fee Vault Config for the `L1FeeVault`        |
+| `SEQUENCER_FEE_VAULT_CONFIG`        | `uint8(3)` | Sets the Fee Vault Config for the `SequencerFeeVault` |
+| `L1_CROSS_DOMAIN_MESSENGER_ADDRESS` | `uint8(4)` | Sets the `L1CrossDomainMessenger` address             |
+| `L1_ERC_721_BRIDGE_ADDRESS`         | `uint8(5)` | Sets the `L1ERC721Bridge` address                     |
+| `L1_STANDARD_BRIDGE_ADDRESS`        | `uint8(6)` | Sets the `L1StandardBridge` address                   |
+| `REMOTE_CHAIN_ID`                   | `uint8(7)` | Sets the chain id of the base chain                   |
 
 ## `SystemConfig`
 
@@ -50,13 +52,13 @@ The `ConfigType` enum represents configuration that can be modified.
 
 The following `ConfigUpdate` event is defined where the `CONFIG_VERSION` is `uint256(0)`:
 
-| Name | Value | Definition | Usage |
-| ---- | ----- | --- | -- |
-| `BATCHER` | `uint8(0)` | `abi.encode(address)` | Modifies the account that is authorized to progress the safe chain |
-| `FEE_SCALARS` | `uint8(1)` | `(uint256(0x01) << 248) \| (uint256(_blobbasefeeScalar) << 32) \| _basefeeScalar` | Modifies the fee scalars |
-| `GAS_LIMIT` | `uint8(2)` | `abi.encode(uint64 _gasLimit)` | Modifies the L2 gas limit |
-| `UNSAFE_BLOCK_SIGNER` | `uint8(3)` | `abi.encode(address)` | Modifies the account that is authorized to progress the unsafe chain |
-| `EIP_1559_PARAMS` | `uint8(4)` | `uint256(uint64(uint32(_denominator))) << 32 \| uint64(uint32(_elasticity))` | Modifies the EIP-1559 denominator and elasticity |
+| Name                  | Value      | Definition                                                                        | Usage                                                                |
+| --------------------- | ---------- | --------------------------------------------------------------------------------- | -------------------------------------------------------------------- |
+| `BATCHER`             | `uint8(0)` | `abi.encode(address)`                                                             | Modifies the account that is authorized to progress the safe chain   |
+| `FEE_SCALARS`         | `uint8(1)` | `(uint256(0x01) << 248) \| (uint256(_blobbasefeeScalar) << 32) \| _basefeeScalar` | Modifies the fee scalars                                             |
+| `GAS_LIMIT`           | `uint8(2)` | `abi.encode(uint64 _gasLimit)`                                                    | Modifies the L2 gas limit                                            |
+| `UNSAFE_BLOCK_SIGNER` | `uint8(3)` | `abi.encode(address)`                                                             | Modifies the account that is authorized to progress the unsafe chain |
+| `EIP_1559_PARAMS`     | `uint8(4)` | `uint256(uint64(uint32(_denominator))) << 32 \| uint64(uint32(_elasticity))`      | Modifies the EIP-1559 denominator and elasticity                     |
 
 ### Initialization
 
@@ -84,27 +86,31 @@ These actions MAY only be triggered if there is a diff to the value.
 
 For each `FeeVault`, there is a setter for its config. The arguments to the setter include
 the `RECIPIENT`, the `MIN_WITHDRAWAL_AMOUNT` and the `WithdrawalNetwork`.
-Each of these functions should be `public` and only callable by the chain governor.
+This function should be `public` and only callable by the fee admin.
 
 Each function calls `OptimismPortal.setConfig(ConfigType,bytes)` with its corresponding `ConfigType`.
 
-##### `setBaseFeeVaultConfig`
+##### `setFeeVaultConfig`
 
 ```solidity
-function setBaseFeeVaultConfig(address,uint256,WithdrawalNetwork)
+function setFeeVaultConfig(ConfigType,address,uint256,WithdrawalNetwork)
 ```
 
-##### `setL1FeeVaultConfig`
+#### Fee Admin
+
+A new role is introduced to call the vault config setters. This role is updated at the `initialize` function.
+
+##### `feeAdmin`
 
 ```solidity
-function setL1FeeVaultConfig(address,uint256,WithdrawalNetwork)
+function feeAdmin() returns (address)
 ```
 
-##### `setSequencerFeeVaultConfig`
+### Invariants
 
-```solidity
-function setSequencerFeeVaultConfig(address,uint256,WithdrawalNetwork)
-```
+- Only the fee admin MUST be able to update a fee vault config
+
+- Updating a fee vault config MUST emit a system deposit tx through the `OptimismPortal`
 
 ## `OptimismPortal`
 
@@ -133,7 +139,7 @@ The following fields are included:
 - `to` is `Predeploys.L1Block`
 - `version` is `uint256(0)`
 - `opaqueData` is the tightly packed transaction data where `mint` is `0`, `value` is `0`, the `gasLimit`
-   is `200_000`, `isCreation` is `false` and the `data` is `abi.encodeCall(L1Block.setConfig, (_type, _value))`
+  is `200_000`, `isCreation` is `false` and the `data` is `abi.encodeCall(L1Block.setConfig, (_type, _value))`
 
 #### `upgrade`
 
@@ -156,4 +162,12 @@ The following fields are included:
 - `to` is `Predeploys.ProxyAdmin`
 - `version` is `uint256(0)`
 - `opaqueData` is the tightly packed transaction data where `mint` is `0`, `value` is `0`, the `gasLimit`
-   is `200_000`, `isCreation` is `false` and the `data` is the data passed into `upgrade`.
+  is `200_000`, `isCreation` is `false` and the `data` is the data passed into `upgrade`.
+
+### Invariants
+
+- Only the `SystemConfig` MUST be able to call `setConfig`
+
+- Only the `UPGRADER` role MUST be able to call `upgrade`
+
+- `setConfig` and `upgrade` MUST emit a system deposit tx through `TransactionDeposited` event
