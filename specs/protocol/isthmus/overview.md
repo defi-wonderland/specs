@@ -21,3 +21,7 @@ This document is not finalized and should be considered experimental.
 ## Smart Contracts
 
 - [SuperchainConfig](./superchain-config.md)
+
+- [SystemConfig and OptimismPortal](./configurability.md)
+
+- [Predeploys](./predeploys.md)

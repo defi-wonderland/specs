@@ -18,12 +18,10 @@
     - [Interface](#interface-1)
       - [`config`](#config)
   - [L2CrossDomainMessenger](#l2crossdomainmessenger)
-    - [Interface](#interface-2)
   - [L2ERC721Bridge](#l2erc721bridge)
-    - [Interface](#interface-3)
   - [L2StandardBridge](#l2standardbridge)
-    - [Interface](#interface-4)
   - [OptimismMintableERC721Factory](#optimismmintableerc721factory)
+  - [OptimismMintableERC20Factory](#optimismmintableerc20factory)
 - [Security Considerations](#security-considerations)
   - [GovernanceToken](#governancetoken)
 
@@ -36,20 +34,20 @@ of the `SystemConfig`.
 
 ## Constants
 
-| Name | Value | Definition |
-| --------- | ------------------------- | -- |
-| `ConfigType` | `uint8` | An enum representing the type of config being set |
-| `WithdrawalNetwork` | `uint8(0)` or `uint8(1)` | `0` means withdraw to L1, `1` means withdraw to L2  |
-| `RECIPIENT` | `address` | The account that will receive funds sent out of the `FeeVault` |
-| `MIN_WITHDRAWAL_AMOUNT` | `uint256` | The minimum amount of native asset held in the `FeeVault` before withdrawal is authorized |
-| Fee Vault Config | `bytes32` | `bytes32((WithdrawalNetwork << 248) \|\| uint256(uint88(MIN_WITHDRAWAL_AMOUNT)) \|\| uint256(uint160(RECIPIENT)))` |
-| `BASE_FEE_VAULT_CONFIG` | `bytes32(uint256(keccak256("opstack.basefeevaultconfig")) - 1)` | The Fee Vault Config for the `BaseFeeVault` |
-| `L1_FEE_VAULT_CONFIG` | `bytes32(uint256(keccak256("opstack.l1feevaultconfig")) - 1)` | The Fee Vault Config for the `L1FeeVault` |
-| `SEQUENCER_FEE_VAULT_CONFIG` | `bytes32(uint256(keccak256("opstack.sequencerfeevaultconfig")) - 1)` | The Fee Vault Config for the `SequencerFeeVault` |
-| `L1_CROSS_DOMAIN_MESSENGER_ADDRESS` | `bytes32(uint256(keccak256("opstack.l1crossdomainmessengeraddress")) - 1)` | `abi.encode(address(L1CrossDomainMessengerProxy))` |
-| `L1_ERC_721_BRIDGE_ADDRESS` | `bytes32(uint256(keccak256("opstack.l1erc721bridgeaddress")) - 1)` | `abi.encode(address(L1ERC721BridgeProxy))` |
-| `L1_STANDARD_BRIDGE_ADDRESS` | `bytes32(uint256(keccak256("opstack.l1standardbridgeaddress")) - 1)` | `abi.encode(address(L1StandardBridgeProxy))` |
-| `REMOTE_CHAIN_ID` | `bytes32(uint256(keccak256("opstack.remotechainid")) - 1)` | Chain ID of the remote chain |
+| Name                                | Value                                                                      | Definition                                                                                                         |
+| ----------------------------------- | -------------------------------------------------------------------------- | ------------------------------------------------------------------------------------------------------------------ |
+| `ConfigType`                        | `uint8`                                                                    | An enum representing the type of config being set                                                                  |
+| `WithdrawalNetwork`                 | `uint8(0)` or `uint8(1)`                                                   | `0` means withdraw to L1, `1` means withdraw to L2                                                                 |
+| `RECIPIENT`                         | `address`                                                                  | The account that will receive funds sent out of the `FeeVault`                                                     |
+| `MIN_WITHDRAWAL_AMOUNT`             | `uint256`                                                                  | The minimum amount of native asset held in the `FeeVault` before withdrawal is authorized                          |
+| Fee Vault Config                    | `bytes32`                                                                  | `bytes32((WithdrawalNetwork << 248) \|\| uint256(uint88(MIN_WITHDRAWAL_AMOUNT)) \|\| uint256(uint160(RECIPIENT)))` |
+| `BASE_FEE_VAULT_CONFIG`             | `bytes32(uint256(keccak256("opstack.basefeevaultconfig")) - 1)`            | The Fee Vault Config for the `BaseFeeVault`                                                                        |
+| `L1_FEE_VAULT_CONFIG`               | `bytes32(uint256(keccak256("opstack.l1feevaultconfig")) - 1)`              | The Fee Vault Config for the `L1FeeVault`                                                                          |
+| `SEQUENCER_FEE_VAULT_CONFIG`        | `bytes32(uint256(keccak256("opstack.sequencerfeevaultconfig")) - 1)`       | The Fee Vault Config for the `SequencerFeeVault`                                                                   |
+| `L1_CROSS_DOMAIN_MESSENGER_ADDRESS` | `bytes32(uint256(keccak256("opstack.l1crossdomainmessengeraddress")) - 1)` | `abi.encode(address(L1CrossDomainMessengerProxy))`                                                                 |
+| `L1_ERC_721_BRIDGE_ADDRESS`         | `bytes32(uint256(keccak256("opstack.l1erc721bridgeaddress")) - 1)`         | `abi.encode(address(L1ERC721BridgeProxy))`                                                                         |
+| `L1_STANDARD_BRIDGE_ADDRESS`        | `bytes32(uint256(keccak256("opstack.l1standardbridgeaddress")) - 1)`       | `abi.encode(address(L1StandardBridgeProxy))`                                                                       |
+| `REMOTE_CHAIN_ID`                   | `bytes32(uint256(keccak256("opstack.remotechainid")) - 1)`                 | Chain ID of the remote chain                                                                                       |
 
 ## Predeploys
 
@@ -110,9 +108,9 @@ via a deposit transaction from the `DEPOSITOR_ACCOUNT`.
 
 ##### `setIsthmus`
 
-This function is meant to be called once on the activation block of the holocene network upgrade.
+This function is meant to be called once on the activation block of the Isthmus network upgrade.
 It MUST only be callable by the `DEPOSITOR_ACCOUNT` once. When it is called, it MUST call
-call each getter for the network specific config and set the returndata into storage.
+each getter for the network specific config and set the returndata into storage.
 
 ##### `setConfig`
 
@@ -151,11 +149,11 @@ The following functions are updated to read from the `L1Block` contract:
 - `minWithdrawalAmount()(uint256)`
 - `withdraw()`
 
-| Name | Call |
-| ---- | -------- |
-| `BaseFeeVault` | `L1Block.getConfig(ConfigType.BASE_FEE_VAULT_CONFIG)` |
+| Name                | Call                                                       |
+| ------------------- | ---------------------------------------------------------- |
+| `BaseFeeVault`      | `L1Block.getConfig(ConfigType.BASE_FEE_VAULT_CONFIG)`      |
 | `SequencerFeeVault` | `L1Block.getConfig(ConfigType.SEQUENCER_FEE_VAULT_CONFIG)` |
-| `L1FeeVault` | `L1Block.getConfig(ConfigType.L1_FEE_VAULT_CONFIG)` |
+| `L1FeeVault`        | `L1Block.getConfig(ConfigType.L1_FEE_VAULT_CONFIG)`        |
 
 ##### `config`
 
@@ -167,16 +165,18 @@ function config()(address,uint256,WithdrawalNetwork)
 
 ### L2CrossDomainMessenger
 
-#### Interface
+To make this contract not initializable, the universal `CrossDomainMessenger` contract is updated to no longer be initializable.
+However, the L1 version continues to be.
 
-The following functions are updated to read from the `L1Block` contract by calling `L1Block.getConfig(ConfigType.L1_CROSS_DOMAIN_MESSENGER_ADDRESS)`:
-
-- `otherMessenger()(address)`
-- `OTHER_MESSENGER()(address)`
+The `otherMessenger()(address)` function is updated to read from the `L1Block` contract
+by calling `L1Block.getConfig(ConfigType.L1_CROSS_DOMAIN_MESSENGER_ADDRESS)`.
 
 ### L2ERC721Bridge
 
-#### Interface
+To make this contract not initializable, the universal `ERC721Bridge` contract is updated to no longer be initializable.
+However, the L1 version continues to be.
+
+The `messenger()` function is updated to return `Predeploys.L2_CROSS_DOMAIN_MESSENGER`.
 
 The following functions are updated to read from the `L1Block` contract by calling `L1Block.getConfig(ConfigType.L1_ERC721_BRIDGE_ADDRESS)`:
 
@@ -185,7 +185,10 @@ The following functions are updated to read from the `L1Block` contract by calli
 
 ### L2StandardBridge
 
-#### Interface
+To make this contract not initializable, the universal `StandardBridge` contract is updated to no longer be initializable.
+However, the L1 version continues to be.
+
+The `messenger()` function is updated to return `Predeploys.L2_CROSS_DOMAIN_MESSENGER`.
 
 The following functions are updated to read from the `L1Block` contract by calling `L1Block.getConfig(ConfigType.L1_STANDARD_BRIDGE_ADDRESS)`:
 
@@ -194,8 +197,21 @@ The following functions are updated to read from the `L1Block` contract by calli
 
 ### OptimismMintableERC721Factory
 
+This contract is updated to remove its constructor.
+
 The chain id is no longer read from storage but instead is read from the `L1Block` contract by calling
 `L1Block.getConfig(ConfigType.REMOTE_CHAIN_ID)`
+
+The bridge is no longer set in the constructor but instead it uses the `Predeploys.L2_ERC721_BRIDGE`
+
+### OptimismMintableERC20Factory
+
+The universal contract is updated to be abstract and no longer initializable.
+Two new contracts are derived from it: `L1OptimismMintableERC20Factory` and `L2OptimismMintableERC20Factory`
+
+In L2, the bridge is no longer set in the constructor but instead it uses the `Predeploys.L2_STANDARD_BRIDGE`
+
+The L1 version continues to be initializable.
 
 ## Security Considerations
 
