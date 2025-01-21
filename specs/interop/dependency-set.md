@@ -6,7 +6,6 @@
 
 - [Chain ID](#chain-id)
 - [Updating the Dependency Set](#updating-the-dependency-set)
-  - [Invariants](#invariants)
 - [Architecture](#architecture)
   - [L2 DependencyManager](#l2-dependencymanager)
   - [L1 SuperchainConfigInterop](#l1-superchainconfiginterop)
@@ -59,13 +58,6 @@ The dependency set is managed through a two-step process involving both L2 and L
 1. The L2 `DependencyManager` predeploy contract initiates the addition of a new dependency through a withdrawal transaction
 2. The L1 `SuperchainConfigInterop` contract processes this withdrawal and updates the L1-side dependency set
 
-### Invariants
-
-- A chain CANNOT be added to the dependency set more than once
-- A chain's own chain ID is always implicitly part of its dependency set
-- The dependency set size cannot exceed 255 entries
-- Only the `DEPOSITOR_ACCOUNT` can add a chain to the dependency set
-
 ## Architecture
 
 ### L2 DependencyManager
@@ -76,6 +68,8 @@ that manages the L2-side dependency set. It:
 - Maintains the list of chain IDs in the dependency set
 - Initiates withdrawal transactions to L1 when adding new dependencies
 - Provides query methods to check dependency set membership and size
+
+More details can be found on the [Dependency Manager specification](./predeploys.md#dependencymanager).
 
 ### L1 SuperchainConfigInterop
 

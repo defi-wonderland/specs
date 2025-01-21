@@ -895,6 +895,7 @@ event DependencyAdded(uint256 indexed chainId);
 - A chain cannot be added more than once
 - The dependency set cannot exceed 255 entries
 - A chain's own chain ID is always implicitly part of its dependency set
+- MUST initiate a withdrawal transaction to the L1 `SuperchainConfigInterop` when adding a new dependency
 
 ## Security Considerations
 
