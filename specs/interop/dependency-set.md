@@ -87,7 +87,7 @@ The L1 `SuperchainConfigInterop` extends `SuperchainConfig` to manage the L1-sid
 - Handles ETH liquidity migration to `SharedLockbox` when adding new dependencies
 - Can only be updated by authorized portals through withdrawal transactions or the `CLUSTER_MANAGER` role
 
-More details can be found on the [dependency manager section](./../protocol/superchain-config.md#dependency-manager).
+More details can be found on the [Superchain Config interop specification](./superchain-config.md#Overview).
 
 ## Future Considerations
 
