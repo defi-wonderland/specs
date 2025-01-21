@@ -106,7 +106,7 @@ event ETHMigrated(uint256 amount);
 
   - Deposits MUST lock the ETH in the `SharedLockbox`
 
-  - Withdrawals MUST unlock the ETH from the `SharedLockbox`
+  - Withdrawals MUST unlock the ETH from the `SharedLockbox` and forward it to the withdrawal target
 
   - The contract MUST NOT hold any ETH balance
 
