@@ -96,23 +96,24 @@ event ETHMigrated(uint256 amount);
 
 ## Invariants
 
-- When processing deposits with ETH value:
+- Before migration:
 
-  - If migrated, MUST lock the ETH in the `SharedLockbox`
-  - If not migrated, MUST keep the ETH in the portal
-  - The contract MUST NOT revert on zero ETH value operations
+  - Deposits MUST keep the ETH in the portal
 
-- When processing withdrawals with ETH value:
-
-  - If migrated, MUST unlock the ETH from the `SharedLockbox`
-  - If not migrated, MUST use the portal's own ETH balance
-  - The contract MUST NOT revert on zero ETH value operations
-
-- The contract MUST NOT allow withdrawals to target the `SharedLockbox` address
-
-- The contract MUST only migrate liquidity once
+  - Withdrawals MUST use the portal's own ETH balance
 
 - After migration:
-  - All ETH deposits MUST be locked in the `SharedLockbox`
-  - All ETH withdrawals MUST be unlocked from the `SharedLockbox`
+
+  - Deposits MUST lock the ETH in the `SharedLockbox`
+
+  - Withdrawals MUST unlock the ETH from the `SharedLockbox`
+
   - The contract MUST NOT hold any ETH balance
+
+- General invariants:
+
+  - The contract MUST NOT revert on zero ETH value operations
+
+  - The contract MUST NOT allow withdrawals to target the `SharedLockbox` address
+
+  - The contract MUST only migrate liquidity once
