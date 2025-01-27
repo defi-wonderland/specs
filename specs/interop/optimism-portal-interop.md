@@ -112,7 +112,7 @@ event ETHMigrated(uint256 amount);
 
 - General invariants:
 
-  - The contract MUST handle zero ETH value operations
+  - The contract MUST be able to handle zero ETH value operations
 
   - The contract MUST NOT allow withdrawals to target the `SharedLockbox` address
 
