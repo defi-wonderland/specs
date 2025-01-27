@@ -106,15 +106,17 @@ event DependencyAdded(uint256 indexed chainId, address indexed systemConfig, add
 
 ## Invariants
 
-- Only the cluster manager role or authorized portals through withdrawal transactions MUST be able to add dependencies
 
-- If the chain is added through a withdrawal transaction, the L2 sender MUST be the `DependencyManager` predeploy contract
+- If the chain is added through a withdrawal transaction, the L2 sender MUST be the `DependencyManager` predeploy contract.
+
+- If the chain is NOT added through a withdrawal transaction, the msg sender MUST be the `CLUSTER_MANAGER`.
 
 - A chain CANNOT be added to the dependency set if:
 
+  - `SuperchainConfig` is paused
   - It would exceed the maximum size (255 chains)
   - It is already in the set
-  - It has an invalid `SuperchainConfig` configuration set in its `OptimismPortal`
+  - The `OptimismPortal` is configured with a different address for the `SuperchainConfig` than this one.
 
 - When a chain is added:
 

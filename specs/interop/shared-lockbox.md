@@ -103,8 +103,6 @@ event ETHUnlocked(address indexed portal, uint256 amount);
 
 - It MUST allow only authorized portals to unlock ETH
 
-- Authorization of portals MUST be managed by the `SuperchainConfigInterop` contract
-
 - It MUST be in paused state if the `SuperchainConfig` is paused
 
 - No Ether MUST flow out of the contract when in a paused state

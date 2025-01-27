@@ -108,11 +108,11 @@ event ETHMigrated(uint256 amount);
 
   - Withdrawals MUST unlock the ETH from the `SharedLockbox` and forward it to the withdrawal target
 
-  - The contract MUST NOT hold any ETH balance
+  - The contract MUST NOT hold any ETH balance from deposits or withdrawals
 
 - General invariants:
 
-  - The contract MUST NOT revert on zero ETH value operations
+  - The contract MUST handle zero ETH value operations
 
   - The contract MUST NOT allow withdrawals to target the `SharedLockbox` address
 
