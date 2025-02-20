@@ -19,6 +19,12 @@
 - [Future Considerations](#future-considerations)
   - [Cross Chain `transferFrom`](#cross-chain-transferfrom)
   - [Concatenated Action](#concatenated-action)
+- [`CrosschainERC20`](#crosschainerc20)
+  - [Properties](#properties)
+  - [Implementation](#implementation)
+- [`ERC7802Adapter`](#erc7802adapter)
+  - [Properties](#properties)
+  - [Implementation](#implementation)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -273,3 +279,137 @@ proper transaction ordering at the sequencer level.
 However, it would also introduce additional risks for cross-chain fund transfers.
 Specifically, an incorrectly formatted call could burn funds on the initiating chain,
 but revert on the destination chain, and could never be successfully replayed.
+
+## `CrosschainERC20`
+
+### Properties
+
+The contract will build on top of [xERC20](https://github.com/defi-wonderland/xERC20/blob/main/solidity/contracts/XERC20.sol) (ERC7281), implementing the IERC7802 interface.
+
+Key differences between `CrosschainERC20` and `SuperchainERC20` due to being an extension of `xERC20`:
+
+- `CrosschainERC20` is ownable.
+- `CrosschainERC20` needs to set the `mint` and `burn` limits for every bridge, including `SuperchainTokenBridge`.
+- If the issuer wants to use it as a `SuperchainERC20`, they can renounce ownership after setting the limits for the `SuperchainTokenBridge`.
+
+### Implementation
+
+`CrosschainERC20` utilizes the `xERC20` interface and `SuperchainERC20` interface. This means that function names are the same, but there are some differences in the implementation.
+
+#### `crosschainMint`
+
+Instead of calling the internal `_mint` function, it calls `_mintWithCaller` from `xERC20`.
+
+Implementation example:
+
+```solidity
+function crosschainMint(address _account, uint256 _amount) external {
+    _mintWithCaller(_account, _amount, msg.sender);
+
+    emit CrosschainMint(_to, _amount, msg.sender);
+}
+```
+
+#### `crosschainBurn`
+
+Similar to `crosschainMint`, but calls `_burnWithCaller` from `xERC20`.
+
+Implementation example:
+
+```solidity
+function crosschainBurn(address _account, uint256 _amount) external {
+    _burnWithCaller(_account, _amount, msg.sender);
+
+    emit CrosschainBurn(_from, _amount, msg.sender);
+}
+```
+
+In order to be able to call `_mintWithCaller` and `_burnWithCaller`, the issuer will need to set up `mint` and `burn` limits by using the `setLimits` function from [`xERC20`](https://github.com/defi-wonderland/xERC20/blob/da2afabdeb1bad9ccda2f6eb928cd99e852530be/solidity/contracts/XERC20.sol#L85).
+
+## `ERC7802Adapter`
+
+### Properties
+
+The contract will be in the middle of an `xERC20` and a bridge that uses the `ERC7802` interface. Its main function is to redirect `crosschainMint` and `crosschainBurn` to `xERC20` `mint` and `burn` functions. By setting the `BRIDGE` and `XERC20` addresses, the issuer can control which bridge and token will be used.
+
+### Implementation
+
+#### `crosschainMint`
+
+Implementation example:
+
+```solidity
+function crosschainMint(address _to, uint256 _amount) external {
+    if (msg.sender != BRIDGE) revert Unauthorized();
+
+    XERC20.mint(_to, _amount);
+
+    emit CrosschainMint(_to, _amount, msg.sender);
+}
+```
+
+#### `crosschainBurn`
+
+Implementation example:
+
+```solidity
+function crosschainBurn(address _from, uint256 _amount) external {
+    if (msg.sender != BRIDGE) revert Unauthorized();
+
+    XERC20.burn(_from, _amount);
+
+    emit CrosschainBurn(_from, _amount, msg.sender);
+}
+```
+
+### Setup Diagram:
+
+```mermaid
+sequenceDiagram
+  actor A0 as Owner
+  box L2 Chain
+	  participant P1 as Factory
+    participant P2 as Adapter
+    participant P3 as XERC20
+  end
+
+	A0 ->> P1: deployAdapter()
+	P1 ->> P2: constructor(XERC20)
+  A0 ->> P3: setLimit(Adapter...)
+
+```
+
+### Usage Diagrams:
+
+```mermaid
+sequenceDiagram
+
+  actor A1 as Alice
+  box L2 Chain A
+    participant P1 as SuperchainTokenBridge
+    participant P2 as Adapter
+    participant P3 as XERC20 A
+  end
+
+  A1 ->> P1: sendERC20(Adapter...)
+  P1 ->> P2: crosschainBurn()
+  P2 ->> P3: burn()
+  P1 -->> P1: SendERC20()
+
+```
+
+```mermaid
+sequenceDiagram
+
+  box L2 Chain B
+    participant P5 as XERC20 B
+    participant P6 as Adapter'
+    participant P7 as SuperchainTokenBridge
+  end
+  actor A2 as Relayer
+
+  A2 ->> P7: relayERC20(Adapter'...)
+  P7 ->> P6: crosschainMint()
+  P6 ->> P5: mint()
+  P7 -->> P7: RelayERC20()
+```
