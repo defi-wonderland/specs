@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Motivation and Constraints](#motivation-and-constraints)
@@ -28,13 +29,13 @@ Superchain WETH is an enhanced version of the standard WETH contract, enabling E
 Superchain. The Superchain WETH contract serves two primary functions:
 
 1. **Native ETH Transfers**: It provides the `sendETH` and `relayETH` functions to transfer **native ETH** directly
-between interoperable chains that both use ETH as their native token. If the destination chain does not use ETH as
-its native asset, the transferred ETH is converted into the **SuperchainWETH** ERC20 token on the destination chain
-instead.
+   between interoperable chains that both use ETH as their native token. If the destination chain does not use ETH as
+   its native asset, the transferred ETH is converted into the **SuperchainWETH** ERC20 token on the destination chain
+   instead.
 2. **ERC20 Token**: It extends the **ERC20** contract, allowing ETH to be wrapped into the **SuperchainWETH** ERC20
-token. This wrapped token can be transferred across interoperable chains via the
-[SuperchainTokenBridge](./predeploys.md#superchainerc20bridge), serving as the entry point for ERC20 token
-interoperability.
+   token. This wrapped token can be transferred across interoperable chains via the
+   [SuperchainTokenBridge](./predeploys.md#superchaintokenbridge), serving as the entry point for ERC20 token
+   interoperability.
 
 Superchain WETH integrates with the `ETHLiquidity` contract to manage native ETH liquidity across chains, ensuring
 seamless cross-chain transfers of ETH in both its native and ERC20 forms.
@@ -49,7 +50,7 @@ enables interoperability between chains must be able to account for ETH.
 ### Handling native assets other than ETH
 
 Not all chains using the OP Stack use ETH as the native asset. We would like these chains to be able to interoperate
-with chains that *do* use ETH as a native asset. Certain solutions that might work when all chains use ETH as a native
+with chains that _do_ use ETH as a native asset. Certain solutions that might work when all chains use ETH as a native
 asset begin to break down when alternative native assets are introduced. For example, a protocol that burns the native
 asset on one chain and mints it on another will work if both chains use the same native asset but will obviously fail if
 either chain uses a different native asset.
@@ -68,7 +69,9 @@ but does not preclude a protocol-layer solution as long as we minimize implement
 | `ETHLiquidity` Address   | `0x4200000000000000000000000000000000000025` |
 
 ## SuperchainWETH
+
 <!-- TODO (https://github.com/ethereum-optimism/specs/issues/479) re-write invariants to use imperative form -->
+
 ### Invariants
 
 #### `deposit`
@@ -124,13 +127,13 @@ but does not preclude a protocol-layer solution as long as we minimize implement
 #### Global Invariants
 
 - Initial balance must be set to `type(uint248).max` (wei).
-The purpose for using `type(uint248).max` is to guarantee that
-the balance will be sufficient to credit all use within the `SuperchainWETH` contract,
-but will never overflow on calls to `burn` because there is not enough ETH
-in the total ETH supply to cause such an overflow.
-The invariant that avoids overflow is maintained by  `SuperchainWETH`, but could theoretically
-be broken by some future contract that is allowed to integrate with `ETHLiquidity`. Maintainers should be careful to
-ensure that such future contracts do not break this invariant.
+  The purpose for using `type(uint248).max` is to guarantee that
+  the balance will be sufficient to credit all use within the `SuperchainWETH` contract,
+  but will never overflow on calls to `burn` because there is not enough ETH
+  in the total ETH supply to cause such an overflow.
+  The invariant that avoids overflow is maintained by `SuperchainWETH`, but could theoretically
+  be broken by some future contract that is allowed to integrate with `ETHLiquidity`. Maintainers should be careful to
+  ensure that such future contracts do not break this invariant.
 
 #### `burn`
 
