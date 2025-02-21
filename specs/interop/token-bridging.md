@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -371,16 +372,16 @@ function crosschainBurn(address _from, uint256 _amount) external {
 
 ```mermaid
 sequenceDiagram
-  actor A0 as Owner
-  box L2 Chain
-	  participant P1 as Factory
-    participant P2 as Adapter
-    participant P3 as XERC20
-  end
+	actor A0 as Owner
+	box L2 Chain
+		participant P1 as Factory
+		participant P2 as Adapter
+		participant P3 as XERC20
+	end
 
 	A0 ->> P1: deployAdapter()
-	P1 ->> P2: constructor(XERC20)
-  A0 ->> P3: setLimit(Adapter...)
+	P1 ->> P2: constructor(XERC20, BRIDGE)
+	A0 ->> P3: setLimit(Adapter...)
 
 ```
 
@@ -388,33 +389,31 @@ sequenceDiagram
 
 ```mermaid
 sequenceDiagram
+	actor A1 as Alice
+	box L2 Chain A
+		participant P1 as SuperchainTokenBridge
+		participant P2 as Adapter
+		participant P3 as XERC20 A
+	end
 
-  actor A1 as Alice
-  box L2 Chain A
-    participant P1 as SuperchainTokenBridge
-    participant P2 as Adapter
-    participant P3 as XERC20 A
-  end
-
-  A1 ->> P1: sendERC20(Adapter...)
-  P1 ->> P2: crosschainBurn()
-  P2 ->> P3: burn()
-  P1 -->> P1: SendERC20()
+	A1 ->> P1: sendERC20(Adapter...)
+	P1 ->> P2: crosschainBurn()
+	P2 ->> P3: burn()
+	P1 -->> P1: SendERC20()
 
 ```
 
 ```mermaid
 sequenceDiagram
+	box L2 Chain B
+		participant P5 as XERC20 B
+		participant P6 as Adapter'
+		participant P7 as SuperchainTokenBridge
+	end
+	actor A2 as Relayer
 
-  box L2 Chain B
-    participant P5 as XERC20 B
-    participant P6 as Adapter'
-    participant P7 as SuperchainTokenBridge
-  end
-  actor A2 as Relayer
-
-  A2 ->> P7: relayERC20(Adapter'...)
-  P7 ->> P6: crosschainMint()
-  P6 ->> P5: mint()
-  P7 -->> P7: RelayERC20()
+	A2 ->> P7: relayERC20(Adapter'...)
+	P7 ->> P6: crosschainMint()
+	P6 ->> P5: mint()
+	P7 -->> P7: RelayERC20()
 ```
