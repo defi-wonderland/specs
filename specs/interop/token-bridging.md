@@ -2,7 +2,6 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
 - [Overview](#overview)
@@ -20,11 +19,17 @@
   - [Cross Chain `transferFrom`](#cross-chain-transferfrom)
   - [Concatenated Action](#concatenated-action)
 - [`CrosschainERC20`](#crosschainerc20)
-  - [Properties](#properties)
-  - [Implementation](#implementation)
+  - [Properties](#properties-1)
+  - [Implementation](#implementation-1)
+    - [`crosschainMint`](#crosschainmint-1)
+    - [`crosschainBurn`](#crosschainburn-1)
 - [`ERC7802Adapter`](#erc7802adapter)
-  - [Properties](#properties)
-  - [Implementation](#implementation)
+  - [Properties](#properties-2)
+  - [Implementation](#implementation-2)
+    - [`crosschainMint`](#crosschainmint-2)
+    - [`crosschainBurn`](#crosschainburn-2)
+  - [Setup Diagram:](#setup-diagram)
+  - [Usage Diagrams:](#usage-diagrams)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
