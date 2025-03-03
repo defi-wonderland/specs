@@ -15,7 +15,6 @@
       - [`setFeeVaultConfig`](#setfeevaultconfig)
     - [Fee Admin](#fee-admin)
       - [`feeAdmin`](#feeadmin)
-      - [`setFeeVaultAdmin`](#setfeevaultadmin)
   - [Invariants](#invariants)
 - [`OptimismPortal`](#optimismportal)
   - [Interface](#interface-1)
@@ -128,8 +127,8 @@ function setFeeVaultConfig(ConfigType,address,uint256,WithdrawalNetwork)
 
 #### Fee Admin
 
-A new role is introduced to call the vault config setters. This role is updated at the `initialize` function and can only be changed by an upgrade of the `SystemConfig`.
-
+A new role is introduced to call the vault config setters. This role is updated at the `initialize` function.
+The fee admin role and can only be changed by an upgrade of the `SystemConfig`.
 
 ##### `feeAdmin`
 
