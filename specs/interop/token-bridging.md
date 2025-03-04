@@ -12,9 +12,21 @@
     - [`crosschainBurn`](#crosschainburn)
     - [`CrosschainMint`](#crosschainmint)
     - [`CrosschainBurn`](#crosschainburn)
-- [`SuperchainERC20Bridge`](#superchainerc20bridge)
-- [Diagram](#diagram)
-- [Implementation](#implementation)
+- [`SuperchainTokenBridge`](#superchaintokenbridge)
+  - [Diagram](#diagram)
+  - [Implementation](#implementation)
+- [`CrosschainERC20`](#crosschainerc20)
+  - [Properties](#properties-1)
+  - [Implementation](#implementation-1)
+    - [`crosschainMint`](#crosschainmint-1)
+    - [`crosschainBurn`](#crosschainburn-1)
+- [`ERC7802Adapter`](#erc7802adapter)
+  - [Properties](#properties-2)
+  - [Implementation](#implementation-2)
+    - [`crosschainMint`](#crosschainmint-2)
+    - [`crosschainBurn`](#crosschainburn-2)
+  - [Setup Diagram](#setup-diagram)
+  - [Usage Diagrams](#usage-diagrams)
 - [Future Considerations](#future-considerations)
   - [Cross Chain `transferFrom`](#cross-chain-transferfrom)
   - [Concatenated Action](#concatenated-action)
@@ -25,8 +37,8 @@
 
 Without a standardized security model, bridged assets may not be fungible with each other.
 The `SuperchainERC20` standard is a set of properties and an interface allowing ERC20 to be fungible across the
-Superchain using the official `SuperchainERC20Bridge`.
-The `SuperchainERC20Bridge` is a predeploy that builds on the messaging protocol as the most trust-minimized bridging solution.
+Superchain using the official `SuperchainTokenBridge`.
+The `SuperchainTokenBridge` is a predeploy that builds on the messaging protocol as the most trust-minimized bridging solution.
 
 ## `SuperchainERC20` standard
 
@@ -36,21 +48,21 @@ The standard will build on top of ERC20, implement the
 [`IERC7802`](https://github.com/ethereum/ERCs/pull/692)
 interface, and include the following properties:
 
-1. Implement the [ERC20](https://eips.ethereum.org/EIPS/eip-20) interface
+1. Implement the [`ERC20`](https://eips.ethereum.org/EIPS/eip-20) interface
 2. Implement the [`ERC7802`](https://github.com/ethereum/ERCs/pull/692) interface
-3. Allow [`SuperchainERC20Bridge`](./predeploys.md#superchainerc20bridge) to call
+3. Allow [`SuperchainTokenBridge`](./predeploys.md#superchaintokenbridge) to call
    [`crosschainMint`](#crosschainmint) and [`crosschainBurn`](#crosschainburn).
 4. Be deployed at the same address on every chain in the Superchain.
 
-The third property will allow the `SuperchainERC20Bridge` to have a liquidity guarantee,
+The third property will allow the `SuperchainTokenBridge` to have a liquidity guarantee,
 which would not be possible in a model based on lock/unlock.
 Liquidity availability is fundamental to achieving fungibility.
 
-SuperchainERC20Bridge does not have to be the exclusive caller of `crosschainMint` and `crosschainBurn`;
+SuperchainTokenBridge does not have to be the exclusive caller of `crosschainMint` and `crosschainBurn`;
 other addresses may also be permitted to call these functions.
 
 The fourth property removes the need for cross-chain access control lists.
-Otherwise, the `SuperchainERC20Bridge` would need a way to verify if the tokens it mints on
+Otherwise, the `SuperchainTokenBridge` would need a way to verify if the tokens it mints on
 destination correspond to the tokens that were burned on source.
 Same address abstracts away cross-chain validation.
 
@@ -104,28 +116,28 @@ MUST trigger when `crosschainBurn` is called
 event CrosschainBurn(address indexed _from, uint256 _amount, address indexed _sender)
 ```
 
-## `SuperchainERC20Bridge`
+## `SuperchainTokenBridge`
 
-The `SuperchainERC20Bridge` is a predeploy that works as an abstraction
+The `SuperchainTokenBridge` is a predeploy that works as an abstraction
 on top of the [L2ToL2CrossDomainMessenger][l2-to-l2]
 for token bridging.
 The `L2ToL2CrossDomainMessenger` is used for replay protection,
 domain binding and access to additional message information.
-The `SuperchainERC20Bridge` includes two functions for bridging:
+The `SuperchainTokenBridge` includes two functions for bridging:
 
 - `sendERC20`: initializes a cross-chain transfer of a `SuperchainERC20`
-  by burning the tokens locally and sending a message to the `SuperchainERC20Bridge`
+  by burning the tokens locally and sending a message to the `SuperchainTokenBridge`
   on the target chain using the `L2toL2CrossDomainMessenger`.
   Additionally, it returns the `msgHash_` crafted by the `L2toL2CrossDomainMessenger`.
 - `relayERC20`: processes incoming messages from the `L2toL2CrossDomainMessenger`
   and mints the corresponding amount of the `SuperchainERC20`.
 
 The full specifications and invariants are detailed
-in the [predeploys spec](./predeploys.md#superchainerc20bridge).
+in the [predeploys spec](./predeploys.md#superchaintokenbridge).
 
 [l2-to-l2]: ./predeploys.md#l2tol2crossdomainmessenger
 
-## Diagram
+### Diagram
 
 The following diagram depicts a cross-chain transfer.
 
@@ -133,16 +145,16 @@ The following diagram depicts a cross-chain transfer.
 ---
 config:
   theme: dark
-  fontSize: 48 
+  fontSize: 48
 ---
 sequenceDiagram
   participant from
-  participant L2SBA as SuperchainERC20Bridge (Chain A)
+  participant L2SBA as SuperchainTokenBridge (Chain A)
   participant SuperERC20_A as SuperchainERC20 (Chain A)
   participant Messenger_A as L2ToL2CrossDomainMessenger (Chain A)
   participant Inbox as CrossL2Inbox
   participant Messenger_B as L2ToL2CrossDomainMessenger (Chain B)
-  participant L2SBB as SuperchainERC20Bridge (Chain B)
+  participant L2SBB as SuperchainTokenBridge (Chain B)
   participant SuperERC20_B as SuperchainERC20 (Chain B)
 
   from->>L2SBA: sendERC20(tokenAddr, to, amount, chainID)
@@ -159,7 +171,7 @@ sequenceDiagram
   L2SBB-->L2SBB: emit RelayedERC20(tokenAddr, from, to, amount, source)
 ```
 
-## Implementation
+### Implementation
 
 An example implementation for the `sendERC20` and `relayERC20` functions is provided.
 
@@ -186,6 +198,161 @@ function relayERC20(SuperchainERC20 _token, address _from, address _to, uint256 
 }
 ```
 
+## `CrosschainERC20`
+
+### Properties
+
+The contract will build on top of [`xERC20`](https://github.com/defi-wonderland/xERC20/blob/main/solidity/contracts/XERC20.sol) (ERC7281), implementing the IERC7802 interface and include the following properties:
+
+1. Implement the [`ERC20`](https://eips.ethereum.org/EIPS/eip-20) interface.
+2. Implement the [`ERC7281`](https://ethereum-magicians.org/t/erc-7281-sovereign-bridged-tokens/14979) interface.
+3. Implement the [`ERC7802`](https://github.com/ethereum/ERCs/pull/692) interface.
+4. Be deployed at the same address on every chain.
+
+Key differences between `CrosschainERC20` and `SuperchainERC20` due to being an extension of `xERC20`:
+
+- `CrosschainERC20` is ownable.
+- Owner needs to set the `mint` and `burn` limits for every bridge, including `SuperchainTokenBridge` by calling the `setLimits` function.
+- If the issuer wants to use it as a `SuperchainERC20`, they can renounce ownership after setting the limits for the `SuperchainTokenBridge`.
+
+### Implementation
+
+`CrosschainERC20` inherits the `xERC20` implementation and complies with the `IERC7802` interface used in `SuperchainERC20`, whose functions are implemented in a slightly different manner:
+
+#### `crosschainMint`
+
+Instead of calling the internal `_mint` function, it calls `_mintWithCaller` from `xERC20`.
+
+Implementation example:
+
+```solidity
+function crosschainMint(address _account, uint256 _amount) external {
+    _mintWithCaller(_account, _amount, msg.sender);
+
+    emit CrosschainMint(_to, _amount, msg.sender);
+}
+
+  function crosschainBurn(address _from, uint256 _amount) external {
+      if (msg.sender != _from) {
+          _spendAllowance(_from, msg.sender, _amount);
+      }
+
+      _burnWithCaller(msg.sender, _from, _amount);
+
+      emit CrosschainBurn(_from, _amount, msg.sender);
+  }
+```
+
+#### `crosschainBurn`
+
+Similar to `crosschainMint`, but calls `_burnWithCaller` from `xERC20`.
+
+Implementation example:
+
+```solidity
+function crosschainBurn(address _account, uint256 _amount) external {
+    _burnWithCaller(_account, _amount, msg.sender);
+
+    emit CrosschainBurn(_from, _amount, msg.sender);
+}
+```
+
+In order to be able to call `_mintWithCaller` and `_burnWithCaller`, the issuer will need to set up `mint` and `burn` limits by using the `setLimits` function from [`xERC20`](https://github.com/defi-wonderland/xERC20/blob/da2afabdeb1bad9ccda2f6eb928cd99e852530be/solidity/contracts/XERC20.sol#L85).
+
+## `ERC7802Adapter`
+
+### Properties
+
+The contract will be in the middle of an `xERC20` and a bridge that uses the `ERC7802` interface, routing `crosschainMint` and `crosschainBurn` calls into `xERC20` `mint` and `burn` functions. The properties are:
+
+1. Implement the [`ERC7802`](https://github.com/ethereum/ERCs/pull/692) interface.
+2. Set an `xERC20` to which the adapter will send the `mint` and `burn` calls.
+3. Set a `BRIDGE` whose ERC7802 calls will be routed.
+
+The second property expects the settled xERC20 to give `mint` and `burn` limits to the adapter.
+
+### Implementation
+
+`ERC7802Adapter` complies with the `ERC7802` interface and makes `ERC7281` calls to the given `xERC20`, an example implementation for the `crosschainMint` and `crosschainBurn` functions are provided:
+
+#### `crosschainMint`
+
+Implementation example:
+
+```solidity
+function crosschainMint(address _to, uint256 _amount) external {
+    if (msg.sender != BRIDGE) revert Unauthorized();
+
+    XERC20.mint(_to, _amount);
+
+    emit CrosschainMint(_to, _amount, msg.sender);
+}
+```
+
+#### `crosschainBurn`
+
+Implementation example:
+
+```solidity
+function crosschainBurn(address _from, uint256 _amount) external {
+    if (msg.sender != BRIDGE) revert Unauthorized();
+
+    XERC20.burn(_from, _amount);
+
+    emit CrosschainBurn(_from, _amount, msg.sender);
+}
+```
+
+### Setup Diagram
+
+```mermaid
+sequenceDiagram
+ actor A0 as Owner
+ box L2 Chain
+  participant P1 as Factory
+  participant P2 as Adapter
+  participant P3 as XERC20
+ end
+
+ A0 ->> P1: deployAdapter()
+ P1 ->> P2: constructor(XERC20, BRIDGE)
+ A0 ->> P3: setLimit(Adapter...)
+
+```
+
+### Usage Diagrams
+
+```mermaid
+sequenceDiagram
+ actor A1 as Alice
+ box L2 Chain A
+  participant P1 as SuperchainTokenBridge
+  participant P2 as Adapter
+  participant P3 as XERC20 A
+ end
+
+ A1 ->> P1: sendERC20(Adapter...)
+ P1 ->> P2: crosschainBurn()
+ P2 ->> P3: burn()
+ P1 -->> P1: SendERC20()
+
+```
+
+```mermaid
+sequenceDiagram
+ box L2 Chain B
+  participant P5 as XERC20 B
+  participant P6 as Adapter'
+  participant P7 as SuperchainTokenBridge
+ end
+ actor A2 as Relayer
+
+ A2 ->> P7: relayERC20(Adapter'...)
+ P7 ->> P6: crosschainMint()
+ P6 ->> P5: mint()
+ P7 -->> P7: RelayERC20()
+```
+
 ## Future Considerations
 
 ### Cross Chain `transferFrom`
@@ -202,7 +369,7 @@ to facilitate such an action and rely on the usage of `Permit2` like this:
 ---
 config:
   theme: dark
-  fontSize: 48 
+  fontSize: 48
 ---
 sequenceDiagram
   participant from
@@ -238,7 +405,7 @@ This approach has great potential but can also be achieved outside the standard 
 ---
 config:
   theme: dark
-  fontSize: 48 
+  fontSize: 48
 ---
 sequenceDiagram
   participant from
