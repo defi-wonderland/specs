@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -231,6 +232,16 @@ function crosschainMint(address _account, uint256 _amount) external {
 
     emit CrosschainMint(_to, _amount, msg.sender);
 }
+
+  function crosschainBurn(address _from, uint256 _amount) external {
+      if (msg.sender != _from) {
+          _spendAllowance(_from, msg.sender, _amount);
+      }
+
+      _burnWithCaller(msg.sender, _from, _amount);
+
+      emit CrosschainBurn(_from, _amount, msg.sender);
+  }
 ```
 
 #### `crosschainBurn`
