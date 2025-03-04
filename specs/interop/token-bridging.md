@@ -48,7 +48,7 @@ The standard will build on top of ERC20, implement the
 [`IERC7802`](https://github.com/ethereum/ERCs/pull/692)
 interface, and include the following properties:
 
-1. Implement the [ERC20](https://eips.ethereum.org/EIPS/eip-20) interface
+1. Implement the [`ERC20`](https://eips.ethereum.org/EIPS/eip-20) interface
 2. Implement the [`ERC7802`](https://github.com/ethereum/ERCs/pull/692) interface
 3. Allow [`SuperchainTokenBridge`](./predeploys.md#superchaintokenbridge) to call
    [`crosschainMint`](#crosschainmint) and [`crosschainBurn`](#crosschainburn).
@@ -202,17 +202,22 @@ function relayERC20(SuperchainERC20 _token, address _from, address _to, uint256 
 
 ### Properties
 
-The contract will build on top of [xERC20](https://github.com/defi-wonderland/xERC20/blob/main/solidity/contracts/XERC20.sol) (ERC7281), implementing the IERC7802 interface.
+The contract will build on top of [`xERC20`](https://github.com/defi-wonderland/xERC20/blob/main/solidity/contracts/XERC20.sol) (ERC7281), implementing the IERC7802 interface and include the following properties:
+
+1. Implement the [`ERC20`](https://eips.ethereum.org/EIPS/eip-20) interface.
+2. Implement the [`ERC7281`](https://ethereum-magicians.org/t/erc-7281-sovereign-bridged-tokens/14979) interface.
+3. Implement the [`ERC7802`](https://github.com/ethereum/ERCs/pull/692) interface.
+4. Be deployed at the same address on every chain.
 
 Key differences between `CrosschainERC20` and `SuperchainERC20` due to being an extension of `xERC20`:
 
 - `CrosschainERC20` is ownable.
-- `CrosschainERC20` needs to set the `mint` and `burn` limits for every bridge, including `SuperchainTokenBridge`.
+- Owner needs to set the `mint` and `burn` limits for every bridge, including `SuperchainTokenBridge` by calling the `setLimits` function.
 - If the issuer wants to use it as a `SuperchainERC20`, they can renounce ownership after setting the limits for the `SuperchainTokenBridge`.
 
 ### Implementation
 
-`CrosschainERC20` utilizes the `xERC20` interface and `SuperchainERC20` interface. This means that function names are the same, but there are some differences in the implementation.
+`CrosschainERC20` inherits the `xERC20` implementation and complies with the `IERC7802` interface used in `SuperchainERC20`, whose functions are implemented in a slightly different manner:
 
 #### `crosschainMint`
 
@@ -247,10 +252,17 @@ In order to be able to call `_mintWithCaller` and `_burnWithCaller`, the issuer 
 ## `ERC7802Adapter`
 
 ### Properties
+The contract will be in the middle of an `xERC20` and a bridge that uses the `ERC7802` interface, routing `crosschainMint` and `crosschainBurn` calls into `xERC20` `mint` and `burn` functions. The properties are:
 
-The contract will be in the middle of an `xERC20` and a bridge that uses the `ERC7802` interface. Its main function is to redirect `crosschainMint` and `crosschainBurn` to `xERC20` `mint` and `burn` functions. By setting the `BRIDGE` and `XERC20` addresses, the issuer can control which bridge and token will be used.
+1. Implement the [`ERC7802`](https://github.com/ethereum/ERCs/pull/692) interface.
+2. Set an `xERC20` to which the adapter will send the `mint` and `burn` calls.
+3. Set a `BRIDGE` whose ERC7802 calls will be routed.
+
+The second property expects the settled xERC20 to give `mint` and `burn` limits to the adapter.
 
 ### Implementation
+
+`ERC7802Adapter` complies with the `ERC7802` interface and makes `ERC7281` calls to the given `xERC20`, an example implementation for the `crosschainMint` and `crosschainBurn` functions are provided:
 
 #### `crosschainMint`
 
