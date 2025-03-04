@@ -252,6 +252,7 @@ In order to be able to call `_mintWithCaller` and `_burnWithCaller`, the issuer 
 ## `ERC7802Adapter`
 
 ### Properties
+
 The contract will be in the middle of an `xERC20` and a bridge that uses the `ERC7802` interface, routing `crosschainMint` and `crosschainBurn` calls into `xERC20` `mint` and `burn` functions. The properties are:
 
 1. Implement the [`ERC7802`](https://github.com/ethereum/ERCs/pull/692) interface.
@@ -292,54 +293,54 @@ function crosschainBurn(address _from, uint256 _amount) external {
 }
 ```
 
-### Setup Diagram:
+### Setup Diagram
 
 ```mermaid
 sequenceDiagram
-	actor A0 as Owner
-	box L2 Chain
-		participant P1 as Factory
-		participant P2 as Adapter
-		participant P3 as XERC20
-	end
+ actor A0 as Owner
+ box L2 Chain
+  participant P1 as Factory
+  participant P2 as Adapter
+  participant P3 as XERC20
+ end
 
-	A0 ->> P1: deployAdapter()
-	P1 ->> P2: constructor(XERC20, BRIDGE)
-	A0 ->> P3: setLimit(Adapter...)
+ A0 ->> P1: deployAdapter()
+ P1 ->> P2: constructor(XERC20, BRIDGE)
+ A0 ->> P3: setLimit(Adapter...)
 
 ```
 
-### Usage Diagrams:
+### Usage Diagrams
 
 ```mermaid
 sequenceDiagram
-	actor A1 as Alice
-	box L2 Chain A
-		participant P1 as SuperchainTokenBridge
-		participant P2 as Adapter
-		participant P3 as XERC20 A
-	end
+ actor A1 as Alice
+ box L2 Chain A
+  participant P1 as SuperchainTokenBridge
+  participant P2 as Adapter
+  participant P3 as XERC20 A
+ end
 
-	A1 ->> P1: sendERC20(Adapter...)
-	P1 ->> P2: crosschainBurn()
-	P2 ->> P3: burn()
-	P1 -->> P1: SendERC20()
+ A1 ->> P1: sendERC20(Adapter...)
+ P1 ->> P2: crosschainBurn()
+ P2 ->> P3: burn()
+ P1 -->> P1: SendERC20()
 
 ```
 
 ```mermaid
 sequenceDiagram
-	box L2 Chain B
-		participant P5 as XERC20 B
-		participant P6 as Adapter'
-		participant P7 as SuperchainTokenBridge
-	end
-	actor A2 as Relayer
+ box L2 Chain B
+  participant P5 as XERC20 B
+  participant P6 as Adapter'
+  participant P7 as SuperchainTokenBridge
+ end
+ actor A2 as Relayer
 
-	A2 ->> P7: relayERC20(Adapter'...)
-	P7 ->> P6: crosschainMint()
-	P6 ->> P5: mint()
-	P7 -->> P7: RelayERC20()
+ A2 ->> P7: relayERC20(Adapter'...)
+ P7 ->> P6: crosschainMint()
+ P6 ->> P5: mint()
+ P7 -->> P7: RelayERC20()
 ```
 
 ## Future Considerations
