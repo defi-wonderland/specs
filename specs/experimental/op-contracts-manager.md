@@ -104,6 +104,7 @@ struct Roles {
     address unsafeBlockSigner;
     address proposer;
     address challenger;
+    address feeVaultAdmin;
 }
 
 struct DeployInput {
@@ -127,7 +128,7 @@ struct DeployOutput {
       IAddressManager addressManager;
       IL1ERC721Bridge l1ERC721BridgeProxy;
       ISystemConfig systemConfigProxy;
-      IOptimismMintableERC20Factory optimismMintableERC20FactoryProxy;
+      IL1OptimismMintableERC20Factory optimismMintableERC20FactoryProxy;
       IL1StandardBridge l1StandardBridgeProxy;
       IL1CrossDomainMessenger l1CrossDomainMessengerProxy;
       // Fault proof contracts below.

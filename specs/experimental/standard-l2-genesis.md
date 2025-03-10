@@ -34,7 +34,7 @@
   - [L1Block](#l1block)
     - [Storage](#storage)
     - [Interface](#interface-3)
-      - [`setIsthmus`](#setisthmus)
+      - [`setXfork`](#setxfork)
       - [`setConfig`](#setconfig-1)
       - [`getConfig`](#getconfig)
   - [FeeVault](#feevault)
