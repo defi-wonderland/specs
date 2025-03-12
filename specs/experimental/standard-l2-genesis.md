@@ -67,10 +67,11 @@ The `ConfigType` enum represents configuration that can be modified.
 | `BASE_FEE_VAULT_CONFIG`             | `uint8(1)` | Sets the Fee Vault Config for the `BaseFeeVault`      |
 | `L1_FEE_VAULT_CONFIG`               | `uint8(2)` | Sets the Fee Vault Config for the `L1FeeVault`        |
 | `SEQUENCER_FEE_VAULT_CONFIG`        | `uint8(3)` | Sets the Fee Vault Config for the `SequencerFeeVault` |
-| `L1_CROSS_DOMAIN_MESSENGER_ADDRESS` | `uint8(4)` | Sets the `L1CrossDomainMessenger` address             |
-| `L1_ERC_721_BRIDGE_ADDRESS`         | `uint8(5)` | Sets the `L1ERC721Bridge` address                     |
-| `L1_STANDARD_BRIDGE_ADDRESS`        | `uint8(6)` | Sets the `L1StandardBridge` address                   |
-| `REMOTE_CHAIN_ID`                   | `uint8(7)` | Sets the chain id of the base chain                   |
+| `OPERATOR_FEE_VAULT_CONFIG`         | `uint8(4)` | Sets the Fee Vault Config for the `OperatorFeeVault`  |
+| `L1_CROSS_DOMAIN_MESSENGER_ADDRESS` | `uint8(5)` | Sets the `L1CrossDomainMessenger` address             |
+| `L1_ERC_721_BRIDGE_ADDRESS`         | `uint8(6)` | Sets the `L1ERC721Bridge` address                     |
+| `L1_STANDARD_BRIDGE_ADDRESS`        | `uint8(7)` | Sets the `L1StandardBridge` address                   |
+| `REMOTE_CHAIN_ID`                   | `uint8(8)` | Sets the chain id of the base chain                   |
 
 ## `SystemConfig`
 
