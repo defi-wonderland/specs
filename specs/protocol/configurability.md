@@ -376,7 +376,7 @@ from the latest `op-contracts/vX.Y.X` release of source code in
 **Administrator:** [L1 Proxy Admin Owner](#admin-roles)<br/>
 **Administers:** <br/>
 **Requirement:** <br/>
-**Notes:** <br/>
+**Notes:** This role can only by updated by an upgrade of the `SystemConfig`<br/>
 
 ### L2 Proxy Admin
 
@@ -420,10 +420,10 @@ the [Law of Chains](https://github.com/ethereum-optimism/OPerating-manual/blob/m
 
 ### [Upgrader]()
 
-**Description**: <br/>
-**Administrator:** <br/>
+**Description**: Account which can call `OptimismPortal.callL2ProxyAdmin` and emit a deposit transaction from the `DEPOSITOR_ACCOUNT` that call the `L2ProxyAdmin`. <br/>
+**Administrator:** [L1 Proxy Admin Owner](#admin-roles)<br/>
 **Requirement:** <br/>
-**Noted:** <br/>
+**Notes:** <br/>
 
 ### [Batch submitter address](https://github.com/ethereum-optimism/optimism/blob/c927ed9e8af501fd330349607a2b09a876a9a1fb/packages/contracts-bedrock/src/L1/SystemConfig.sol#L265)
 
