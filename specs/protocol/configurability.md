@@ -40,12 +40,10 @@
 - [Admin Roles](#admin-roles)
   - [L1 Proxy Admin](#l1-proxy-admin)
   - [L1 ProxyAdmin owner](#l1-proxyadmin-owner)
-  - [Fee Vault Admin](#fee-vault-admin)
   - [L2 Proxy Admin](#l2-proxy-admin)
   - [L2 ProxyAdmin owner](#l2-proxyadmin-owner)
   - [System Config Owner](#system-config-owner)
 - [Service Roles](#service-roles)
-  - [Upgrader](#upgrader)
   - [Batch submitter address](#batch-submitter-address)
   - [Challenger address](#challenger-address)
   - [Guardian address](#guardian-address)
@@ -370,14 +368,6 @@ from the latest `op-contracts/vX.Y.X` release of source code in
 [^of-sc-gnosis-safe-l1]<br/>
 **Notes:** Governance-controlled, high security.<br/>
 
-### Fee Vault Admin
-
-**Description:** Account authorized to modify the various `FeeVault` configs.<br/>
-**Administrator:** [L1 Proxy Admin Owner](#admin-roles)<br/>
-**Administers:** <br/>
-**Requirement:** <br/>
-**Notes:** This role can only by updated by an upgrade of the `SystemConfig`<br/>
-
 ### L2 Proxy Admin
 
 **Description:** Account authorized to upgrade L2 contracts.<br/>
@@ -417,13 +407,6 @@ the [Law of Chains](https://github.com/ethereum-optimism/OPerating-manual/blob/m
 [^aliased-of-sc-gnosis-safe-l1]: Aliased address of the 2 of 2 Gnosis Safe between Optimism Foundation (OF) and the Security Council (SC) on L1. The reason for aliasing can be found in the [glossary](../glossary.md#address-aliasing). This address was calculated using the following arithmetic: `0x5a0Aae59D09fccBdDb6C6CcEB07B7279367C3d2A` + `0x1111000000000000000000000000000000001111` = `0x6B1BAE59D09fCcbdDB6C6cceb07B7279367C4E3b`.
 
 ## Service Roles
-
-### [Upgrader]()
-
-**Description**: Account which can call `OptimismPortal.callL2ProxyAdmin` and emit a deposit transaction from the `DEPOSITOR_ACCOUNT` that call the `L2ProxyAdmin`. <br/>
-**Administrator:** [L1 Proxy Admin Owner](#admin-roles)<br/>
-**Requirement:** <br/>
-**Notes:** <br/>
 
 ### [Batch submitter address](https://github.com/ethereum-optimism/optimism/blob/c927ed9e8af501fd330349607a2b09a876a9a1fb/packages/contracts-bedrock/src/L1/SystemConfig.sol#L265)
 
