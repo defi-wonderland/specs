@@ -30,11 +30,11 @@ need for manual gatekeeping.
 
 ## Design
 
-The `ProposalValidator` manages the proposal lifecycle through three main functions:
+The `ProposalValidator` manages the proposal lifecycle through three main actions:
 
-- `submitProposal`: Records new proposals
-- `approveProposal`: Handles proposal approvals
-- `moveToVote`: Transitions approved proposals to voting phase
+- `Submit Proposal`: Records new proposals
+- `Approve Proposal`: Handles proposal approvals
+- `Move to Vote`: Transitions approved proposals to voting phase
 
 The contract also integrates with EAS (Ethereum Attestation Service) to verify authorized proposers for specific proposal
 types. For detailed flows of each proposal, see [design docs](https://github.com/ethereum-optimism/design-docs/pull/260).
@@ -51,33 +51,66 @@ The contract has a single `owner` role (Optimism Foundation) with permissions to
 
 ### Public Functions
 
-`submitProposal`
+`submitProtocolOrGovernorUpgradeProposal`
 
-Submits a proposal for approval and voting. Based on the `ProposalType` provided this will require different validation
-checks and actions.
+Submits a Protocol or Governor Upgrade proposal for approval and voting.
 
-- MUST only be called for `ProtocolOrGovernorUpgrade`, `MaintenanceUpgradeProposals`, or `CouncilMemberElections` types
 - MUST be called by an approved address
 - MUST check if the proposal is a duplicate
-- MUST use the correct proposal type configurator from the `_proposalTypesData`
+- MUST use the `Approval` Voting Module
 - MUST provide a valid attestation UID
-- MUST NOT transfer any tokens or change any allowances
+- MUST NOT do any operations
 - MUST emit `ProposalSubmitted` event
-- MUST store proposal data
-
-For `GovernanceFund` and `CouncilBudget` types:
-
-- The user MUST use the `submitFundingProposal` that uses specific `calldata` pre-defined by the owner
-
-Note: `MaintenanceUpgradeProposals` type can move straight to voting if all submission checks pass, unlike the rest of the
-proposals where they need to collect a number of approvals by top delegates in order to move to vote. This call should be
-atomic.
+- MUST store proposal data TODO: improve
 
 ```solidity
-function submitProposal(
-    address[] memory _targets,
-    uint256[] memory _values,
-    bytes[] memory _calldatas,
+function submitProtocolOrGovernorUpgradeProposal(
+    TODO: complete what else we need
+    string memory _description,
+    ProposalType _proposalType,
+    bytes32 _attestationUid
+) external returns (bytes32 proposalHash_);
+```
+
+`submitMaintenanceUpgradeProposal`
+
+Submits a Maintenance Upgrade proposal to move for voting. `MaintenanceUpgradeProposals` type can move
+straight to voting if all submission checks pass, unlike the rest of the proposals where they
+need to collect a number of approvals by top delegates in order to move to vote. This call should be
+atomic.
+
+- MUST be called by an approved address
+- MUST check if the proposal is a duplicate
+- MUST use the `Optimistic` Voting Module
+- MUST provide a valid attestation UID
+- MUST NOT do any operations
+- MUST emit `ProposalSubmitted` event
+- MUST store proposal data TODO: improve
+
+```solidity
+function submitMaintenanceUpgradeProposal(
+    TODO: complete what else we need
+    string memory _description,
+    ProposalType _proposalType,
+    bytes32 _attestationUid
+) external returns (bytes32 proposalHash_);
+```
+
+`submitCouncilMemberElectionsProposal`
+
+Submits a Council Member Elections proposal for approval and voting. 
+
+- MUST be called by an approved address
+- MUST check if the proposal is a duplicate
+- MUST use the `Ranked Choice` Voting Module
+- MUST provide a valid attestation UID
+- MUST NOT do any operations
+- MUST emit `ProposalSubmitted` event
+- MUST store proposal data TODO: improve
+
+```solidity
+function submitCouncilMemberElectionsProposal(
+    TODO: complete what else we need
     string memory _description,
     ProposalType _proposalType,
     bytes32 _attestationUid
@@ -91,11 +124,11 @@ Submits a `GovernanceFund` or `CouncilBudget` proposal type that transfers OP to
 - MUST only be called for `GovernanceFund` or `CouncilBudget` proposal type
 - CAN be called by anyone
 - MUST check if the proposal is a duplicate
-- MUST use the correct proposal type configurator from the `_proposalTypesData`
+- MUST use the `Optimistic` Voting Module
 - MUST use the `Predeploys.GOVERNANCE_TOKEN` and `TRANSFER_SIGNATURE` to create the `calldata`
 - MUST NOT request to transfer more than `distributionThreshold` tokens
 - MUST emit `ProposalSubmitted` event
-- MUST store proposal data
+- MUST store proposal data TODO: improve
 
 ```solidity
 function submitFundingProposal(
@@ -377,7 +410,7 @@ enum ProposalType {
 
 `ProposalSubmitted`
 
-MUST be triggered when `submitProposal` is successfully called.
+MUST be triggered when a proposal submission is successfully called.
 
 ```solidity
 event ProposalSubmitted(
@@ -425,7 +458,7 @@ event ProposalMovedToVote(uint256 indexed proposalHash, address indexed executor
 ### Implementation Details
 
 - On setup, the contract registers a schema in the predeployed `SchemaRegistry`.
-- The `submitProposal` function validates attestations by:
+- The submit proposal functions validates attestations by:
   - Ensuring the attestation UID matches the registered schema.
   - Verifying the attester is the contract owner (Optimism Foundation).
   - Decoding the attestation to check the proposer's address and proposal type.
