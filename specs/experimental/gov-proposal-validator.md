@@ -60,7 +60,7 @@ Submits a Protocol or Governor Upgrade proposal for approval and voting.
 - MUST use the `Approval` Voting Module
 - MUST provide a valid attestation UID
 - MUST NOT do any operations
-- MUST emit `ProposalSubmitted` event
+- MUST emit `ProposalSubmitted` and `ProposalVotingModuleData` events
 - MUST store submission proposal data which are defined by the `ProposalSubmissionData` struct
 
 ```solidity
@@ -99,7 +99,7 @@ atomic.
 - MUST use the `Optimistic` Voting Module
 - MUST provide a valid attestation UID
 - MUST NOT do any operations
-- MUST emit `ProposalSubmitted` event
+- MUST emit `ProposalSubmitted` and `ProposalVotingModuleData` events
 - MUST store submission proposal data which are defined by the `ProposalSubmissionData` struct
 
 ```solidity
@@ -129,7 +129,7 @@ Submits a Council Member Elections proposal for approval and voting.
 - MUST use the `Ranked Choice` Voting Module
 - MUST provide a valid attestation UID
 - MUST NOT do any operations
-- MUST emit `ProposalSubmitted` event
+- MUST emit `ProposalSubmitted` and `ProposalVotingModuleData` events
 - MUST store submission proposal data which are defined by the `ProposalSubmissionData` struct
 
 ```solidity
@@ -493,6 +493,14 @@ MUST be triggered when `moveToVote` is successfully called.
 
 ```solidity
 event ProposalMovedToVote(uint256 indexed proposalHash, address indexed executor);
+```
+
+`ProposalVotingModuleData`
+
+MUST be triggered with `ProposalSubmitted` event.
+
+```solidity
+event ProposalVotingModuleData(uint256 indexed proposalHash, bytes encodedVotingModuleData);
 ```
 
 ## EAS Integration
