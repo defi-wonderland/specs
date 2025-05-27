@@ -98,7 +98,7 @@ function submitMaintenanceUpgradeProposal(
 
 `submitCouncilMemberElectionsProposal`
 
-Submits a Council Member Elections proposal for approval and voting. 
+Submits a Council Member Elections proposal for approval and voting.
 
 - MUST be called by an approved address
 - MUST check if the proposal is a duplicate
