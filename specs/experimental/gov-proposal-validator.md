@@ -144,7 +144,9 @@ function submitFundingProposal(
 Approves a proposal before being moved for voting, used by the top delegates.
 
 - MUST check if proposal hash corresponds to a valid proposal
-- MUST check if caller is has enough voting power to call the function and approve a proposal
+- MUST check if caller has enough voting power to call the function and approve a proposal
+  The voting power of the delegate is checked against the end of the last voting cycle from when
+  the proposal was submitted.
 - MUST check if caller has already approved the same proposal
 - MUST store the approval vote
 - MUST emit `ProposalApproved` when successfully called
