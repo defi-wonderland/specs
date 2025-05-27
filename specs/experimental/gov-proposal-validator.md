@@ -222,7 +222,7 @@ function can be called by anyone.
 
 For `ProtocolOrGovernorUpgrade`:
 
-- MUST check if provided data produces a valid `proposalHash`
+- MUST check if the `proposalHash` exists and is valid
 - Proposal MUST have gathered X amount of approvals by top delegates
 - MUST check if proposal has already moved for voting
 - MUST emit `ProposalMovedToVote` event
@@ -234,7 +234,7 @@ For `MaintenanceUpgradeProposals`:
 
 For `CouncilMemberElections`, `GovernanceFund` and `CouncilBudget`:
 
-- MUST check if provided data produce the same `proposalHash`
+- MUST check if the `proposalHash` exists and is valid
 - Proposal MUST have gathered X amount of approvals by top delegates
 - Proposal MUST be moved to vote during a valid voting cycle
 - MUST check if proposal has already moved for voting
@@ -243,14 +243,7 @@ For `CouncilMemberElections`, `GovernanceFund` and `CouncilBudget`:
 - MUST emit `ProposalMovedToVote` event
 
 ```solidity
-function moveToVote(
-    address[] memory _targets,
-    uint256[] memory _values,
-    bytes[] memory _calldata,
-    string memory description
-)
-    external
-    returns (uint256 governorProposalId_)
+function moveToVote(bytes memory proposalHash_) external returns (uint256 governorProposalId_)
 ```
 
 `canSignOff`
