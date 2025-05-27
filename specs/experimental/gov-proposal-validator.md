@@ -400,6 +400,8 @@ A struct that holds all the data for a single proposal. Consists of:
 - `inVoting`: Returns true if the proposal has already been submitted for voting
 - `delegateApprovals`: Mapping of addresses that approved the specific proposal
 - `approvalsCounter`: The number of approvals the specific proposal has received
+- `votingModuleData`: Encoded data that are required for the voting modules
+- `timestamp`: The timestamp of the proposal submission
 
 ```solidity
 struct ProposalSubmissionData {
@@ -408,6 +410,8 @@ struct ProposalSubmissionData {
     bool inVoting;
     mapping(address => bool) delegateApprovals;
     uint256 approvalsCounter;
+    bytes votingModuleData;
+    uint256 timestamp;
 }
 ```
 
@@ -529,19 +533,20 @@ event ProposalMovedToVote(uint256 indexed proposalHash, address indexed executor
 ## Proposal uniqueness
 
 To prevent duplicate proposals, the contract enforces uniqueness by hashing the defining parameters of each proposal and
-checking against a registry of previously submitted proposals.
+checking against a registry of previously submitted proposals, creating a proposalId. The proposal ID should be the same
+as the one created on `Governor` and used by the `Voting Modules`.
 
 A proposal is uniquely identified by a tuple:
 
-- `targets[]`: array of addresses the proposal will call
-- `values[]`: array of ETH values to send with each call
-- `calldatas[]`: array of calldata payloads for each call
-- `description`: a string describing the proposal
+- `proposalValidator`: The address of the proposal validator
+- `module`: The address of the voting module the proposal uses
+- `proposalVotingModuleData`: The encoded voting module data
+- `descriptionHash`: The hash of the description
 
 These elements are ABI-encoded and hashed:
 
 ```solidity
-keccak256(abi.encode(targets, values, calldatas, description));
+keccak256(abi.encode(proposalValidator, module, proposalVotingModuleData, descriptionHash));
 ```
 
 This hash serves as a unique identifier for the proposal. The contract stores submitted proposals in:
