@@ -367,8 +367,8 @@ mapping(uint256 => VotingCycleData) public votingCycles;
 
 `_proposals`
 
-A mapping that stores each submitted proposals' data based on its `proposalHash`. The proposal hash is produced by hashing
-the ABI encoded `targets` array, the `values` array, the `calldatas` array and the `description`.
+A mapping that stores each submitted proposal's data based on its `proposalHash`. The proposal hash is produced by hashing
+the ABI encoded values of specific proposal params, see [Proposal uniqueness](#proposal-uniqueness).
 
 ```solidity
 mapping(bytes32 => ProposalSubmissionData) private _proposals;
@@ -535,7 +535,7 @@ event ProposalVotingModuleData(uint256 indexed proposalHash, bytes encodedVoting
 
 To prevent duplicate proposals, the contract enforces uniqueness by hashing the defining parameters of each proposal and
 checking against a registry of previously submitted proposals, creating a proposalId. The proposal ID should be the same
-as the one created on `Governor` and used by the `Voting Modules`.
+as the one created on `Governor.hashProposalWithModule` and used by the `Voting Modules`.
 
 A proposal is uniquely identified by a tuple:
 
