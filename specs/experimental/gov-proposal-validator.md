@@ -62,10 +62,11 @@ Submits a Protocol or Governor Upgrade proposal for approval and voting.
 - MUST NOT do any operations
 - MUST emit `ProposalSubmitted` and `ProposalVotingModuleData` events
 - MUST store submission proposal data which are defined by the `ProposalSubmissionData` struct
+- MUST store the timestamp of submission
+- MUST use "Threshold" criteria type
 
 ```solidity
 function submitProtocolOrGovernorUpgradeProposal(
-    uint8 _criteria,
     uint128 _criteriaValue,
     string[] memory _optionDescriptions,
     string memory _description,
@@ -126,11 +127,13 @@ Submits a Council Member Elections proposal for approval and voting.
 
 - MUST be called by an approved address
 - MUST check if the proposal is a duplicate
-- MUST use the `Ranked Choice` Voting Module
+- MUST use the `Approval` Voting Module
 - MUST provide a valid attestation UID
 - MUST NOT do any operations
 - MUST emit `ProposalSubmitted` and `ProposalVotingModuleData` events
 - MUST store submission proposal data which are defined by the `ProposalSubmissionData` struct
+- MUST store the timestamp of submission
+- MUST use "TopChoices" criteria type
 
 ```solidity
 function submitCouncilMemberElectionsProposal(
@@ -160,19 +163,20 @@ Submits a `GovernanceFund` or `CouncilBudget` proposal type that transfers OP to
 - MUST only be called for `GovernanceFund` or `CouncilBudget` proposal type
 - CAN be called by anyone
 - MUST check if the proposal is a duplicate
-- MUST use the `Optimistic` Voting Module
+- MUST use the `Approval` Voting Module
 - MUST use the `Predeploys.GOVERNANCE_TOKEN` and `IERC20.transfer` signature to create the `calldata`
 - MUST NOT request to transfer more than `distributionThreshold` tokens
 - MUST emit `ProposalSubmitted` event
 - MUST store submission proposal data which are defined by the `ProposalSubmissionData` struct
+- MUST store the timestamp of submission
+- MUST use "Threshold" criteria type
 
 ```solidity
 function submitFundingProposal(
-    uint8 _criteria,
     uint128 _criteriaValue,
     string[] _optionDescriptions,
-    address[] _targets,
-    uint256[] _values,
+    address[] _recipients,
+    uint256[] _amounts,
     string memory _description,
     ProposalType _proposalType,
 ) external returns (bytes32 proposalHash_);
@@ -191,8 +195,8 @@ the proposal needs to reach to pass or the number of top choices that can pass t
 
 For the `ProposalOptions` of the voting module, these are:
 - `string[] descriptions`: The strings of the different options that can be voted.
-- `address[] targets`: An address for each option to transfer funds to in case the option passes the voting.
-- `uint256[] values`: The amount to transfer for each option.
+- `address[] recipients`: An address for each option to transfer funds to in case the option passes the voting.
+- `uint256[] amounts`: The amount to transfer for each option.
 
 `approveProposal`
 
