@@ -76,12 +76,13 @@ function submitProtocolOrGovernorUpgradeProposal(
 ```
 
 Approval Voting Module
+
 Protocol or Governor Upgrade proposals use the `Approval` voting module.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
 
 For the `ProposalSettings` of the voting module, these are:
-- `uint8 criteria`: The voting module accepts either of two types of passing criteria for the proposal, "Threshold"
-and "TopChoices".
+- `uint8 criteria`: The Propocol or Governor Upgrade proposal accepts only "Threshold" passing criteria type
+for the approval voting module. This will be value will be fixed and defined in the contract.
 - `uint128 criteriaValue`: Based on the passing criteria type this can either be a threshold percentage that
 the proposal needs to reach to pass or the number of top choices that can pass the voting.
 
@@ -114,6 +115,7 @@ function submitMaintenanceUpgradeProposal(
 ```
 
 Optimistic Voting Module
+
 Maintenance Upgrade proposals use the `Optimistic` voting module.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
 
@@ -146,6 +148,7 @@ function submitCouncilMemberElectionsProposal(
 ```
 
 Approval Voting Module
+
 Council Member Elections proposals use the `Approval` voting module.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
 
@@ -183,13 +186,15 @@ function submitFundingProposal(
 ```
 
 Approval Voting Module
+
 Funding proposals use the `Approval` voting module but unlike the Protocol or Governor upgrade proposals,
 funding proposals need to execute token transfers.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
 
 For the `ProposalSettings` of the voting module, these are:
-- `uint8 criteria`: The voting module accepts either of two types of passing criteria for the proposal, "Threshold"
-and "TopChoices".
+- `uint8 criteria`: The funding proposals accept only "Threshold" passing criteria type for the approval
+voting module.
+for the approval voting module. This will be value will be fixed and defined in the contract.
 - `uint128 criteriaValue`: Based on the passing criteria type this can either be a threshold percentage that
 the proposal needs to reach to pass or the number of top choices that can pass the voting.
 
