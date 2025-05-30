@@ -388,7 +388,6 @@ A struct that holds all the data for a single proposal. Consists of:
 - `inVoting`: Returns true if the proposal has already been submitted for voting
 - `delegateApprovals`: Mapping of addresses that approved the specific proposal
 - `approvalsCounter`: The number of approvals the specific proposal has received
-- `votingModuleData`: Encoded data that are required for the voting modules
 - `timestamp`: The timestamp of the proposal submission
 
 ```solidity
@@ -398,7 +397,6 @@ struct ProposalSubmissionData {
     bool inVoting;
     mapping(address => bool) delegateApprovals;
     uint256 approvalsCounter;
-    bytes votingModuleData;
     uint256 timestamp;
 }
 ```
