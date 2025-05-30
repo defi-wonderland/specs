@@ -217,33 +217,36 @@ by the Agora's UI.
 `moveToVote`
 
 Checks if the provided proposal is ready to move for voting. Based on the Proposal Type different checks are being
-validated. If all checks pass then `OptimismGovernor.propose` is being called to forward the proposal for voting. This
-function can be called by anyone.
+validated. If all checks pass then `OptimismGovernor.proposeWithModule` is being called to forward the proposal for voting.
 
-For `ProtocolOrGovernorUpgrade`:
-
-- MUST check if the `proposalHash` exists and is valid
-- Proposal MUST have gathered X amount of approvals by top delegates
+- MUST create the `proposalHash` and check if it exists and is valid
+- Proposal MUST have gathered equal or more than the `requiredApprovals` defined for that type
 - MUST check if proposal has already moved for voting
 - MUST emit `ProposalMovedToVote` event
 
-For `MaintenanceUpgradeProposals`:
+For `ProtocolOrGovernorUpgrade` type:
+
+- MUST also check that is called by the proposer that submitted the proposal
+- `_optionsRecipients` and `_optionsAmounts` MUST be empty
+
+For `MaintenanceUpgradeProposals` type:
 
 - This type does not require any checks and is being forwarded to the Governor contracts, this should happen atomically.
-- MUST emit `ProposalMovedToVote` event
 
-For `CouncilMemberElections`, `GovernanceFund` and `CouncilBudget`:
+For `CouncilMemberElections`, `GovernanceFund` and `CouncilBudget` types:
 
-- MUST check if the `proposalHash` exists and is valid
-- Proposal MUST have gathered X amount of approvals by top delegates
 - Proposal MUST be moved to vote during a valid voting cycle
-- MUST check if proposal has already moved for voting
 - MUST check if the total amount of tokens that can possible be distributed during this voting cycle does not go over the
   `VotingCycleData.votingCycleDistributionLimit`
-- MUST emit `ProposalMovedToVote` event
 
 ```solidity
-function moveToVote(bytes memory proposalHash_) external returns (uint256 governorProposalId_)
+function moveToVoteGovernorOrProtocolUpgrade(
+    uint128 _criteriaValue,
+    address[] memory _optionsRecipients,
+    uint256[] memory _optionsAmounts,
+    string[] memory _optionDescriptions,
+    string memory _proposalDescription
+) external returns (uint256 proposalHash_)
 ```
 
 `canApproveProposal`
