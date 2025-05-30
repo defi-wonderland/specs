@@ -240,7 +240,7 @@ For `CouncilMemberElections`, `GovernanceFund` and `CouncilBudget` types:
   `VotingCycleData.votingCycleDistributionLimit`
 
 ```solidity
-function moveToVoteGovernorOrProtocolUpgrade(
+function moveToVote(
     uint128 _criteriaValue,
     address[] memory _optionsRecipients,
     uint256[] memory _optionsAmounts,
