@@ -74,7 +74,7 @@ function submitUpgradeProposal(
 ) external returns (bytes32 proposalHash_);
 ```
 
-Approval Voting Module
+**Approval Voting Module**
 
 Protocol or Governor Upgrade proposals use the `Approval` voting module.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
@@ -108,7 +108,7 @@ function submitMaintenanceUpgradeProposal(
 ) external returns (bytes32 proposalHash_);
 ```
 
-Optimistic Voting Module
+**Optimistic Voting Module**
 
 Maintenance Upgrade proposals use the `Optimistic` voting module.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
@@ -139,7 +139,7 @@ function submitCouncilMemberElectionsProposal(
 ) external returns (bytes32 proposalHash_);
 ```
 
-Approval Voting Module
+**Approval Voting Module**
 
 Council Member Elections proposals use the `Approval` voting module.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
@@ -177,7 +177,7 @@ function submitFundingProposal(
 ) external returns (bytes32 proposalHash_);
 ```
 
-Approval Voting Module
+**Approval Voting Module**
 
 Funding proposals use the `Approval` voting module but unlike the Protocol or Governor upgrade proposals,
 funding proposals need to execute token transfers.
