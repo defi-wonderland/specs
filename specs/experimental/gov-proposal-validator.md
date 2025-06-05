@@ -86,6 +86,8 @@ this will be the amount of votes that the proposal need to gather to pass.
 For the `ProposalOptions` of the voting module, the specific proposal type only accepts "Yes"/"No" options
 which are defined in the contract.
 
+`submitMaintenanceUpgradeProposal`
+
 Submits a Maintenance Upgrade proposal to move for voting. `MaintenanceUpgradeProposals` type can move
 straight to voting if all submission checks pass, unlike the rest of the proposals where they
 need to collect a number of approvals by top delegates in order to move to vote. This call should be
@@ -101,8 +103,6 @@ atomic.
 
 ```solidity
 function submitMaintenanceUpgradeProposal(
-    uint248 _againstThreshold,
-    bool _isRelativeToVotableSupply,
     string memory _proposalDescription,
     bytes32 _attestationUid
 ) external returns (bytes32 proposalHash_);
@@ -111,11 +111,12 @@ function submitMaintenanceUpgradeProposal(
 **Optimistic Voting Module**
 
 Maintenance Upgrade proposals use the `Optimistic` voting module.
-This requires the user who submits the proposal to provide some additional data related to the proposal.
 
 For the `ProposalSettings` of the voting module, these are:
-- `uint248 againstThreshold`: The threshold of the against option.
-- `bool isRelativeToVotableSupply`: True if the against threshold should be relative to the votable supply.
+- `uint248 againstThreshold`: Should always be `12%`.
+- `bool isRelativeToVotableSupply`: Should always be `true`.
+
+Since these values are static they are defined in the contract and does not need a user to provide them.
 
 `submitCouncilMemberElectionsProposal`
 
