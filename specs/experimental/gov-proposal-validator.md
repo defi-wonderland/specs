@@ -80,8 +80,9 @@ Protocol or Governor Upgrade proposals use the `Approval` voting module.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
 
 For the `ProposalSettings` of the voting module, these are:
-- `uint128 criteriaValue`: Since the passing criteria type is always "Threshold" for this proposal type
-this will be the amount of votes that the proposal need to gather to pass.
+- `uint128 criteriaValue`: Since the passing criteria type is always "Threshold", for this proposal type,
+this value will be the percentage that will be used to calculate the fraction of the votable supply that
+the proposal will need in votes in order to pass.
 
 For the `ProposalOptions` of the voting module, the specific proposal type only accepts "Yes"/"No" options
 which are defined in the contract.
@@ -185,8 +186,9 @@ funding proposals need to execute token transfers.
 This requires the user who submits the proposal to provide some additional data related to the proposal.
 
 For the `ProposalSettings` of the voting module, these are:
-- `uint128 criteriaValue`: Since the passing criteria type is always "Threshold" for this proposal type
-this will be the amount of votes that the proposal need to gather to pass.
+- `uint128 criteriaValue`: Since the passing criteria type is always "Threshold", for this proposal type,
+this value will be the percentage that will be used to calculate the fraction of the votable supply that
+the proposal will need in votes in order to pass.
 
 For the `ProposalOptions` of the voting module, these are:
 - `string[] optionsDescriptions`: The strings of the different options that can be voted.
