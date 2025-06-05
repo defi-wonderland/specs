@@ -232,7 +232,13 @@ For `MaintenanceUpgradeProposals` type:
 
 - This type does not require any checks and is being forwarded to the Governor contracts, this should happen atomically.
 
-For `CouncilMemberElections`, `GovernanceFund` and `CouncilBudget` types:
+For `CouncilMemberElections` type:
+
+- MUST also check that is called by the proposer that submitted the proposal
+- `_optionsRecipients` and `_optionsAmounts` MUST be empty
+- Proposal MUST be moved to vote during a valid voting cycle
+
+For `GovernanceFund` and `CouncilBudget` types:
 
 - Proposal MUST be moved to vote during a valid voting cycle
 - MUST check if the total amount of tokens that can possible be distributed during this voting cycle does not go over the
