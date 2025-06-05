@@ -52,7 +52,7 @@ The contract has a single `owner` role (Optimism Foundation) with permissions to
 
 ### Public Functions
 
-`submitProtocolOrGovernorUpgradeProposal`
+`submitUpgradeProposal`
 
 Submits a Protocol or Governor Upgrade proposal for approval and voting.
 
@@ -66,7 +66,7 @@ Submits a Protocol or Governor Upgrade proposal for approval and voting.
 - MUST store submission proposal data which are defined by the `ProposalSubmissionData` struct
 
 ```solidity
-function submitProtocolOrGovernorUpgradeProposal(
+function submitUpgradeProposal(
     uint128 _criteriaValue,
     string[] memory _optionDescriptions,
     string memory _proposalDescription,
