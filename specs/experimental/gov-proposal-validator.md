@@ -57,7 +57,7 @@ The contract has a single `owner` role (Optimism Foundation) with permissions to
 
 Submits a Protocol or Governor Upgrade proposal for approval and voting.
 
-- MUST be called by an approved address
+- MUST be called by an `owner` approved address
 - MUST check if the proposal is a duplicate
 - MUST use the `Approval` Voting Module
 - MUST use "Threshold" criteria type for the Voting Module
@@ -91,7 +91,7 @@ straight to voting if all submission checks pass, unlike the rest of the proposa
 need to collect a number of approvals by top delegates in order to move to vote. This call should be
 atomic.
 
-- MUST be called by an approved address
+- MUST be called by an `owner` approved address
 - MUST check if the proposal is a duplicate
 - MUST use the `Optimistic` Voting Module
 - MUST provide a valid attestation UID
@@ -121,7 +121,7 @@ For the `ProposalSettings` of the voting module, these are:
 
 Submits a Council Member Elections proposal for approval and voting.
 
-- MUST be called by an approved address
+- MUST be called by an `owner` approved address
 - MUST check if the proposal is a duplicate
 - MUST use the `Approval` Voting Module
 - MUST use "TopChoices" criteria type for the Voting Module
