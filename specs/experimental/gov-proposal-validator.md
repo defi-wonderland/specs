@@ -47,6 +47,7 @@ The contract has a single `owner` role (Optimism Foundation) with permissions to
 - Set the minimum approvals for each supported proposal type
 - Configure voting cycle parameters
 - Set maximum token distribution limits for proposals
+- Checks the address of the attester for the submit proposal attestations with the address of the owner
 
 ## Interface
 
@@ -68,7 +69,6 @@ Submits a Protocol or Governor Upgrade proposal for approval and voting.
 ```solidity
 function submitUpgradeProposal(
     uint128 _criteriaValue,
-    string[] memory _optionDescriptions,
     string memory _proposalDescription,
     bytes32 _attestationUid
 ) external returns (bytes32 proposalHash_);
@@ -83,10 +83,8 @@ For the `ProposalSettings` of the voting module, these are:
 - `uint128 criteriaValue`: Since the passing criteria type is always "Threshold" for this proposal type
 this will be the amount of votes that the proposal need to gather to pass.
 
-For the `ProposalOptions` of the voting module, these are:
-- `string[] optionDescriptions`: The strings of the different options that can be voted.
-
-`submitMaintenanceUpgradeProposal`
+For the `ProposalOptions` of the voting module, the specific proposal type only accepts "Yes"/"No" options
+which are defined in the contract.
 
 Submits a Maintenance Upgrade proposal to move for voting. `MaintenanceUpgradeProposals` type can move
 straight to voting if all submission checks pass, unlike the rest of the proposals where they
