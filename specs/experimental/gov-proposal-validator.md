@@ -88,6 +88,7 @@ For the `ProposalSettings` of the voting module, these are:
 that will be used to calculate the fraction of the votable supply that the proposal will need in votes in order
 to pass.
 - `bool isRelativeToVotableSupply`: Should always be `true`.
+---
 
 `submitCouncilMemberElectionsProposal`
 
@@ -122,6 +123,7 @@ of top choices that can pass the voting.
 
 For the `ProposalOptions` of the voting module, these are:
 - `string[] optionDescriptions`: The strings of the different options that can be voted.
+---
 
 `submitFundingProposal`
 
@@ -164,6 +166,7 @@ For the `ProposalOptions` of the voting module, these are:
 - `string[] optionsDescriptions`: The strings of the different options that can be voted.
 - `address[] optionsRecipients`: An address for each option to transfer funds to in case the option passes the voting.
 - `uint256[] optionsAmounts`: The amount to transfer for each option in case the option passes the voting.
+---
 
 `approveProposal`
 
