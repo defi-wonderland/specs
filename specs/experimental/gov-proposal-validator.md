@@ -479,7 +479,7 @@ event ProposalVotingModuleData(uint256 indexed proposalHash, bytes encodedVoting
 `ProposalType`s, and authentication of the top100 delegates for approving a proposal, removing the need for adding
 custom logic to the contract.
 
-### Why EAS?
+## Why EAS?
 
 - **Decentralized trust**: Instead of custom logic, Optimism uses attestations signed by the Foundation to authorize
   proposers.
@@ -489,9 +489,9 @@ custom logic to the contract.
 - **Revocability and expiration**: EAS supports expiration and revocation semantics natively, allowing dynamic control over
   authorized proposers.
 
-### Implementation Details
+## Implementation Details
 
-## Submit Proposal
+### Submit Proposal
 
 For the submit proposals we will need to register a new schema as described at `ATTESTATION_SCHEMA_UID_APPROVED_PROPOSERS`.
 The submit proposal functions validates attestations by:
@@ -501,7 +501,7 @@ The submit proposal functions validates attestations by:
 - Only proposals of type `ProtocolOrGovernorUpgrade`, `MaintenanceUpgradeProposals`, and `CouncilMemberElections`
 require valid EAS attestations.
 
-## Approve Proposal
+### Approve Proposal
 
 For the top100 delegates we will be using an existing schema that was created by the [dynamic attestation service](https://github.com/CuriaLab/dynamic_attestation_mvp).
 The approve proposal function validates attestations by:
