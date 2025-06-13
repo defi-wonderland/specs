@@ -190,6 +190,7 @@ function approveProposal(bytes32 _proposalHash, bytes32 _attestationUid) externa
 Approving a funding proposal type requires extra attention to the budget amount and options, of the
 approval voting module, that were provided on the submission of the proposal. This should be handled
 by the Agora's UI.
+---
 
 `moveToVote`
 
@@ -231,6 +232,7 @@ function moveToVote(
     string memory _proposalDescription
 ) external returns (uint256 proposalHash_)
 ```
+---
 
 `canApproveProposal`
 
@@ -242,6 +244,7 @@ Returns true if a delegate is part of the top100 delegates based on the dynamic 
 ```solidity
 function canApproveProposal(address _delegate, bytes32 _attestationUid) public view returns (bool canApprove_)
 ```
+---
 
 `setVotingCycleData`
 
@@ -259,6 +262,7 @@ function setVotingCycleData(
     uint256 _distributionLimit
 ) external
 ```
+---
 
 `setProposalDistributionThreshold`
 
@@ -271,6 +275,7 @@ Sets the maximum distribution amount a proposal can request.
 ```solidity
 function setProposalDistributionThreshold(uint256 _threshold) external
 ```
+---
 
 `setProposalTypeApprovalThreshold`
 
