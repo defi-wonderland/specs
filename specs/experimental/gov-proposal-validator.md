@@ -58,10 +58,11 @@ The contract has a single `owner` role (Optimism Foundation) with permissions to
 
 Submits a Protocol/Governor Upgrade or a Maintenance Upgrade proposal to move for voting.
 
-`ProtocolOrGovernorUpgrade` proposal type will store the submission proposal data and will be able
-to accept approvals by top delegates before being able to move for voting.
+`ProtocolOrGovernorUpgrade`: If all submission checks pass for this proposal type, the `ProposalValidator`
+will store the submission proposal data and will be able to accept approvals by top delegates before being
+able to move for voting.
 
-`MaintenanceUpgrade` proposal type can move straight to voting if all submission checks pass, unlike
+`MaintenanceUpgrade`: This proposal type can move straight to voting if all submission checks pass, unlike
 the rest of the proposals where they need to collect a number of approvals by top delegates in order
 to move to vote. This call should be atomic.
 
