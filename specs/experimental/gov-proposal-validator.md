@@ -222,6 +222,7 @@ function moveToVoteProtocolOrGovernorUpgradeProposal(
     external
     returns (bytes32 proposalHash_)
 ```
+
 ---
 
 `moveToVoteCouncilMemberElectionsProposal`
@@ -246,6 +247,7 @@ function moveToVoteCouncilMemberElectionsProposal(
     external
     returns (bytes32 proposalHash_)
 ```
+
 ---
 
 `moveToVoteFundingProposal`
