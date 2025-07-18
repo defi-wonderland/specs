@@ -462,7 +462,7 @@ struct VotingCycleData {
     uint256 startingTimestamp;
     uint256 duration;
     uint256 votingCycleDistributionLimit;
-    movedToVoteTokenCount;
+    uint256 movedToVoteTokenCount;
 }
 ```
 
