@@ -419,7 +419,7 @@ A struct that holds all the data for a single proposal. Consists of:
 - `inVoting`: Returns true if the proposal has already been submitted for voting
 - `delegateApprovals`: Mapping of addresses that approved the specific proposal
 - `approvalCount`: The number of approvals the specific proposal has received
-- `votingCycle`: The voting cycle number the proposal is targetted for.
+- `votingCycle`: The voting cycle number the proposal is targeted for.
 
 ```solidity
 struct ProposalData {
