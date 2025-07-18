@@ -285,7 +285,7 @@ Returns true if a delegate is part of the top100 delegates based on the dynamic 
 - MUST return TRUE if the delegate is part of the top100 and can approve a proposal
 
 ```solidity
-function canApproveProposal(bytes32 _attestationUid, address _delegate) public view returns (bool canApprove_)
+function canApproveProposal(bytes32 _attestationUid, address _delegate) external view returns (bool canApprove_)
 ```
 
 ---
