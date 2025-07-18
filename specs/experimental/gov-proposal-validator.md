@@ -93,8 +93,8 @@ Both proposals use the `Optimistic` voting module.
 
 For the `ProposalSettings` of the voting module, these are:
 - `uint248 againstThreshold`: Should be provided by the caller. This value will be the percentage
-that will be used to calculate the fraction of the votable supply that the proposal will need in votes in order
-to pass.
+that will be used to calculate the fraction of against votes relative to the votable supply that the proposal will need in
+against votes in order to not pass.
 - `bool isRelativeToVotableSupply`: If voting power should be relative to the votable supply. Should always be `true`.
 ---
 
