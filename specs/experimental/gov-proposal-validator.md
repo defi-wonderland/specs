@@ -296,7 +296,7 @@ Sets the voting cycle data.
 
 - MUST only be called by the owner of the contract
 - MUST NOT change an existing voting cycle
-- MUST emit `VotingCycleSet` event
+- MUST emit `VotingCycleDataSet` event
 
 ```solidity
 function setVotingCycleData(
