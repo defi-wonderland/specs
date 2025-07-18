@@ -145,7 +145,7 @@ Submits a `GovernanceFund` or `CouncilBudget` proposal type, for approval and vo
 - MUST use "Threshold" criteria type for the Voting Module
 - MUST use the `Predeploys.GOVERNANCE_TOKEN` and `IERC20.transfer` signature to create the `calldata`
 for each option
-- MUST NOT request to transfer more than `proposalDistributionThreshold` tokens
+- MUST NOT request to transfer more than `proposalDistributionThreshold` tokens for each option
 - MUST emit `ProposalSubmitted` and `ProposalVotingModuleData` events
 - MUST store submission proposal data which are defined by the `ProposalData` struct
 
