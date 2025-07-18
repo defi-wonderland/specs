@@ -345,7 +345,7 @@ The schema UID for attestations in the Ethereum Attestation Service for checking
 is an approved proposer.
 
 ```solidity
-/// Schema { approvedProposer: address, proposalType: uint8 }
+/// Schema { proposalType: uint8, date: string }
 bytes32 public immutable APPROVED_PROPOSER_ATTESTATION_SCHEMA_UID;
 ```
 
@@ -541,7 +541,7 @@ custom logic to the contract.
   proposers.
 - **Low integration overhead**: `EAS` and `SchemaRegistry` are predeploys on Optimism, requiring no additional deployments
   or infrastructure.
-- **Schema validation**: Ensures attestations follow strict data formats (e.g. `address approvedDelegate, uint8 proposalType`).
+- **Schema validation**: Ensures attestations follow strict data formats (e.g. `uint8 proposalType, string date`).
 - **Revocability and expiration**: EAS supports expiration and revocation semantics natively, allowing dynamic control over
   authorized proposers.
 
