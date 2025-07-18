@@ -168,9 +168,8 @@ This requires the user who submits the proposal to provide some additional data 
 
 For the `ProposalSettings` of the voting module, these are:
 - `uint128 criteriaValue`: Since the passing criteria type is always "Threshold", for this proposal type,
-this value will be the percentage that will be used to calculate the fraction of the votable supply that
-the proposal will need in votes in order to pass.
-
+this value will be the absolute number of votes required for the proposal to pass.
+It represents the threshold that must be met or exceeded for any option to be considered successful.
 For the `ProposalOptions` of the voting module, these are:
 - `string[] optionsDescriptions`: The strings of the different options that can be voted.
 - `address[] optionsRecipients`: An address for each option to transfer funds to in case the option passes the voting.
