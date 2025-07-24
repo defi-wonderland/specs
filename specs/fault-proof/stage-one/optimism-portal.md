@@ -473,6 +473,7 @@ AnchorStateRegistry, and start using the Super Roots proof method.
 Allows any address to donate ETH to the contract without triggering a deposit to L2.
 
 - MUST accept ETH payments via the payable modifier.
+- MUST revert if `systemConfig.isCustomGasToken()` returns `true` and `msg.value > 0`.
 - MUST not perform any state-changing operations.
 - MUST not trigger a deposit transaction to L2.
 
