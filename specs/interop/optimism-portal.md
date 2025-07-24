@@ -70,6 +70,7 @@ if (msg.value > 0) ethLockbox.lockETH{ value: msg.value }();
 
 - MUST be invoked during `depositTransaction` when there is ETH value
 - MUST lock any ETH value in the `ETHLockbox`
+- MUST revert if `systemConfig.isCustomGasToken()` returns `true` and `msg.value > 0`
 
 #### Unlocking ETH
 
@@ -96,6 +97,8 @@ event ETHMigrated(uint256 amount);
 ## Invariants
 
 - Deposits MUST lock the ETH in the `ETHLockbox`
+
+- Deposits MUST revert when Custom Gas Token mode is enabled and `msg.value > 0`
 
 - Withdrawals MUST unlock the ETH from the `ETHLockbox` and forward it to the withdrawal target
 
