@@ -70,6 +70,8 @@ Successful messages have their hash stored in the `successfulMessages` mapping
 while unsuccessful messages have their hash stored in the `failedMessages`
 mapping.
 
+The `sendMessage` function MUST revert when Custom Gas Token mode is enabled and `msg.value > 0`.
+
 The user experience when sending from L1 to L2 is a bit different than when
 sending a transaction from L2 to L1. When going from L1 into L2, the user does
 not need to call `relayMessage` on L2 themselves. The user pays for L2 gas on L1

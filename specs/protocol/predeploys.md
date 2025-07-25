@@ -175,6 +175,8 @@ The `relayMessage` function executes a transaction from the remote domain while
 the `sendMessage` function sends a transaction to be executed on the remote
 domain through the remote domain's `relayMessage` function.
 
+The `sendMessage` function MUST revert if `L1Block.isCustomGasToken()` returns `true` and `msg.value > 0`.
+
 ## L2StandardBridge
 
 [Implementation](https://github.com/ethereum-optimism/optimism/blob/develop/packages/contracts-bedrock/src/L2/L2StandardBridge.sol)
@@ -192,6 +194,8 @@ token to the specified account.
 To withdraw a token from L2 to L1, the user will burn the token on L2 and the
 `L2StandardBridge` will send a message to the `L1StandardBridge` which will
 unlock the underlying token and transfer it to the specified account.
+
+ETH bridging functions MUST revert if `L1Block.isCustomGasToken()` returns `true` and the function involves ETH transfers.
 
 The `OptimismMintableERC20Factory` can be used to create an ERC20 token contract
 on a remote domain that maps to an ERC20 token contract on the local domain
