@@ -42,6 +42,7 @@
   - [setOperatorFeeScalars](#setoperatorfeescalars)
   - [resourceConfig](#resourceconfig)
   - [guardian](#guardian)
+  - [isCustomGasToken](#iscustomgastoken)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -336,3 +337,9 @@ Returns the current resource metering configuration.
 Returns the address of the guardian from the SuperchainConfig contract.
 
 - MUST return the result of a call to `superchainConfig.guardian()`.
+
+### isCustomGasToken
+
+Returns true if the gas token is a custom gas token, false otherwise.
+
+- MUST return the result of a call to `superchainConfig.isCustomGasToken()`.
