@@ -161,6 +161,19 @@ Address: `0x4200000000000000000000000000000000000006`
 commonly used contract and is placed as a predeploy so that it is at a
 deterministic address across Optimism based networks.
 
+On chains using Custom Gas Token mode, this contract serves as the Wrapped Native
+Asset (WNA) instead of Wrapped Ether. The contract's `name()` and `symbol()` 
+functions are sourced from the `LiquidityController` predeploy, which returns
+the name and symbol prefixed with "Wrapped" and "W" respectively.
+
+For existing chains upgrading to Custom Gas Token mode, the metadata source
+change requires deploying a new implementation that queries the `LiquidityController`
+instead of using hardcoded ETH metadata. The proxy can then be upgraded to point
+to the new implementation.
+
+For fresh Custom Gas Token deployments, the contract is deployed from genesis
+with the metadata functions already configured to use the `LiquidityController`.
+
 ## L2CrossDomainMessenger
 
 [Implementation](https://github.com/ethereum-optimism/optimism/blob/develop/packages/contracts-bedrock/src/L2/L2CrossDomainMessenger.sol)
