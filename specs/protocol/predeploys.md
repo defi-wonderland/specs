@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -51,7 +52,7 @@ indicates when the predeploy was introduced. The possible values are `Legacy`
 or `Bedrock` or `Canyon`. Deprecated contracts should not be used.
 
 | Name                          | Address                                    | Introduced | Deprecated | Proxied |
-|-------------------------------|--------------------------------------------|------------| ---------- |---------|
+| ----------------------------- | ------------------------------------------ | ---------- | ---------- | ------- |
 | LegacyMessagePasser           | 0x4200000000000000000000000000000000000000 | Legacy     | Yes        | Yes     |
 | DeployerWhitelist             | 0x4200000000000000000000000000000000000002 | Legacy     | Yes        | Yes     |
 | LegacyERC20ETH                | 0xDeadDeAddeAddEAddeadDEaDDEAdDeaDDeAD0000 | Legacy     | Yes        | No      |
@@ -289,10 +290,19 @@ Address: `0x4200000000000000000000000000000000000011`
 
 The `SequencerFeeVault` accumulates any transaction priority fee and is the value of
 `block.coinbase`.
-When enough fees accumulate in this account, they can be withdrawn to an immutable L1 address.
+When enough fees accumulate in this account, they can be withdrawn to a configured address.
 
-To change the L1 address that fees are withdrawn to, the contract must be
-upgraded by changing its proxy's implementation key.
+The contract constructor takes a `WithdrawalNetwork` parameter that determines whether
+funds are sent to L1 or L2:
+
+- `WithdrawalNetwork.L1`: Funds are withdrawn to an L1 address (default behavior)
+- `WithdrawalNetwork.L2`: Funds are withdrawn to an L2 address
+
+For existing deployments, to change the withdrawal network or recipient address,
+a new implementation must be deployed and the proxy must be upgraded.
+
+For fresh deployments with Custom Gas Token mode enabled, the withdrawal network
+MUST be set to `WithdrawalNetwork.L2`.
 
 ## OptimismMintableERC20Factory
 
@@ -324,8 +334,19 @@ Address: `0x4200000000000000000000000000000000000019`
 
 The `BaseFeeVault` predeploy receives the base fees on L2. The base fee is not
 burnt on L2 like it is on L1. Once the contract has received a certain amount
-of fees, the ETH can be withdrawn to an immutable address on
-L1.
+of fees, they can be withdrawn to a configured address.
+
+The contract constructor takes a `WithdrawalNetwork` parameter that determines whether
+funds are sent to L1 or L2:
+
+- `WithdrawalNetwork.L1`: Funds are withdrawn to an L1 address (default behavior)
+- `WithdrawalNetwork.L2`: Funds are withdrawn to an L2 address
+
+For existing deployments, to change the withdrawal network or recipient address,
+a new implementation must be deployed and the proxy must be upgraded.
+
+For fresh deployments with Custom Gas Token mode enabled, the withdrawal network
+MUST be set to `WithdrawalNetwork.L2`.
 
 ## L1FeeVault
 
@@ -334,8 +355,20 @@ L1.
 Address: `0x420000000000000000000000000000000000001a`
 
 The `L1FeeVault` predeploy receives the L1 portion of the transaction fees.
-Once the contract has received a certain amount of fees, the ETH can be
-withdrawn to an immutable address on L1.
+Once the contract has received a certain amount of fees, they can be withdrawn
+to a configured address.
+
+The contract constructor takes a `WithdrawalNetwork` parameter that determines whether
+funds are sent to L1 or L2:
+
+- `WithdrawalNetwork.L1`: Funds are withdrawn to an L1 address (default behavior)
+- `WithdrawalNetwork.L2`: Funds are withdrawn to an L2 address
+
+For existing deployments, to change the withdrawal network or recipient address,
+a new implementation must be deployed and the proxy must be upgraded.
+
+For fresh deployments with Custom Gas Token mode enabled, the withdrawal network
+MUST be set to `WithdrawalNetwork.L2`.
 
 ## SchemaRegistry
 
