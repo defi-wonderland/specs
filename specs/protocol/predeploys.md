@@ -2,7 +2,6 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
 - [Overview](#overview)
@@ -28,7 +27,27 @@
 - [Governance Token](#governance-token)
 - [Operator Fee Vault](#operator-fee-vault)
 - [Native Asset Liquidity](#native-asset-liquidity)
+  - [Functions](#functions)
+    - [`deposit`](#deposit)
+    - [`withdraw`](#withdraw)
+    - [`fund`](#fund)
+  - [Events](#events)
+    - [`LiquidityDeposited`](#liquiditydeposited)
+    - [`LiquidityWithdrawn`](#liquiditywithdrawn)
+    - [`LiquidityFunded`](#liquidityfunded)
+  - [Invariants](#invariants)
 - [Liquidity Controller](#liquidity-controller)
+  - [Functions](#functions-1)
+    - [`authorizeMinter`](#authorizeminter)
+    - [`mint`](#mint)
+    - [`burn`](#burn)
+    - [`gasPayingAssetName`](#gaspayingassetname)
+    - [`gasPayingAssetSymbol`](#gaspayingassetsymbol)
+  - [Events](#events-1)
+    - [`MinterAuthorized`](#minterauthorized)
+    - [`AssetsMinted`](#assetsminted)
+    - [`AssetsBurned`](#assetsburned)
+  - [Invariants](#invariants-1)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -162,13 +181,13 @@ commonly used contract and is placed as a predeploy so that it is at a
 deterministic address across Optimism based networks.
 
 On chains using Custom Gas Token mode, this contract serves as the Wrapped Native
-Asset (WNA) instead of Wrapped Ether. The contract's `name()` and `symbol()` 
+Asset (WNA) instead of Wrapped Ether. The contract's `name()` and `symbol()`
 functions are sourced from the `LiquidityController` predeploy, which returns
 the name and symbol prefixed with "Wrapped" and "W" respectively.
 
 For existing chains upgrading to Custom Gas Token mode, the metadata source
 change requires deploying a new implementation that queries the `LiquidityController`
-instead of using hardcoded ETH metadata. The proxy can then be upgraded to point
+instead of relying on hardcoded ETH metadata. The proxy can then be upgraded to point
 to the new implementation.
 
 For fresh Custom Gas Token deployments, the contract is deployed from genesis
@@ -430,27 +449,84 @@ See [Operator Fee Vault](https://specs.optimism.io/protocol/isthmus/predeploys.h
 Address: `0x420000000000000000000000000000000000001C`
 
 The `NativeAssetLiquidity` predeploy stores a large amount of pre-minted native asset
-that serves as the liquidity source for Custom Gas Token chains. This contract is only
-deployed on chains using Custom Gas Token mode.
+that serves as the central liquidity source for Custom Gas Token chains. This contract
+is only deployed on chains using Custom Gas Token mode and acts as the vault for all
+native asset supply management operations.
 
-The contract provides a simple interface for managing native asset supply:
+### Functions
+
+#### `deposit`
+
+Accepts native asset deposits and locks them in the contract, reducing circulating supply.
 
 ```solidity
-interface NativeAssetLiquidity {
-    function deposit() external payable;
-    function withdraw(uint256 _amount) external;
-}
+function deposit() external payable
 ```
 
-The `deposit()` function reduces the native asset supply by accepting native asset payments,
-while the `withdraw()` function increases supply by sending native assets to the caller.
-Only the `LiquidityController` predeploy can call these functions, ensuring controlled
-access to the liquidity pool.
+- MUST only be callable by the `LiquidityController` predeploy
+- MUST accept any amount of native asset via `msg.value`
+- MUST revert if called by any address other than `LiquidityController`
+- MUST emit `LiquidityDeposited` event
 
-The contract is pre-funded with native assets at chain genesis and acts as the central
-liquidity pool for all native asset operations. This design ensures that native asset
-minting and burning are decoupled from system transactions (deposits) and moved to the
-application layer through the `LiquidityController`.
+#### `withdraw`
+
+Sends native assets from the contract to the `LiquidityController`, increasing circulating supply.
+
+```solidity
+function withdraw(uint256 _amount) external
+```
+
+- MUST only be callable by the `LiquidityController` predeploy
+- MUST send exactly `_amount` of native asset to the caller
+- MUST revert if called by any address other than `LiquidityController`
+- MUST revert if the contract balance is insufficient
+- MUST emit `LiquidityWithdrawn` event
+
+#### `fund`
+
+Allows funding the contract with native assets, typically used during genesis deployment.
+
+```solidity
+function fund() external payable
+```
+
+- MUST accept any amount of native asset via `msg.value`
+- MUST revert if `msg.value` is zero
+- MUST emit `LiquidityFunded` event
+- MUST be callable by any address
+
+### Events
+
+#### `LiquidityDeposited`
+
+Emitted when native assets are deposited into the contract.
+
+```solidity
+event LiquidityDeposited(address indexed caller, uint256 value)
+```
+
+#### `LiquidityWithdrawn`
+
+Emitted when native assets are withdrawn from the contract.
+
+```solidity
+event LiquidityWithdrawn(address indexed caller, uint256 value)
+```
+
+#### `LiquidityFunded`
+
+Emitted when the contract receives funding, typically during initial deployment.
+
+```solidity
+event LiquidityFunded(address indexed funder, uint256 amount)
+```
+
+### Invariants
+
+- Only the `LiquidityController` predeploy can call `deposit()` and `withdraw()`
+- All native asset supply changes must go through this contract when CGT mode is active
+
+- No direct user interaction is permitted with liquidity management functions
 
 ## Liquidity Controller
 
@@ -458,26 +534,114 @@ Address: `0x420000000000000000000000000000000000001D`
 
 The `LiquidityController` predeploy manages access to the `NativeAssetLiquidity` contract
 and provides the governance interface for Custom Gas Token chains. This contract is only
-deployed on chains using Custom Gas Token mode.
+deployed on chains using Custom Gas Token mode and serves as the central authority for
+native asset supply management and metadata provisioning.
 
-The contract provides interfaces for minter management and native asset metadata:
+### Functions
+
+#### `authorizeMinter`
+
+Authorizes an address to mint native assets from the liquidity pool.
 
 ```solidity
-interface LiquidityController {
-    function authorizeMinter(address _minter) external;
-    function mint(address _to, uint256 _amount) external;
-    function burn() external payable;
-    function gasPayingAssetName() external view returns (string memory);
-    function gasPayingAssetSymbol() external view returns (string memory);
-}
+function authorizeMinter(address _minter) external
 ```
 
-The contract owner can authorize addresses to act as minters through the `authorizeMinter()`
-function. Authorized minters can then call `mint()` to unlock native assets from the
-liquidity pool and send them to specified addresses, or call `burn()` to lock native
-assets back into the pool.
+- MUST only be callable by the contract owner
+- MUST authorize `_minter` to call the `mint()` function
+- MUST revert if called by non-owner
+- MUST emit `MinterAuthorized` event
 
-The contract also provides metadata functions `gasPayingAssetName()` and 
-`gasPayingAssetSymbol()` that return the name and symbol for the wrapped native asset
-(WNA). This flexible minter system allows each Custom Gas Token chain to implement
-any tokenomics mechanism, from ERC20 conversion to custom bridging solutions.
+#### `mint`
+
+Unlocks native assets from the liquidity pool and sends them to a specified address.
+
+```solidity
+function mint(address _to, uint256 _amount) external
+```
+
+- MUST only be callable by authorized minters
+- MUST call `NativeAssetLiquidity.withdraw(_amount)` to unlock assets
+- MUST send exactly `_amount` of native asset to `_to` address
+- MUST revert if caller is not an authorized minter
+- MUST revert if `NativeAssetLiquidity` has insufficient balance
+- MUST emit `AssetsMinted` event
+
+#### `burn`
+
+Locks native assets back into the liquidity pool, reducing circulating supply.
+
+```solidity
+function burn() external payable
+```
+
+- MUST accept any amount of native asset via `msg.value`
+- MUST call `NativeAssetLiquidity.deposit{value: msg.value}()` to lock assets
+- MUST be callable by any address
+- MUST revert if `msg.value` is zero
+- MUST emit `AssetsBurned` event
+
+#### `gasPayingAssetName`
+
+Returns the human-readable name of the gas-paying asset for metadata purposes.
+
+```solidity
+function gasPayingAssetName() external view returns (string memory)
+```
+
+- MUST return the name of the native asset (e.g., "MyToken")
+- MUST be used by WETH9 predeploy for `name()` function in CGT mode
+- Returns value used to construct "Wrapped {AssetName}" for WNA
+
+#### `gasPayingAssetSymbol`
+
+Returns the symbol of the gas-paying asset for metadata purposes.
+
+```solidity
+function gasPayingAssetSymbol() external view returns (string memory)
+```
+
+- MUST return the symbol of the native asset (e.g., "MTK")
+- MUST be used by WETH9 predeploy for `symbol()` function in CGT mode
+- Returns value used to construct "W{AssetSymbol}" for WNA
+
+### Events
+
+#### `MinterAuthorized`
+
+Emitted when a new minter is authorized by the contract owner.
+
+```solidity
+event MinterAuthorized(address indexed minter, address indexed authorizer)
+```
+
+Where `minter` is the address being authorized and `authorizer` is the contract owner who authorized them.
+
+#### `AssetsMinted`
+
+Emitted when native assets are unlocked from the liquidity pool and sent to a recipient.
+
+```solidity
+event AssetsMinted(address indexed minter, address indexed to, uint256 amount)
+```
+
+Where `minter` is the authorized address calling the function, `to` is the recipient address, and `amount` is the amount of native assets minted.
+
+#### `AssetsBurned`
+
+Emitted when native assets are locked back into the liquidity pool.
+
+```solidity
+event AssetsBurned(address indexed burner, uint256 amount)
+```
+
+Where `burner` is the `msg.sender` who burned the assets and `amount` is the amount of native assets burned.
+
+### Invariants
+
+- Only authorized minters can call `mint()` to unlock native assets
+- Only the contract owner can authorize new minters via `authorizeMinter()`
+- All native asset supply changes must flow through this contract's governance
+- The contract acts as the sole interface between governance and `NativeAssetLiquidity`
+- `burn()` operations always increase locked supply by calling `NativeAssetLiquidity.deposit()`
+- `mint()` operations always decrease locked supply by calling `NativeAssetLiquidity.withdraw()`
