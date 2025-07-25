@@ -27,6 +27,8 @@
 - [Beacon Block Root](#beacon-block-root)
 - [Governance Token](#governance-token)
 - [Operator Fee Vault](#operator-fee-vault)
+- [Native Asset Liquidity](#native-asset-liquidity)
+- [Liquidity Controller](#liquidity-controller)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -75,6 +77,8 @@ or `Bedrock` or `Canyon`. Deprecated contracts should not be used.
 | EAS                           | 0x4200000000000000000000000000000000000021 | Bedrock    | No         | Yes     |
 | BeaconBlockRoot               | 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02 | Ecotone    | No         | No      |
 | OperatorFeeVault              | 0x420000000000000000000000000000000000001B | Isthmus    | No         | Yes     |
+| NativeAssetLiquidity          | 0x420000000000000000000000000000000000001C | Isthmus    | No         | Yes     |
+| LiquidityController           | 0x420000000000000000000000000000000000001D | Isthmus    | No         | Yes     |
 
 ## LegacyMessagePasser
 
@@ -407,3 +411,60 @@ See [Governance Token specs](https://specs.optimism.io/governance/gov-token.html
 Address: `0x420000000000000000000000000000000000001B`
 
 See [Operator Fee Vault](https://specs.optimism.io/protocol/isthmus/predeploys.html#operatorfeevault) spec.
+
+## Native Asset Liquidity
+
+Address: `0x420000000000000000000000000000000000001C`
+
+The `NativeAssetLiquidity` predeploy stores a large amount of pre-minted native asset
+that serves as the liquidity source for Custom Gas Token chains. This contract is only
+deployed on chains using Custom Gas Token mode.
+
+The contract provides a simple interface for managing native asset supply:
+
+```solidity
+interface NativeAssetLiquidity {
+    function deposit() external payable;
+    function withdraw(uint256 _amount) external;
+}
+```
+
+The `deposit()` function reduces the native asset supply by accepting native asset payments,
+while the `withdraw()` function increases supply by sending native assets to the caller.
+Only the `LiquidityController` predeploy can call these functions, ensuring controlled
+access to the liquidity pool.
+
+The contract is pre-funded with native assets at chain genesis and acts as the central
+liquidity pool for all native asset operations. This design ensures that native asset
+minting and burning are decoupled from system transactions (deposits) and moved to the
+application layer through the `LiquidityController`.
+
+## Liquidity Controller
+
+Address: `0x420000000000000000000000000000000000001D`
+
+The `LiquidityController` predeploy manages access to the `NativeAssetLiquidity` contract
+and provides the governance interface for Custom Gas Token chains. This contract is only
+deployed on chains using Custom Gas Token mode.
+
+The contract provides interfaces for minter management and native asset metadata:
+
+```solidity
+interface LiquidityController {
+    function authorizeMinter(address _minter) external;
+    function mint(address _to, uint256 _amount) external;
+    function burn() external payable;
+    function gasPayingAssetName() external view returns (string memory);
+    function gasPayingAssetSymbol() external view returns (string memory);
+}
+```
+
+The contract owner can authorize addresses to act as minters through the `authorizeMinter()`
+function. Authorized minters can then call `mint()` to unlock native assets from the
+liquidity pool and send them to specified addresses, or call `burn()` to lock native
+assets back into the pool.
+
+The contract also provides metadata functions `gasPayingAssetName()` and 
+`gasPayingAssetSymbol()` that return the name and symbol for the wrapped native asset
+(WNA). This flexible minter system allows each Custom Gas Token chain to implement
+any tokenomics mechanism, from ERC20 conversion to custom bridging solutions.
