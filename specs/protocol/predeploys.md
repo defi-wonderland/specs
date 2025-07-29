@@ -182,17 +182,18 @@ commonly used contract and is placed as a predeploy so that it is at a
 deterministic address across Optimism based networks.
 
 On chains using Custom Gas Token mode, this contract serves as the Wrapped Native
-Asset (WNA) instead of Wrapped Ether. The contract's `name()` and `symbol()`
-functions are sourced from the `LiquidityController` predeploy, which returns
-the name and symbol prefixed with "Wrapped" and "W" respectively.
+Asset (WNA) instead of Wrapped Ether. The WETH predeploy implementation remains 
+unchanged and continues to fetch metadata from the `L1Block` predeploy. However, 
+the `L1Block` predeploy is updated to source the name and symbol from the 
+`LiquidityController` instead of using hardcoded ETH values, with the name and 
+symbol being prefixed with "Wrapped" and "W" respectively.
 
-For existing chains upgrading to Custom Gas Token mode, the metadata source
-change requires deploying a new implementation that queries the `LiquidityController`
-instead of relying on hardcoded ETH metadata. The proxy can then be upgraded to point
-to the new implementation.
+For existing chains upgrading to Custom Gas Token mode, the `L1Block` predeploy
+requires upgrading to a new implementation that queries the `LiquidityController`
+instead of relying on hardcoded ETH metadata.
 
-For fresh Custom Gas Token deployments, the contract is deployed from genesis
-with the metadata functions already configured to use the `LiquidityController`.
+For fresh Custom Gas Token deployments, the `L1Block` is deployed from genesis
+with the metadata functions already configured to fetch from the `LiquidityController`.
 
 ## L2CrossDomainMessenger
 
