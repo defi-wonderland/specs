@@ -182,10 +182,10 @@ commonly used contract and is placed as a predeploy so that it is at a
 deterministic address across Optimism based networks.
 
 On chains using Custom Gas Token mode, this contract serves as the Wrapped Native
-Asset (WNA) instead of Wrapped Ether. The WETH predeploy implementation remains 
-unchanged and continues to fetch metadata from the `L1Block` predeploy. However, 
-the `L1Block` predeploy is updated to source the name and symbol from the 
-`LiquidityController` instead of using hardcoded ETH values, with the name and 
+Asset (WNA) instead of Wrapped Ether. The WETH predeploy implementation remains
+unchanged and continues to fetch metadata from the `L1Block` predeploy. However,
+the `L1Block` predeploy is updated to source the name and symbol from the
+`LiquidityController` instead of using hardcoded ETH values, with the name and
 symbol being prefixed with "Wrapped" and "W" respectively.
 
 For existing chains upgrading to Custom Gas Token mode, the `L1Block` predeploy
@@ -592,7 +592,7 @@ function gasPayingAssetName() external view returns (string memory)
 ```
 
 - MUST return the name of the native asset (e.g., "MyToken")
-- MUST be used by WETH9 predeploy for `name()` function in CGT mode
+- MUST be used by WETH9 predeploy for `name()` function
 - Returns value used to construct "Wrapped {AssetName}" for WNA
 
 #### `gasPayingAssetSymbol`
@@ -604,7 +604,7 @@ function gasPayingAssetSymbol() external view returns (string memory)
 ```
 
 - MUST return the symbol of the native asset (e.g., "MTK")
-- MUST be used by WETH9 predeploy for `symbol()` function in CGT mode
+- MUST be used by WETH9 predeploy for `symbol()` function
 - Returns value used to construct "W{AssetSymbol}" for WNA
 
 ### Events
