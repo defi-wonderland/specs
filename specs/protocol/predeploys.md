@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -96,8 +97,8 @@ or `Bedrock` or `Canyon`. Deprecated contracts should not be used.
 | EAS                           | 0x4200000000000000000000000000000000000021 | Bedrock    | No         | Yes     |
 | BeaconBlockRoot               | 0x000F3df6D732807Ef1319fB7B8bB8522d0Beac02 | Ecotone    | No         | No      |
 | OperatorFeeVault              | 0x420000000000000000000000000000000000001B | Isthmus    | No         | Yes     |
-| NativeAssetLiquidity          | 0x420000000000000000000000000000000000001C | Isthmus    | No         | Yes     |
-| LiquidityController           | 0x420000000000000000000000000000000000001D | Isthmus    | No         | Yes     |
+| NativeAssetLiquidity          | 0x420000000000000000000000000000000000001C | Jovian     | No         | Yes     |
+| LiquidityController           | 0x420000000000000000000000000000000000001D | Jovian     | No         | Yes     |
 
 ## LegacyMessagePasser
 
