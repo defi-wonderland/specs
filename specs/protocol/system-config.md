@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -14,6 +15,7 @@
     - [Post-Ecotone Scalar Encoding](#post-ecotone-scalar-encoding)
   - [Unsafe Block Signer](#unsafe-block-signer)
   - [L2 Gas Limit](#l2-gas-limit)
+  - [Custom Gas Token Flag](#custom-gas-token-flag)
 - [Functionality](#functionality)
   - [System Config Updates](#system-config-updates)
 - [Function Specification](#function-specification)
@@ -152,6 +154,10 @@ updates of L1 blocks.
 The gas limit may not be set to a value larger than the
 [maximum gas limit](./configurability.md#gas-limit). This is to ensure that L2 blocks are fault
 provable and of reasonable size to be processed by the client software.
+
+### Custom Gas Token Flag
+
+The **Custom Gas Token Flag** (`isCustomGasToken`) is a boolean value that indicates whether the chain is operating in Custom Gas Token mode.
 
 ## Functionality
 
