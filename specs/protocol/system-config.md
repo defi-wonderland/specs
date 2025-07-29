@@ -2,7 +2,6 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
 - [Overview](#overview)
@@ -157,7 +156,8 @@ provable and of reasonable size to be processed by the client software.
 
 ### Custom Gas Token Flag
 
-The **Custom Gas Token Flag** (`isCustomGasToken`) is a boolean value that indicates whether the chain is operating in Custom Gas Token mode.
+The **Custom Gas Token Flag** (`isCustomGasToken`) is a boolean value that indicates
+whether the chain is operating in Custom Gas Token mode.
 
 ## Functionality
 
