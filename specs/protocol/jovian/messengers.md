@@ -30,33 +30,26 @@ upgrade.
 The `L2CrossDomainMessenger` is a predeploy contract located at
 `0x4200000000000000000000000000000000000007`.
 
-The base `CrossDomainMessenger` interface is:
-
 ```solidity
 interface CrossDomainMessenger {
     event FailedRelayedMessage(bytes32 indexed msgHash);
     event RelayedMessage(bytes32 indexed msgHash);
     event SentMessage(address indexed target, address sender, bytes message, uint256 messageNonce, uint256 gasLimit);
-    event SentMessageExtension1(address indexed sender, uint256 value);
 
     function MESSAGE_VERSION() external view returns (uint16);
     function MIN_GAS_CALLDATA_OVERHEAD() external view returns (uint64);
-    function MIN_GAS_CONSTANT_OVERHEAD() external view returns (uint64);
     function MIN_GAS_DYNAMIC_OVERHEAD_DENOMINATOR() external view returns (uint64);
     function MIN_GAS_DYNAMIC_OVERHEAD_NUMERATOR() external view returns (uint64);
     function OTHER_MESSENGER() external view returns (address);
-    function baseGas(bytes memory _message, uint32 _minGasLimit) external pure returns (uint64);
+    function RELAY_CALL_OVERHEAD() external view returns (uint64);
+    function RELAY_CONSTANT_OVERHEAD() external view returns (uint64);
+    function RELAY_GAS_CHECK_BUFFER() external view returns (uint64);
+    function RELAY_RESERVED_GAS() external view returns (uint64);
+    function baseGas(bytes calldata _message, uint32 _minGasLimit) external pure returns (uint64);
     function failedMessages(bytes32) external view returns (bool);
     function messageNonce() external view returns (uint256);
-    function relayMessage(
-        uint256 _nonce,
-        address _sender,
-        address _target,
-        uint256 _value,
-        uint256 _minGasLimit,
-        bytes memory _message
-    ) external payable returns (bytes memory returnData_);
-    function sendMessage(address _target, bytes memory _message, uint32 _minGasLimit) external payable;
+    function relayMessage(uint256 _nonce, address _sender, address _target, uint256 _value, uint256 _minGasLimit, bytes calldata _message) external payable;
+    function sendMessage(address _target, bytes calldata _message, uint32 _minGasLimit) external payable;
     function successfulMessages(bytes32) external view returns (bool);
     function xDomainMessageSender() external view returns (address);
 }
@@ -64,36 +57,40 @@ interface CrossDomainMessenger {
 
 ## Message Passing
 
-The `sendMessage` function is used to send a cross domain message. To trigger
-the execution on the other side, the `relayMessage` function is called.
+L1 `CrossDomainMessenger` messages are implemented as
+L1 to L2 transactions by way of the `OptimismPortal`, and L2
+`CrossDomainMessenger` messages are implemented as withdrawals.
+
 Successful messages have their hash stored in the `successfulMessages` mapping
 while unsuccessful messages have their hash stored in the `failedMessages`
 mapping.
 
+The `sendMessage` function MUST revert when Custom Gas Token mode is enabled and `msg.value > 0`.
+
 The user experience when sending from L1 to L2 is a bit different than when
 sending a transaction from L2 to L1. When going from L1 into L2, the user does
 not need to call `relayMessage` on L2 themselves. The user pays for L2 gas on L1
-and the transaction is automatically pulled into L2 where it is executed on L2.
-When going from L2 into L1, the user proves their withdrawal on OptimismPortal,
-then waits for the finalization window to pass, and then finalizes the withdrawal
-on the OptimismPortal, which calls `relayMessage` on the
-`L1CrossDomainMessenger` to finalize the withdrawal.
+and the transaction is automatically executed on L2 on the user's behalf.
+However if the gas amount paid is too low, the transaction will fail on L2, but
+in the case that it fails, it can be replayed.
+
+In the case where a user is sending a transaction from L2 to L1, they still
+need to call `relayMessage` on L1 after the fault proof period has ended.
 
 ## Upgradability
 
-The L1 and L2 cross domain messengers should be deployed behind upgradable
-proxies. This will allow for updating the message version.
+The cross domain messenger should be deployed behind upgradable proxies.
 
 ## Message Versioning
 
-Messages are versioned based on the first 2 bytes of their nonce. Depending on
-the version, messages can have a different serialization and hashing scheme.
-The first two bytes of the nonce are reserved for version metadata because
-a version field was not originally included in the messages themselves, but
-a `uint256` nonce is so large that we can very easily pack additional data
-into that field.
+The cross domain messengers use a version to determine the serialization format
+for sending messages. The serialization formats are used to ensure backwards
+compatibility as the schemas are updated.
 
 ### Message Version 0
+
+The first version of the messages that were sent used the following serialization
+format:
 
 ```solidity
 abi.encodeWithSignature(
@@ -101,11 +98,13 @@ abi.encodeWithSignature(
     _target,
     _sender,
     _message,
-    _messageNonce
+    _nonce
 );
 ```
 
 ### Message Version 1
+
+The second version of the messages use the following serialization format:
 
 ```solidity
 abi.encodeWithSignature(
@@ -114,19 +113,22 @@ abi.encodeWithSignature(
     _sender,
     _target,
     _value,
-    _gasLimit,
-    _data
+    _minGasLimit,
+    _message
 );
 ```
 
+The version 1 schema adds value to allow for native asset to be sent along
+with the message and a minimum gas limit to enforce that a minimum amount
+of gas is provided for the call to be successful.
+
 ## Backwards Compatibility Notes
 
-An older version of the messenger contracts had the concept of blocked messages
-in a `blockedMessages` mapping. This functionality was removed from the
-messengers because a smart attacker could get around any message blocking
-attempts. It also saves gas on finalizing withdrawals.
+The `CrossDomainMessenger` is extended with legacy methods to support backwards
+compatibility. Legacy methods should not be used and instead should only exist
+to support applications that integrated with the system before the Bedrock
+upgrade.
 
-The concept of a "relay id" and the `relayedMessages` mapping was removed.
-It was built as a way to be able to fund third parties who relayed messages
-on the behalf of users, but it was improperly implemented as it was impossible
-to know if the relayed message actually succeeded.
+The legacy methods are:
+
+- `xDomainMessageSender()`
