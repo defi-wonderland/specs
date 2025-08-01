@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -38,10 +39,10 @@
 
 ## Overview
 
-| Name                          | Address                                    | Introduced | Deprecated | Proxied |
-| ----------------------------- | ------------------------------------------ | ---------- | ---------- | ------- |
-| NativeAssetLiquidity          | 0x420000000000000000000000000000000000001C | Jovian     | No         | Yes     |
-| LiquidityController           | 0x420000000000000000000000000000000000001D | Jovian     | No         | Yes     |
+| Name                 | Address                                    | Introduced | Deprecated | Proxied |
+| -------------------- | ------------------------------------------ | ---------- | ---------- | ------- |
+| NativeAssetLiquidity | 0x420000000000000000000000000000000000001C | Jovian     | No         | Yes     |
+| LiquidityController  | 0x420000000000000000000000000000000000001D | Jovian     | No         | Yes     |
 
 ## WETH9
 
@@ -52,20 +53,25 @@ the `L1Block` predeploy is updated to source the name and symbol from the
 `LiquidityController` instead of using hardcoded ETH values, with the name and
 symbol being prefixed with "Wrapped" and "W" respectively.
 
-For existing chains upgrading to Custom Gas Token mode, the `L1Block` predeploy
-requires upgrading to a new implementation that queries the `LiquidityController`
-instead of relying on hardcoded ETH metadata.
+**Important**: Currently, a chain using ETH cannot migrate to use a custom gas token,
+as this migration would introduce significant risks and breaking changes to existing
+infrastructure. Custom Gas Token mode is only supported for fresh deployments.
+Migration only focuses on chains utilizing the old CGT implementation.
 
 For fresh Custom Gas Token deployments, the `L1Block` is deployed from genesis
 with the metadata functions already configured to fetch from the `LiquidityController`.
 
 ## L2CrossDomainMessenger
 
-The `sendMessage` function MUST revert if `L1Block.isCustomGasToken()` returns `true` and `msg.value > 0`. This revert occurs because `L2CrossDomainMessenger` internally calls `L2ToL1MessagePasser.initiateWithdrawal` which enforces the CGT restriction.
+The `sendMessage` function MUST revert if `L1Block.isCustomGasToken()` returns `true` and `msg.value > 0`.
+This revert occurs because `L2CrossDomainMessenger` internally calls `L2ToL1MessagePasser.initiateWithdrawal`
+which enforces the CGT restriction.
 
 ## L2StandardBridge
 
-ETH bridging functions MUST revert if `L1Block.isCustomGasToken()` returns `true` and the function involves ETH transfers. This revert occurs because `L2StandardBridge` internally calls `L2CrossDomainMessenger.sendMessage`, which in turn calls `L2ToL1MessagePasser.initiateWithdrawal` that enforces the CGT restriction.
+ETH bridging functions MUST revert if `L1Block.isCustomGasToken()` returns `true` and the function involves ETH transfers.
+This revert occurs because `L2StandardBridge` internally calls `L2CrossDomainMessenger.sendMessage`,
+which in turn calls `L2ToL1MessagePasser.initiateWithdrawal` that enforces the CGT restriction.
 
 ## SequencerFeeVault
 
@@ -130,7 +136,6 @@ function deposit() external payable
 
 - MUST only be callable by the `LiquidityController` predeploy
 - MUST accept any amount of native asset via `msg.value`
-- MUST revert if called by any address other than `LiquidityController`
 - MUST emit `LiquidityDeposited` event
 
 #### `withdraw`
@@ -160,6 +165,20 @@ function fund() external payable
 - MUST emit `LiquidityFunded` event
 - MUST be callable by any address
 
+#### `burn`
+
+Burns native supply from the contract, permanently removing it from circulation.
+This function utilizes the Burn.sol library for burn functionality.
+
+```solidity
+function burn(uint256 _amount) external
+```
+
+- MUST burn exactly `_amount` of native asset from the contract balance
+- MUST permanently reduce the total native asset supply
+- MUST revert if the contract balance is insufficient
+- MUST be callable by authorized addresses only
+
 ### Events
 
 #### `LiquidityDeposited`
@@ -186,11 +205,21 @@ Emitted when the contract receives funding, typically during initial deployment.
 event LiquidityFunded(address indexed funder, uint256 amount)
 ```
 
+#### `LiquidityBurned`
+
+Emitted when native assets are permanently burned from the contract.
+
+```solidity
+event LiquidityBurned(address indexed burner, uint256 amount)
+```
+
 ### Invariants
 
 - Only the `LiquidityController` predeploy can call `deposit()` and `withdraw()`
 - All native asset supply changes must go through this contract when CGT mode is active
 - No direct user interaction is permitted with liquidity management functions
+- The `burn()` function permanently reduces total supply and cannot be reversed
+- Burned assets are permanently removed from circulation
 
 ## Liquidity Controller
 
@@ -289,7 +318,8 @@ Emitted when native assets are unlocked from the liquidity pool and sent to a re
 event AssetsMinted(address indexed minter, address indexed to, uint256 amount)
 ```
 
-Where `minter` is the authorized address calling the function, `to` is the recipient address, and `amount` is the amount of native assets minted.
+Where `minter` is the authorized address calling the function, `to` is the recipient address,
+and `amount` is the amount of native assets minted.
 
 #### `AssetsBurned`
 
