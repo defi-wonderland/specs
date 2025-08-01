@@ -20,8 +20,6 @@ The bridge works for both L1 native tokens and L2 native tokens. The legacy API
 is preserved to ensure that existing applications will not experience any
 problems with the Bedrock `StandardBridge` contracts.
 
-ETH bridging functions MUST revert when Custom Gas Token mode is enabled and the function involves ETH transfers.
-
 The `L2StandardBridge` is a predeploy contract located at
 `0x4200000000000000000000000000000000000010`.
 

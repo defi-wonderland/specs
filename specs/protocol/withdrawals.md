@@ -88,8 +88,6 @@ A withdrawal is initiated by calling the L2ToL1MessagePasser contract's `initiat
 The L2ToL1MessagePasser is a simple predeploy contract at `0x4200000000000000000000000000000000000016`
 which stores messages to be withdrawn.
 
-The `initiateWithdrawal` function MUST revert if `L1Block.isCustomGasToken()` returns `true` and `msg.value > 0`.
-
 ```js
 interface L2ToL1MessagePasser {
     event MessagePassed(

@@ -14,7 +14,6 @@
     - [Post-Ecotone Scalar Encoding](#post-ecotone-scalar-encoding)
   - [Unsafe Block Signer](#unsafe-block-signer)
   - [L2 Gas Limit](#l2-gas-limit)
-  - [Custom Gas Token Flag](#custom-gas-token-flag)
 - [Functionality](#functionality)
   - [System Config Updates](#system-config-updates)
 - [Function Specification](#function-specification)
@@ -43,7 +42,6 @@
   - [setOperatorFeeScalars](#setoperatorfeescalars)
   - [resourceConfig](#resourceconfig)
   - [guardian](#guardian)
-  - [isCustomGasToken](#iscustomgastoken)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -153,11 +151,6 @@ updates of L1 blocks.
 The gas limit may not be set to a value larger than the
 [maximum gas limit](./configurability.md#gas-limit). This is to ensure that L2 blocks are fault
 provable and of reasonable size to be processed by the client software.
-
-### Custom Gas Token Flag
-
-The **Custom Gas Token Flag** (`isCustomGasToken`) is a boolean value that indicates
-whether the chain is operating in Custom Gas Token mode.
 
 ## Functionality
 
@@ -343,9 +336,3 @@ Returns the current resource metering configuration.
 Returns the address of the guardian from the SuperchainConfig contract.
 
 - MUST return the result of a call to `superchainConfig.guardian()`.
-
-### isCustomGasToken
-
-Returns true if the gas token is a custom gas token, false otherwise.
-
-- MUST return the result of a call to `superchainConfig.isCustomGasToken()`.

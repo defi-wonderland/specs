@@ -473,7 +473,6 @@ AnchorStateRegistry, and start using the Super Roots proof method.
 Allows any address to donate ETH to the contract without triggering a deposit to L2.
 
 - MUST accept ETH payments via the payable modifier.
-- MUST revert if `systemConfig.isCustomGasToken()` returns `true` and `msg.value > 0`.
 - MUST not perform any state-changing operations.
 - MUST not trigger a deposit transaction to L2.
 
@@ -513,7 +512,6 @@ address will be aliased when retrieved using `tx.origin` or `msg.sender`. Consid
 using the CrossDomainMessenger contracts for a simpler developer experience.
 
 - MUST lock any ETH value (msg.value) in the ETHLockbox contract.
-- MUST revert if `systemConfig.isCustomGasToken()` returns `true` and `msg.value > 0`.
 - MUST revert if the target address is not address(0) for contract creations.
 - MUST revert if the gas limit provided is too low based on the calldata size.
 - MUST revert if the calldata is too large (> 120,000 bytes).
