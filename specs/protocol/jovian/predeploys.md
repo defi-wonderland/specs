@@ -171,4 +171,5 @@ Upon successful execution, it emits a `FeeDisbursementIntervalUpdated` event.
 
 ## Security Considerations
 
-Given that vault recipients can now be updated, it's important to ensure that this can only be done by the appropriate address, namely `ProxyAdmin.owner()`.
+Given that vault recipients can now be updated, it's important to ensure that this can only be done by the appropriate address,
+namely `ProxyAdmin.owner()`.
