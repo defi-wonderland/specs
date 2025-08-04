@@ -58,8 +58,8 @@ It must only be callable by `ProxyAdmin.owner()`.
 #### `setWithdrawalNetwork`
 
 This function allows updating the network to which sequencer fees will be withdrawn.
-This can be either `L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
-predeploy, or `L2` to withdraw them to an address on the same chain.
+This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
+predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
 It must only be callable by `ProxyAdmin.owner()`.
 
 ## BaseFeeVault
@@ -79,8 +79,8 @@ It must only be callable by `ProxyAdmin.owner()`.
 #### `setWithdrawalNetwork`
 
 This function allows updating the network to which base fees will be withdrawn.
-This can be either `L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
-predeploy, or `L2` to withdraw them to an address on the same chain.
+This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
+predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
 It must only be callable by `ProxyAdmin.owner()`.
 
 ## L1FeeVault
@@ -100,8 +100,8 @@ It must only be callable by `ProxyAdmin.owner()`.
 #### `setWithdrawalNetwork`
 
 This function allows updating the network to which L1 fees will be withdrawn.
-This can be either `L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
-predeploy, or `L2` to withdraw them to an address on the same chain.
+This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
+predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
 It must only be callable by `ProxyAdmin.owner()`.
 
 ## OperatorFeeVault
@@ -121,8 +121,8 @@ It must only be callable by `ProxyAdmin.owner()`.
 #### `setWithdrawalNetwork`
 
 This function allows updating the network to which operator fees will be withdrawn.
-This can be either `L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
-predeploy, or `L2` to withdraw them to an address on the same chain.
+This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
+predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
 It must only be callable by `ProxyAdmin.owner()`.
 
 ## FeeSplitter
