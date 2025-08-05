@@ -262,7 +262,7 @@ function mint(address _to, uint256 _amount) external
 
 #### `burn`
 
-Locks native assets back into the liquidity pool, reducing circulating supply.
+Deposits native assets back into the `NativeAssetLiquidity` contract, reducing circulating supply.
 
 ```solidity
 function burn() external payable
