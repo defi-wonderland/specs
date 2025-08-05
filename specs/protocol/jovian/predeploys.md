@@ -23,6 +23,7 @@
     - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated-1)
     - [`RecipientUpdated`](#recipientupdated-1)
     - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated-1)
+  - [Invariants](#invariants-1)
 - [L1FeeVault](#l1feevault)
   - [Functions](#functions-2)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount-2)
@@ -32,6 +33,7 @@
     - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated-2)
     - [`RecipientUpdated`](#recipientupdated-2)
     - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated-2)
+  - [Invariants](#invariants-2)
 - [OperatorFeeVault](#operatorfeevault)
   - [Functions](#functions-3)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount-3)
@@ -41,6 +43,7 @@
     - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated-3)
     - [`RecipientUpdated`](#recipientupdated-3)
     - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated-3)
+  - [Invariants](#invariants-3)
 - [FeeSplitter](#feesplitter)
   - [Functions](#functions-4)
     - [`disburseFees`](#disbursefees)
@@ -63,6 +66,17 @@ fee recipient. New chains integrate with the `FeeSplitter` by default but can ov
 alternative setups. Existing chains can optionally adopt it, ensuring backward compatibility.
 
 ## SequencerFeeVault
+
+This contract's configuration includes the withdrawal network and the recipient to which the fees will be
+sent.
+
+- **WithdrawalNetwork.L1**: Funds are withdrawn to an L1 address (default behavior)
+- **WithdrawalNetwork.L2**: Funds are withdrawn to an L2 address
+
+For existing chains that choose to use the `FeeSplitter` predeploy, `WithdrawalNetwork.L2` as the
+withdrawal network and the `FeeSplitter` as the recipient MUST be set using the setter functions.
+
+New chain deployments that choose to use the `FeeSplitter` MUST use the default configuration.
 
 ### Functions
 
@@ -127,7 +141,25 @@ Emitted when the withdrawal network for this vault is updated.
 event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, WithdrawalNetwork newWithdrawalNetwork)
 ```
 
+### Invariants
+
+- Only `ProxyAdmin.owner()` is allowed to call the setter functions.
+- If using the `FeeSplitter`, the withdrawal network MUST be set to `WithdrawalNetwork.L2` and the recipient
+  MUST be set to the `FeeSplitter` predeploy address.
+- The balance of the vault MUST be preserved between implementation upgrades.
+
 ## BaseFeeVault
+
+This contract's configuration includes the withdrawal network and the recipient to which the fees will be
+sent.
+
+- **WithdrawalNetwork.L1**: Funds are withdrawn to an L1 address (default behavior)
+- **WithdrawalNetwork.L2**: Funds are withdrawn to an L2 address
+
+For existing chains that choose to use the `FeeSplitter` predeploy, `WithdrawalNetwork.L2` as the
+withdrawal network and the `FeeSplitter` as the recipient MUST be set using the setter functions.
+
+New chain deployments that choose to use the `FeeSplitter` MUST use the default configuration.
 
 ### Functions
 
@@ -192,7 +224,25 @@ Emitted when the withdrawal network for this vault is updated.
 event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, WithdrawalNetwork newWithdrawalNetwork)
 ```
 
+### Invariants
+
+- Only `ProxyAdmin.owner()` is allowed to call the setter functions.
+- If using the `FeeSplitter`, the withdrawal network MUST be set to `WithdrawalNetwork.L2` and the recipient
+  MUST be set to the `FeeSplitter` predeploy address.
+- The balance of the vault MUST be preserved between implementation upgrades.
+
 ## L1FeeVault
+
+This contract's configuration includes the withdrawal network and the recipient to which the fees will be
+sent.
+
+- **WithdrawalNetwork.L1**: Funds are withdrawn to an L1 address (default behavior)
+- **WithdrawalNetwork.L2**: Funds are withdrawn to an L2 address
+
+For existing chains that choose to use the `FeeSplitter` predeploy, `WithdrawalNetwork.L2` as the
+withdrawal network and the `FeeSplitter` as the recipient MUST be set using the setter functions.
+
+New chain deployments that choose to use the `FeeSplitter` MUST use the default configuration.
 
 ### Functions
 
@@ -257,7 +307,25 @@ Emitted when the withdrawal network for this vault is updated.
 event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, WithdrawalNetwork newWithdrawalNetwork)
 ```
 
+### Invariants
+
+- Only `ProxyAdmin.owner()` is allowed to call the setter functions.
+- If using the `FeeSplitter`, the withdrawal network MUST be set to `WithdrawalNetwork.L2` and the recipient
+  MUST be set to the `FeeSplitter` predeploy address.
+- The balance of the vault MUST be preserved between implementation upgrades.
+
 ## OperatorFeeVault
+
+This contract's configuration includes the withdrawal network and the recipient to which the fees will be
+sent.
+
+- **WithdrawalNetwork.L1**: Funds are withdrawn to an L1 address (default behavior)
+- **WithdrawalNetwork.L2**: Funds are withdrawn to an L2 address
+
+For existing chains that choose to use the `FeeSplitter` predeploy, `WithdrawalNetwork.L2` as the
+withdrawal network and the `FeeSplitter` as the recipient MUST be set using the setter functions.
+
+New chain deployments that choose to use the `FeeSplitter` MUST use the default configuration.
 
 ### Functions
 
@@ -321,6 +389,13 @@ Emitted when the withdrawal network for this vault is updated.
 ```solidity
 event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, WithdrawalNetwork newWithdrawalNetwork)
 ```
+
+### Invariants
+
+- Only `ProxyAdmin.owner()` is allowed to call the setter functions.
+- If using the `FeeSplitter`, the withdrawal network MUST be set to `WithdrawalNetwork.L2` and the recipient
+  MUST be set to the `FeeSplitter` predeploy address.
+- The balance of the vault MUST be preserved between implementation upgrades.
 
 ## FeeSplitter
 
