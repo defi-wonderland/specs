@@ -9,21 +9,38 @@
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
     - [`setRecipient`](#setrecipient)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+  - [Events](#events)
+    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+    - [`RecipientUpdated`](#recipientupdated)
+    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
+  - [Invariants](#invariants)
 - [BaseFeeVault](#basefeevault)
   - [Functions](#functions-1)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount-1)
     - [`setRecipient`](#setrecipient-1)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork-1)
+  - [Events](#events-1)
+    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated-1)
+    - [`RecipientUpdated`](#recipientupdated-1)
+    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated-1)
 - [L1FeeVault](#l1feevault)
   - [Functions](#functions-2)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount-2)
     - [`setRecipient`](#setrecipient-2)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork-2)
+  - [Events](#events-2)
+    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated-2)
+    - [`RecipientUpdated`](#recipientupdated-2)
+    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated-2)
 - [OperatorFeeVault](#operatorfeevault)
   - [Functions](#functions-3)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount-3)
     - [`setRecipient`](#setrecipient-3)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork-3)
+  - [Events](#events-3)
+    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated-3)
+    - [`RecipientUpdated`](#recipientupdated-3)
+    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated-3)
 - [FeeSplitter](#feesplitter)
   - [Functions](#functions-4)
     - [`disburseFees`](#disbursefees)
@@ -80,6 +97,32 @@ function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `WithdrawalNetworkUpdated` event
 
+### Events
+
+#### `MinWithdrawalAmountUpdated`
+
+Emitted when the minimum withdrawal amount for the vault is updated.
+
+```solidity
+event MinWithdrawalAmountUpdated(uint256 oldWithdrawalAmount, uint256 newWithdrawalAmount)
+```
+
+#### `RecipientUpdated`
+
+Emitted when the fee recipient for this vault is updated.
+
+```solidity
+event RecipientUpdated(address oldRecipient, address newRecipient)
+```
+
+#### `WithdrawalNetworkUpdated`
+
+Emitted when the withdrawal network for this vault is updated.
+
+```solidity
+event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, WithdrawalNetwork newWithdrawalNetwork)
+```
+
 ## BaseFeeVault
 
 ### Functions
@@ -118,6 +161,32 @@ function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `WithdrawalNetworkUpdated` event
+
+### Events
+
+#### `MinWithdrawalAmountUpdated`
+
+Emitted when the minimum withdrawal amount for the vault is updated.
+
+```solidity
+event MinWithdrawalAmountUpdated(uint256 oldWithdrawalAmount, uint256 newWithdrawalAmount)
+```
+
+#### `RecipientUpdated`
+
+Emitted when the fee recipient for this vault is updated.
+
+```solidity
+event RecipientUpdated(address oldRecipient, address newRecipient)
+```
+
+#### `WithdrawalNetworkUpdated`
+
+Emitted when the withdrawal network for this vault is updated.
+
+```solidity
+event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, WithdrawalNetwork newWithdrawalNetwork)
+```
 
 ## L1FeeVault
 
@@ -158,6 +227,32 @@ function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `WithdrawalNetworkUpdated` event
 
+### Events
+
+#### `MinWithdrawalAmountUpdated`
+
+Emitted when the minimum withdrawal amount for the vault is updated.
+
+```solidity
+event MinWithdrawalAmountUpdated(uint256 oldWithdrawalAmount, uint256 newWithdrawalAmount)
+```
+
+#### `RecipientUpdated`
+
+Emitted when the fee recipient for this vault is updated.
+
+```solidity
+event RecipientUpdated(address oldRecipient, address newRecipient)
+```
+
+#### `WithdrawalNetworkUpdated`
+
+Emitted when the withdrawal network for this vault is updated.
+
+```solidity
+event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, WithdrawalNetwork newWithdrawalNetwork)
+```
+
 ## OperatorFeeVault
 
 ### Functions
@@ -196,6 +291,32 @@ function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `WithdrawalNetworkUpdated` event
+
+### Events
+
+#### `MinWithdrawalAmountUpdated`
+
+Emitted when the minimum withdrawal amount for the vault is updated.
+
+```solidity
+event MinWithdrawalAmountUpdated(uint256 oldWithdrawalAmount, uint256 newWithdrawalAmount)
+```
+
+#### `RecipientUpdated`
+
+Emitted when the fee recipient for this vault is updated.
+
+```solidity
+event RecipientUpdated(address oldRecipient, address newRecipient)
+```
+
+#### `WithdrawalNetworkUpdated`
+
+Emitted when the withdrawal network for this vault is updated.
+
+```solidity
+event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, WithdrawalNetwork newWithdrawalNetwork)
+```
 
 ## FeeSplitter
 
