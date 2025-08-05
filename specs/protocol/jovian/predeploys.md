@@ -247,7 +247,7 @@ function authorizeMinter(address _minter) external
 
 #### `mint`
 
-Unlocks native assets from the liquidity pool and sends them to a specified address.
+Unlocks native assets from the `NativeAssetLiquidity` contract and sends them to a specified address.
 
 ```solidity
 function mint(address _to, uint256 _amount) external
