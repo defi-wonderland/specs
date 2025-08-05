@@ -54,9 +54,13 @@
 
 ## Overview
 
-A new predeploy contract, `FeeSplitter`, is introduced to manage the distribution of all fees collected on L2.
-Instead of having immutable recipients, the `RECIPIENT` address in each of the four `FeeVault` contracts will
-be set to the `FeeSplitter` contract on new chains, while existing chains will be able to opt-in to use this new predeploy.
+The `FeeSplitter` predeploy manages the distribution of all L2 fees. Fee vault contracts (`OperatorFeeVault`,
+`BaseFeeVault`, `L1FeeVault`, and `SequencerFeeVault`) update their configuration via setter functions for
+minimum withdrawal amounts, withdrawal networks, and recipients without requiring new deployments.
+
+Using the `FeeSplitter` requires vaults to use `WithdrawalNetwork.L2` and set the `FeeSplitter` as their
+fee recipient. New chains integrate with the `FeeSplitter` by default but can override this configuration for
+alternative setups. Existing chains can optionally adopt it, ensuring backward compatibility.
 
 ## SequencerFeeVault
 
