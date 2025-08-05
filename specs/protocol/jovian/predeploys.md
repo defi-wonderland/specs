@@ -47,10 +47,18 @@
 - [FeeSplitter](#feesplitter)
   - [Functions](#functions-4)
     - [`disburseFees`](#disbursefees)
-    - [`setL1FeeWallet`](#setl1feewallet)
-    - [`setL1FeeWalletShare`](#setl1feewalletshare)
-    - [`setOptimismWallet`](#setoptimismwallet)
+    - [`setRecipientA`](#setrecipienta)
+    - [`setRecipientAShare`](#setrecipientashare)
+    - [`setRecipientB`](#setrecipientb)
     - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
+  - [Events](#events-4)
+    - [`FeesDisbursed`](#feesdisbursed)
+    - [`NoFeesCollected`](#nofeescollected)
+    - [`RecipientAUpdated`](#recipientaupdated)
+    - [`RecipientAShareUpdated`](#recipientashareupdated)
+    - [`RecipientBUpdated`](#recipientbupdated)
+    - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+- [Invariants](#invariants-4)
 - [Security Considerations](#security-considerations)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -399,47 +407,139 @@ event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, Withdrawa
 
 ## FeeSplitter
 
-This contract is responsible for splitting the ETH it receives and sending the correct amounts to
-the appropriate addresses. It contains two addresses: one for the OP chain runner's share and one
-for Optimism's revenue share. The contract will send a portion of the fee to each address according
-to their respective percentages.
+This contract splits the ETH it receives and sends the correct amounts to two designated addresses. It integrates with
+the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and setting this predeploy as the recipient in EVERY fee vault.
+
+The contract manages two recipients:
+
+- Recipient A
+- Recipient B
+
+Based on the configured share percentage for Recipient A, the contract sends the corresponding portion of fees
+to Recipient A and sends the remaining amount to Recipient B.
 
 ### Functions
 
 #### `disburseFees`
 
 Initiates the routing flow by withdrawing the fees that each of the fee vaults has collected and sends the shares
-to the appropriate addresses according to the configured percentage for each. The function enforces a time-based
-cooldown period and will revert if insufficient time has elapsed since the previous call. When executed,
-it withdraws the fees from all of the fee vaults and disburses the full balance of the contract, distributing the
-appropriate amounts to all configured addresses. Upon successful distribution, the function emits a `FeesDisbursed` event.
-In cases where no funds are available for disbursement at the time of the call, the function emits a
-`NoFeesCollected` event instead.
+to the appropriate addresses according to the configured percentage.
 
-#### `setL1FeeWallet`
+```solidity
+function disburseFees() external
+```
 
-Sets the address that should receive the chain runner's share of fees.
-This function is only callable by `ProxyAdmin.owner()`
-and will emit an `L1WalletUpdated` event upon successful execution.
+- MUST emit `FeesDisbursed` event upon successful execution.
+- MUST emit `NoFeesCollected` event if there are no funds available at the time of the call.
+- MUST revert if not enough time has passed since the last successful execution.
+- MUST send the appropriate amounts to the recipients.
+- The balance of the contract MUST be 0 after a successful execution.
 
-#### `setL1FeeWalletShare`
+#### `setRecipientA`
 
-Sets the share percentage that the chain runner's Wallet should receive, in basis points.
-This function is only callable by `ProxyAdmin.owner()` and validates
-that the new share percentage does not exceed `BASIS_POINT_SCALE`.
-Upon successful execution, it emits an `L1FeeWalletShareUpdated` event.
+Sets the address that should receive the configured share of fees.
 
-#### `setOptimismWallet`
+```solidity
+function setRecipientA(address _recipientA) external
+```
 
-Sets the address that should receive the remaining fees after the L1 Fee share has been deducted.
-This function is only callable by `ProxyAdmin.owner()` and will emit a `FeeCollectorUpdated`
-event upon successful execution.
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit a `RecipientAUpdated` event upon successful execution.
+
+#### `setRecipientAShare`
+
+Sets the share percentage that recipient A should receive, in basis points.
+
+```solidity
+function setRecipientAShare(uint256 _shareBasisPoints) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST revert if `_shareBasisPoints` exceeds `BASIS_POINT_SCALE`.
+- MUST emit a `RecipientAShareUpdated` event upon successful execution.
+
+#### `setRecipientB`
+
+Sets the address that should receive the remaining fees after the recipient A share has been deducted.
+
+```solidity
+function setRecipientB(address _recipientB) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit a `RecipientBUpdated` event upon successful execution.
 
 #### `setFeeDisbursementInterval`
 
-Sets the minimum time that must pass between consecutive calls to `disburseFees`.
-This function is only callable by `ProxyAdmin.owner()` and validates that the new interval is at least `MINIMUM_DISBURSE_INTERVAL`.
-Upon successful execution, it emits a `FeeDisbursementIntervalUpdated` event.
+Sets the minimum time, in seconds, that must pass between consecutive calls to `disburseFees`.
+
+```solidity
+function setFeeDisbursementInterval(uint32 _newInterval) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit a `FeeDisbursementIntervalUpdated` event upon successful execution.
+
+### Events
+
+#### `FeesDisbursed`
+
+Emitted when fees are successfully withdrawn from fee vaults and distributed to recipients.
+
+```solidity
+event FeesDisbursed(
+        uint256 indexed disbursementTime, uint256 paidToRecipientA, uint256 paidToRecipientB, uint256 totalFeesDisbursed
+    );
+```
+
+#### `NoFeesCollected`
+
+Emitted when `disburseFees` is called but there are no funds available in the fee vaults at the time of execution.
+
+```solidity
+event NoFeesCollected()
+```
+
+#### `RecipientAUpdated`
+
+Emitted when the address of Recipient A is successfully updated.
+
+```solidity
+event RecipientAUpdated(address indexed oldRecipientA, address indexed newRecipientA)
+```
+
+#### `RecipientAShareUpdated`
+
+Emitted when the share percentage for Recipient A is successfully updated.
+
+```solidity
+event RecipientAShareUpdated(uint256 oldShare, uint256 newShare)
+```
+
+#### `RecipientBUpdated`
+
+Emitted when the address of Recipient B is successfully updated.
+
+```solidity
+event RecipientBUpdated(address indexed oldRecipientB, address indexed newRecipientB)
+```
+
+#### `FeeDisbursementIntervalUpdated`
+
+Emitted when the minimum time interval between consecutive fee disbursements is successfully updated.
+
+```solidity
+event FeeDisbursementIntervalUpdated(uint256 oldInterval, uint256 newInterval)
+```
+
+## Invariants
+
+- Only `ProxyAdmin.owner()` is allowed to call the setter functions.
+- The appropriate amounts based on the configured percentage MUST be sent to the correct addresses.
+- Upon successful disbursement of fees, the sent amounts must sum to the total balance the contract had
+  plus the accumulated fees in the fee vaults.
+- The fee share of recipient A must be equal to or less than 10,000 basis points.
+- `disburseFees` can only be called after `feeDisbursementInterval` seconds have passed since the last successful execution.
 
 ## Security Considerations
 
