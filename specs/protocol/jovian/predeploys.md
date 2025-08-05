@@ -5,27 +5,27 @@
 
 - [Overview](#overview)
 - [SequencerFeeVault](#sequencerfeevault)
-  - [Interface](#interface)
+  - [Functions](#functions)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
     - [`setRecipient`](#setrecipient)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
 - [BaseFeeVault](#basefeevault)
-  - [Interface](#interface-1)
+  - [Functions](#functions-1)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount-1)
     - [`setRecipient`](#setrecipient-1)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork-1)
 - [L1FeeVault](#l1feevault)
-  - [Interface](#interface-2)
+  - [Functions](#functions-2)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount-2)
     - [`setRecipient`](#setrecipient-2)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork-2)
 - [OperatorFeeVault](#operatorfeevault)
-  - [Interface](#interface-3)
+  - [Functions](#functions-3)
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount-3)
     - [`setRecipient`](#setrecipient-3)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork-3)
 - [FeeSplitter](#feesplitter)
-  - [Interface](#interface-4)
+  - [Functions](#functions-4)
     - [`disburseFees`](#disbursefees)
     - [`setL1FeeWallet`](#setl1feewallet)
     - [`setL1FeeWalletShare`](#setl1feewalletshare)
@@ -43,87 +43,159 @@ be set to the `FeeSplitter` contract on new chains, while existing chains will b
 
 ## SequencerFeeVault
 
-### Interface
+### Functions
 
 #### `setMinWithdrawalAmount`
 
-This function allows updating the minimum amount of funds the SequencerFeeVault contract must hold before they can be withdrawn.
-It must only be callable by `ProxyAdmin.owner()`.
+Updates the minimum amount of funds the SequencerFeeVault contract must hold before they can be withdrawn.
+
+```solidity
+function setMinWithdrawalAmount(uint256 _minWithdrawalAmount) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `MinWithdrawalAmountUpdated` event
 
 #### `setRecipient`
 
-This function allows updating the recipient of sequencer fees when they are withdrawn from the vault.
-It must only be callable by `ProxyAdmin.owner()`.
+Updates the recipient of sequencer fees when they are withdrawn from the vault.
+
+```solidity
+function setRecipient(address _recipient) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `RecipientUpdated` event
 
 #### `setWithdrawalNetwork`
 
-This function allows updating the network to which sequencer fees will be withdrawn.
+Updates the network to which sequencer fees will be withdrawn.
 This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
 predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
-It must only be callable by `ProxyAdmin.owner()`.
+
+```solidity
+function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `WithdrawalNetworkUpdated` event
 
 ## BaseFeeVault
 
-### Interface
+### Functions
 
 #### `setMinWithdrawalAmount`
 
-This function allows updating the minimum amount of funds the BaseFeeVault contract must hold before they can be withdrawn.
-It must only be callable by `ProxyAdmin.owner()`.
+Updates the minimum amount of funds the BaseFeeVault contract must hold before they can be withdrawn.
+
+```solidity
+function setMinWithdrawalAmount(uint256 _minWithdrawalAmount) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `MinWithdrawalAmountUpdated` event
 
 #### `setRecipient`
 
-This function allows updating the recipient of base fees when they are withdrawn from the vault.
-It must only be callable by `ProxyAdmin.owner()`.
+Updates the recipient of base fees when they are withdrawn from the vault.
+
+```solidity
+function setRecipient(address _recipient) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `RecipientUpdated` event
 
 #### `setWithdrawalNetwork`
 
-This function allows updating the network to which base fees will be withdrawn.
+Updates the network to which base fees will be withdrawn.
 This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
 predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
-It must only be callable by `ProxyAdmin.owner()`.
+
+```solidity
+function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `WithdrawalNetworkUpdated` event
 
 ## L1FeeVault
 
-### Interface
+### Functions
 
 #### `setMinWithdrawalAmount`
 
-This function allows updating the minimum amount of funds the L1FeeVault contract must hold before they can be withdrawn.
-It must only be callable by `ProxyAdmin.owner()`.
+Updates the minimum amount of funds the L1FeeVault contract must hold before they can be withdrawn.
+
+```solidity
+function setMinWithdrawalAmount(uint256 _minWithdrawalAmount) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `MinWithdrawalAmountUpdated` event
 
 #### `setRecipient`
 
-This function allows updating the recipient of L1 fees when they are withdrawn from the vault.
-It must only be callable by `ProxyAdmin.owner()`.
+Updates the recipient of L1 fees when they are withdrawn from the vault.
+
+```solidity
+function setRecipient(address _recipient) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `RecipientUpdated` event
 
 #### `setWithdrawalNetwork`
 
-This function allows updating the network to which L1 fees will be withdrawn.
+Updates the network to which L1 fees will be withdrawn.
 This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
 predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
-It must only be callable by `ProxyAdmin.owner()`.
+
+```solidity
+function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `WithdrawalNetworkUpdated` event
 
 ## OperatorFeeVault
 
-### Interface
+### Functions
 
 #### `setMinWithdrawalAmount`
 
-This function allows updating the minimum amount of funds the OperatorFeeVault contract must hold before they can be withdrawn.
-It must only be callable by `ProxyAdmin.owner()`.
+Updates the minimum amount of funds the OperatorFeeVault contract must hold before they can be withdrawn.
+
+```solidity
+function setMinWithdrawalAmount(uint256 _minWithdrawalAmount) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `MinWithdrawalAmountUpdated` event
 
 #### `setRecipient`
 
-This function allows updating the recipient of operator fees when they are withdrawn from the vault.
-It must only be callable by `ProxyAdmin.owner()`.
+Updates the recipient of operator fees when they are withdrawn from the vault.
+
+```solidity
+function setRecipient(address _recipient) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `RecipientUpdated` event
 
 #### `setWithdrawalNetwork`
 
-This function allows updating the network to which operator fees will be withdrawn.
+Updates the network to which operator fees will be withdrawn.
 This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
 predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
-It must only be callable by `ProxyAdmin.owner()`.
+
+```solidity
+function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST emit the `WithdrawalNetworkUpdated` event
 
 ## FeeSplitter
 
@@ -132,7 +204,7 @@ the appropriate addresses. It contains two addresses: one for the OP chain runne
 for Optimism's revenue share. The contract will send a portion of the fee to each address according
 to their respective percentages.
 
-### Interface
+### Functions
 
 #### `disburseFees`
 
