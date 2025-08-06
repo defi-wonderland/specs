@@ -10,6 +10,10 @@
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
+## Rationale
+
+The OptimismPortal's ETH-related functions must revert when Custom Gas Token mode is enabled to prevent ETH from being exchanged for a Custom Gas Token that is not equivalent.
+
 ## Function Specification
 
 ### donateETH
