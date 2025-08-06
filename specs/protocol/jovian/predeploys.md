@@ -412,7 +412,8 @@ event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, Withdrawa
 ## FeeSplitter
 
 This contract splits the ETH it receives and sends the correct amounts to two designated addresses. It integrates with
-the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and setting this predeploy as the recipient in EVERY fee vault.
+the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and setting this predeploy as the
+recipient in EVERY fee vault.
 
 The contract manages two recipients:
 
