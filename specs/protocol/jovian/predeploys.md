@@ -41,8 +41,8 @@
 
 | Name                 | Address                                    | Introduced | Deprecated | Proxied |
 | -------------------- | ------------------------------------------ | ---------- | ---------- | ------- |
-| NativeAssetLiquidity | 0x420000000000000000000000000000000000001C | Jovian     | No         | Yes     |
-| LiquidityController  | 0x420000000000000000000000000000000000001D | Jovian     | No         | Yes     |
+| NativeAssetLiquidity | 0x4200000000000000000000000000000000000029 | Jovian     | No         | Yes     |
+| LiquidityController  | 0x420000000000000000000000000000000000002A | Jovian     | No         | Yes     |
 
 ## WETH9
 
@@ -117,7 +117,7 @@ MUST be set to `WithdrawalNetwork.L2`.
 
 ## Native Asset Liquidity
 
-Address: `0x420000000000000000000000000000000000001C`
+Address: `0x4200000000000000000000000000000000000029`
 
 The `NativeAssetLiquidity` predeploy stores a large amount of pre-minted native asset
 that serves as the central liquidity source for Custom Gas Token chains. This contract
@@ -223,7 +223,7 @@ event LiquidityBurned(address indexed burner, uint256 amount)
 
 ## Liquidity Controller
 
-Address: `0x420000000000000000000000000000000000001D`
+Address: `0x420000000000000000000000000000000000002A`
 
 The `LiquidityController` predeploy manages access to the `NativeAssetLiquidity` contract
 and provides the governance interface for Custom Gas Token chains. This contract is only
@@ -240,9 +240,8 @@ Authorizes an address to mint native assets from the liquidity pool.
 function authorizeMinter(address _minter) external
 ```
 
-- MUST only be callable by the contract owner
+- MUST only be callable by the L1 ProxyAdmin owner
 - MUST authorize `_minter` to call the `mint()` function
-- MUST revert if called by non-owner
 - MUST emit `MinterAuthorized` event
 
 #### `mint`
@@ -270,7 +269,7 @@ function burn() external payable
 
 - MUST accept any amount of native asset via `msg.value`
 - MUST call `NativeAssetLiquidity.deposit{value: msg.value}()` to lock assets
-- MUST be callable by any address
+- MUST only be callable by authorized minters
 - MUST revert if `msg.value` is zero
 - MUST emit `AssetsBurned` event
 
@@ -283,7 +282,7 @@ function gasPayingAssetName() external view returns (string memory)
 ```
 
 - MUST return the name of the native asset (e.g., "MyToken")
-- MUST be used by WETH9 predeploy for `name()` function
+- MUST be used by L1Block predeploy for `name()` function
 - Returns value used to construct "Wrapped {AssetName}" for WNA
 
 #### `gasPayingAssetSymbol`
@@ -295,7 +294,7 @@ function gasPayingAssetSymbol() external view returns (string memory)
 ```
 
 - MUST return the symbol of the native asset (e.g., "MTK")
-- MUST be used by WETH9 predeploy for `symbol()` function
+- MUST be used by L1Block predeploy for `symbol()` function
 - Returns value used to construct "W{AssetSymbol}" for WNA
 
 ### Events
@@ -308,7 +307,7 @@ Emitted when a new minter is authorized by the contract owner.
 event MinterAuthorized(address indexed minter, address indexed authorizer)
 ```
 
-Where `minter` is the address being authorized and `authorizer` is the contract owner who authorized them.
+Where `minter` is the address being authorized and `authorizer` is the L1 ProxyAdmin owner who authorized them.
 
 #### `AssetsMinted`
 
@@ -334,7 +333,7 @@ Where `burner` is the `msg.sender` who burned the assets and `amount` is the amo
 ### Invariants
 
 - Only authorized minters can call `mint()` to unlock native assets
-- Only the contract owner can authorize new minters via `authorizeMinter()`
+- Only the L1 ProxyAdmin owner can authorize new minters via `authorizeMinter()`
 - All native asset supply changes must flow through this contract's governance
 - The contract acts as the sole interface between governance and `NativeAssetLiquidity`
 - `burn()` operations always increase locked supply by calling `NativeAssetLiquidity.deposit()`
