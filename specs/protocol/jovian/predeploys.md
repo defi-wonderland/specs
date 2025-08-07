@@ -450,6 +450,8 @@ function disburseFees() external
 - MUST emit `FeesDisbursed` event upon successful execution.
 - MUST emit `NoFeesCollected` event if there are no funds available in the contract after the vaults have been withdrawn.
 - MUST revert if any vault has a balance below its minimum withdrawal amount.
+- MUST revert if any vault has a recipient different from this contract.
+- MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
 - MUST revert if not enough time has passed since the last successful execution.
 - MUST send the appropriate amounts to the recipients.
 - The balance of the contract MUST be 0 after a successful execution.
