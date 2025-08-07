@@ -431,9 +431,17 @@ Initiates the routing flow by withdrawing the fees that each of the fee vaults h
 to the appropriate addresses according to the configured percentage.
 
 When attempting to withdraw from the vaults, it will check that they all have a balance equal to or larger than
-their minimum withdrawal amount and MUST revert if any of them does not. The function MUST emit the `NoFeesCollected` event
-if the contract doesn't have any funds after the vaults have been withdrawn, which can happen in scenarios where the vaults
-have a minimum withdrawal amount of 0.
+their minimum withdrawal amount, that the withdrawal network is set to `WithdrawalNetwork.L2`, and that the recipient
+of the vault is the `FeeSplitter`. The function MUST revert if any of these conditions is not met.
+The function MUST emit the `NoFeesCollected` event if the contract doesn't have any funds after the vaults have been withdrawn,
+which can happen in scenarios where the vaults have a minimum withdrawal amount of 0.
+
+On chains where any fee vault is not to be used and is not expected to maintain a balance in the contract,
+it is necessary to set the unused fee vault's minimum withdrawal amount to 0 to prevent `disburseFees` from
+reverting when it shouldn't.
+
+Currently this is the case for `OperatorFeeVault` on some chains, so setting its minimum withdrawal amount to
+0 is needed on those chains.
 
 ```solidity
 function disburseFees() external
