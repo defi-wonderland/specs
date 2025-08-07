@@ -499,7 +499,9 @@ event FeesDisbursed(
 
 #### `NoFeesCollected`
 
-Emitted when `disburseFees` is called but there are no funds available in the fee vaults at the time of execution.
+Emitted when `disburseFees` is called but there are no funds available in the contract _after_ the fee vaults
+have been withdrawn. This can happen in scenarios where the fee vaults' minimum withdrawal amount is
+configured to `0`.
 
 ```solidity
 event NoFeesCollected()
