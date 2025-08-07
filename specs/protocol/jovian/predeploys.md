@@ -430,12 +430,18 @@ to Recipient A and sends the remaining amount to Recipient B.
 Initiates the routing flow by withdrawing the fees that each of the fee vaults has collected and sends the shares
 to the appropriate addresses according to the configured percentage.
 
+When attempting to withdraw from the vaults, it will check that they all have a balance equal to or larger than
+their minimum withdrawal amount and MUST revert if any of them does not. The function MUST emit the `NoFeesCollected` event
+if the contract doesn't have any funds after the vaults have been withdrawn, which can happen in scenarios where the vaults
+have a minimum withdrawal amount of 0.
+
 ```solidity
 function disburseFees() external
 ```
 
 - MUST emit `FeesDisbursed` event upon successful execution.
-- MUST emit `NoFeesCollected` event if there are no funds available at the time of the call.
+- MUST emit `NoFeesCollected` event if there are no funds available in the contract after the vaults have been withdrawn.
+- MUST revert if any vault has a balance below its minimum withdrawal amount.
 - MUST revert if not enough time has passed since the last successful execution.
 - MUST send the appropriate amounts to the recipients.
 - The balance of the contract MUST be 0 after a successful execution.
