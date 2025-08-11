@@ -34,6 +34,15 @@
     - [`AssetsMinted`](#assetsminted)
     - [`AssetsBurned`](#assetsburned)
   - [Invariants](#invariants-1)
+- [L2CGTBridge](#l2cgtbridge)
+  - [Functions](#functions-2)
+    - [`bridgeCGT`](#bridgecgt)
+    - [`bridgeCGTTo`](#bridgecgtto)
+    - [`finalizeBridgeCGT`](#finalizebridgecgt)
+  - [Events](#events-2)
+    - [`CGTBridgeInitiated`](#cgtbridgeinitiated)
+    - [`CGTBridgeFinalized`](#cgtbridgefinalized)
+  - [Invariants](#invariants-2)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -43,6 +52,7 @@
 | -------------------- | ------------------------------------------ | ---------- | ---------- | ------- |
 | NativeAssetLiquidity | 0x4200000000000000000000000000000000000029 | Jovian     | No         | Yes     |
 | LiquidityController  | 0x420000000000000000000000000000000000002A | Jovian     | No         | Yes     |
+| L2CGTBridge          | 0x420000000000000000000000000000000000002B | Jovian     | No         | Yes     |
 
 ## WETH9
 
@@ -338,3 +348,88 @@ Where `burner` is the `msg.sender` who burned the assets and `amount` is the amo
 - The contract acts as the sole interface between governance and `NativeAssetLiquidity`
 - `burn()` operations always increase locked supply by calling `NativeAssetLiquidity.deposit()`
 - `mint()` operations always decrease locked supply by calling `NativeAssetLiquidity.withdraw()`
+
+## L2CGTBridge
+
+Address: `0x420000000000000000000000000000000000002B`
+
+The `L2CGTBridge` predeploy handles the L2 side of Custom Gas Token bridging operations, enabling bidirectional transfers between L1 ERC20 tokens and L2 native assets. This contract is only deployed on chains using Custom Gas Token mode and has minting authorization from the `LiquidityController` to manage native asset supply.
+
+The bridge maintains a trusted relationship with its L1 counterpart (`L1CGTBridge`) and only accepts cross-domain messages from the designated L1 bridge address through the `L2CrossDomainMessenger`.
+
+### Functions
+
+#### `bridgeCGT`
+
+Initiates a CGT transfer from L2 to L1 for the caller.
+
+```solidity
+function bridgeCGT(uint32 _minGasLimit, bytes calldata _extraData) external payable
+```
+
+- MUST accept native assets via `msg.value`
+- MUST call `LiquidityController.burn{value: msg.value}()` to deposit native assets into NativeAssetLiquidity contract
+- MUST send cross-domain message to L1CGTBridge via `L2CrossDomainMessenger` to unlock equivalent ERC20 tokens to `msg.sender`
+- MUST emit `CGTBridgeInitiated` event
+- MUST revert if `msg.value` is zero
+
+#### `bridgeCGTTo`
+
+Initiates a CGT transfer from L2 to L1 to a specified recipient address.
+
+```solidity
+function bridgeCGTTo(address _to, uint32 _minGasLimit, bytes calldata _extraData) external payable
+```
+
+- MUST accept native assets via `msg.value`
+- MUST call `LiquidityController.burn{value: msg.value}()` to deposit native assets into NativeAssetLiquidity contract
+- MUST send cross-domain message to L1CGTBridge via `L2CrossDomainMessenger` to unlock equivalent ERC20 tokens to `_to`
+- MUST emit `CGTBridgeInitiated` event
+- MUST revert if `_to` is zero address
+- MUST revert if `msg.value` is zero
+
+#### `finalizeBridgeCGT`
+
+Finalizes a CGT transfer from L1 to L2 by minting native assets to the recipient.
+
+```solidity
+function finalizeBridgeCGT(address _from, address _to, uint256 _amount, bytes calldata _extraData) external
+```
+
+- MUST only be callable by the `L2CrossDomainMessenger` when relaying a message from the authorized L1CGTBridge
+- MUST call `LiquidityController.mint(_to, _amount)` to mint native assets to recipient
+- MUST emit `CGTBridgeFinalized` event
+- MUST revert if called by any address other than the `L2CrossDomainMessenger`
+- MUST revert if the `CrossDomainMessenger.xDomainMessageSender()` is not the authorized L1CGTBridge address
+- MUST revert if `LiquidityController.mint()` operation fails
+
+### Events
+
+#### `CGTBridgeInitiated`
+
+Emitted when a CGT bridge transfer is initiated from L2 to L1.
+
+```solidity
+event CGTBridgeInitiated(address indexed from, address indexed to, uint256 amount, bytes extraData)
+```
+
+Where `from` is the L2 sender, `to` is the L1 recipient, `amount` is the native asset amount being bridged, and `extraData` contains additional bridging parameters.
+
+#### `CGTBridgeFinalized`
+
+Emitted when a CGT bridge transfer from L1 to L2 is finalized on L2.
+
+```solidity
+event CGTBridgeFinalized(address indexed from, address indexed to, uint256 amount, bytes extraData)
+```
+
+Where `from` is the L1 sender, `to` is the L2 recipient, `amount` is the native asset amount minted, and `extraData` contains additional bridging parameters.
+
+### Invariants
+
+- Only the `L2CrossDomainMessenger` can call `finalizeBridgeCGT()` when relaying messages from the authorized L1CGTBridge
+- The L2CGTBridge MUST be authorized as a minter in the `LiquidityController` before any bridging operations
+- All L2→L1 transfers immediately burn native assets by depositing them into `NativeAssetLiquidity`
+- All L1→L2 transfers mint native assets by withdrawing them from `NativeAssetLiquidity` via `LiquidityController`
+- Native asset supply on L2 is backed 1:1 by locked ERC20 tokens on L1
+- Cross-domain message authentication ensures only trusted L1CGTBridge can trigger finalization
