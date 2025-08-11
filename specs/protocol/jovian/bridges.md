@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
@@ -19,13 +20,14 @@
 
 ## Overview
 
-ETH bridging functions MUST revert when Custom Gas Token mode is enabled and the function involves ETH transfers. This revert behavior is necessary because when a chain operates in Custom Gas Token mode, ETH is no longer the native asset used for gas fees and transactions. The chain has shifted to using a different native asset entirely. Allowing ETH transfers could create confusion about which asset serves as the native currency, potentially leading to user errors and lost funds. Additionally, the custom gas token's supply is managed independently through dedicated contracts (`NativeAssetLiquidity` and `LiquidityController`), and mixing ETH bridging with custom gas token operations would complicate supply management and accounting.
+ETH bridging functions MUST revert when Custom Gas Token mode is enabled and the function involves ETH transfers. This revert behavior is necessary because when a chain operates in Custom Gas Token mode, ETH is no longer the native asset used for gas fees and transactions. The chain has shifted to using a different native asset entirely. Allowing ETH transfers could create confusion about which asset serves as the native currency, potentially leading to user errors and lost funds. Additionally, the custom gas token's supply is managed independently through dedicated contracts (`NativeAssetLiquidity` and `LiquidityController`), and combining ETH bridging with custom gas token operations introduces additional complexity to supply management and accounting.
 
 ## Custom Gas Token Bridges
 
 The Custom Gas Token (CGT) bridges enable bidirectional transfers between L1 ERC20 tokens and L2 native assets on chains using Custom Gas Token mode. Unlike standard bridges that handle ETH and generic ERC20 tokens, CGT bridges are specifically designed to convert between a designated L1 ERC20 token and the L2's native gas-paying asset.
 
 The CGT bridge system consists of:
+
 - **L1CGTBridge**: Deployed on L1, manages locking/unlocking of the designated ERC20 token
 - **L2CGTBridge**: Predeploy on L2 at `0x420000000000000000000000000000000000002B`, manages minting/burning of native assets
 
@@ -34,12 +36,14 @@ Both bridges communicate exclusively through their respective CrossDomainMesseng
 ## Token Flow
 
 **L1 → L2 Flow (ERC20 to Native Asset):**
+
 1. User calls `bridgeCGTTo()` on L1CGTBridge with ERC20 tokens
 2. L1CGTBridge locks ERC20 tokens and sends message to L2CGTBridge via L1CrossDomainMessenger
 3. L2CGTBridge receives message, calls `LiquidityController.mint()` to unlock native assets
 4. Native assets are sent to recipient address on L2
 
 **L2 → L1 Flow (Native Asset to ERC20):**
+
 1. User calls `bridgeCGTTo()` on L2CGTBridge with native assets (msg.value)
 2. L2CGTBridge calls `LiquidityController.burn()` to deposit native assets into NativeAssetLiquidity
 3. L2CGTBridge sends message to L1CGTBridge via L2CrossDomainMessenger
@@ -114,7 +118,7 @@ Initiates a CGT transfer from L1 to L2 to a specified recipient.
 function bridgeCGTTo(address _to, uint256 _amount, uint32 _minGasLimit, bytes calldata _extraData) external
 ```
 
-- MUST transfer `_amount` of CGT ERC20 tokens from `msg.sender` to the bridge contract  
+- MUST transfer `_amount` of CGT ERC20 tokens from `msg.sender` to the bridge contract
 - MUST send a message to L2CGTBridge via CrossDomainMessenger to mint equivalent native assets to `_to`
 - MUST emit `CGTBridgeInitiated` event
 - MUST revert if `_to` is zero address
@@ -200,7 +204,7 @@ function disableDeposits() external
 Enables or disables withdrawal functionality for emergency control.
 
 ```solidity
-function enableWithdrawals() external  
+function enableWithdrawals() external
 function disableWithdrawals() external
 ```
 
@@ -261,16 +265,19 @@ Address: `0x420000000000000000000000000000000000002B`
 Both bridges maintain a trusted relationship and can only accept finalization messages from their designated counterpart:
 
 **L1CGTBridge Configuration:**
+
 - `otherBridge`: Address of the L2CGTBridge predeploy (`0x420000000000000000000000000000000000002B`)
 - `messenger`: Address of the L1CrossDomainMessenger
 - `cgtToken`: Address of the ERC20 token being bridged (immutable, set at deployment)
 
 **L2CGTBridge Configuration:**
+
 - `otherBridge`: Address of the corresponding L1CGTBridge (set during initialization)
-- `messenger`: Address of the L2CrossDomainMessenger predeploy 
+- `messenger`: Address of the L2CrossDomainMessenger predeploy
 - `liquidityController`: Address of the LiquidityController predeploy
 
 The bridges enforce cross-domain message authentication by:
+
 1. Verifying calls to `finalizeBridgeCGT()` come from the CrossDomainMessenger
 2. Verifying the `xDomainMessageSender()` matches the expected counterpart bridge address
 3. Only processing messages that originate from the trusted counterpart bridge
@@ -278,21 +285,25 @@ The bridges enforce cross-domain message authentication by:
 ## Security Considerations
 
 **Access Control:**
+
 - L2CGTBridge MUST be authorized as a minter in the LiquidityController before any L1→L2 transfers can be completed
-- Only the designated L1CGTBridge can send finalization messages to L2CGTBridge  
+- Only the designated L1CGTBridge can send finalization messages to L2CGTBridge
 - Only the L2CGTBridge can send finalization messages to L1CGTBridge
 
 **Token Safety:**
+
 - L1CGTBridge holds locked ERC20 tokens as collateral for minted L2 native assets
 - Native assets on L2 are backed 1:1 by locked ERC20 tokens on L1
 - Burns on L2 immediately deposit assets into NativeAssetLiquidity, reducing circulating supply
 
 **Bridge Integrity:**
+
 - Failed cross-domain messages can be replayed through the standard message relay mechanisms
 - Bridge contracts SHOULD implement pausability for emergency situations
 - Both bridges MUST validate all message parameters to prevent invalid minting or unlocking operations
 
 **Legacy Withdrawal Security:**
+
 - `setTrustedStateOnce()` MUST only be callable once by contract owner
 - `trustedMessagePasserStorageRoot` MUST represent valid post-migration L2ToL1MessagePasser state
 - Legacy finalization MUST check both OptimismPortal and L1CGTBridge to prevent replays
