@@ -158,13 +158,12 @@ function withdraw(uint256 _amount) external
 
 - MUST only be callable by the `LiquidityController` predeploy
 - MUST send exactly `_amount` of native asset to the caller
-- MUST revert if called by any address other than `LiquidityController`
 - MUST revert if the contract balance is insufficient
 - MUST emit `LiquidityWithdrawn` event
 
 #### `fund`
 
-Allows funding the contract with native assets, typically used during genesis deployment.
+This function is used to initialize the contract with a large liquidity pool.
 
 ```solidity
 function fund() external payable
@@ -265,7 +264,6 @@ function mint(address _to, uint256 _amount) external
 - MUST only be callable by authorized minters
 - MUST call `NativeAssetLiquidity.withdraw(_amount)` to unlock assets
 - MUST send exactly `_amount` of native asset to `_to` address
-- MUST revert if caller is not an authorized minter
 - MUST revert if `NativeAssetLiquidity` has insufficient balance
 - MUST emit `AssetsMinted` event
 
