@@ -163,7 +163,7 @@ function withdraw(uint256 _amount) external
 
 #### `fund`
 
-This function is used to initialize the contract with a large liquidity pool.
+Allows funding the contract with native assets, typically used during genesis deployment.
 
 ```solidity
 function fund() external payable
