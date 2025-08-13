@@ -2,12 +2,13 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
 - [Execution Layer](#execution-layer)
 - [Consensus Layer](#consensus-layer)
 - [Smart Contracts](#smart-contracts)
+  - [Core L2 Smart Contracts](#core-l2-smart-contracts)
+    - [Custom Gas Token](#custom-gas-token)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 

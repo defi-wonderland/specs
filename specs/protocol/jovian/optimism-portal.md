@@ -4,6 +4,7 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Rationale](#rationale)
 - [Function Specification](#function-specification)
   - [donateETH](#donateeth)
   - [depositTransaction](#deposittransaction)
