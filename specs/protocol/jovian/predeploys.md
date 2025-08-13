@@ -148,13 +148,12 @@ function withdraw(uint256 _amount) external
 
 - MUST only be callable by the `LiquidityController` predeploy
 - MUST send exactly `_amount` of native asset to the caller
-- MUST revert if called by any address other than `LiquidityController`
 - MUST revert if the contract balance is insufficient
 - MUST emit `LiquidityWithdrawn` event
 
 #### `fund`
 
-Allows funding the contract with native assets, typically used during genesis deployment.
+Allows funding the contract with native assets. This function is used to initialize the contract with a large liquidity pool, similar to how ETHLiquidity is initialized in interop chains.
 
 ```solidity
 function fund() external payable

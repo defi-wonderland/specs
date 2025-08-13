@@ -34,12 +34,12 @@ The Custom Gas Token (CGT) feature allows OP Stack chains to use a native asset 
 
 Key components:
 
-- **NativeAssetLiquidity**: A predeploy contract containing pre-minted native assets, deployed only for CGT-enabled chains
-- **LiquidityController**: An owner-governed mint/burn router that manages supply control, deployed only for CGT-enabled chains
-- **ETH Transfer Blocking**: When CGT is enabled, all ETH transfer flows in bridging methods are disabled via the `isCustomGasToken()` flag
-- **ETH Bridging Disabled**: ETH bridging functions in `L2StandardBridge` and `OptimismPortal` MUST revert when CGT mode is enabled to prevent confusion about which asset is the native currency
-- **Native Asset Bridging**: Custom Gas Token chains use dedicated CGT bridges (`L1CGTBridge` and `L2CGTBridge`) for native asset transfers between L1 ERC20 tokens and L2 native assets
-- **WETH as ERC20**: ETH can still be bridged as WETH using the standard `OptimismMintableERC20` bridging path through `L2StandardBridge`
+- **NativeAssetLiquidity**: A predeploy contract containing pre-minted native assets, deployed only for CGT-enabled chains.
+- **LiquidityController**: An owner-governed mint/burn router that manages supply control, deployed only for CGT-enabled chains.
+- **ETH Transfer Blocking**: When CGT is enabled, all ETH transfer flows in bridging methods are disabled via the `isCustomGasToken()` flag.
+- **ETH Bridging Disabled**: ETH bridging functions in `L2StandardBridge` and `OptimismPortal` MUST revert when CGT mode is enabled to prevent confusion about which asset is the native currency.
+- **Native Asset Bridging**: Custom Gas Token chains use dedicated CGT bridges (`L1CGTBridge` and `L2CGTBridge`) for native asset transfers between L1 ERC20 tokens and L2 native assets.
+- **WETH as ERC20**: ETH can still be bridged as WETH using the standard `OptimismMintableERC20` bridging path through `L2StandardBridge`.
 
 OP Stack chains that use a native asset other than ETH (or the native asset of the settlement layer) introduce custom requirements that go beyond the current supply management model based on deposits and withdrawals. This architecture decouples and winds down the native bridging for the native asset, shifting the responsibility for supply management to the application layer. The chain operator becomes responsible for defining and assigning meaning to the native asset, which is managed through a new set of predeployed contracts.
 
