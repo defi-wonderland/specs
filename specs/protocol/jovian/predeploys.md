@@ -3,33 +3,34 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
-- [Overview](#overview)
-- [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
-  - [Functions](#functions)
-    - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
-    - [`setRecipient`](#setrecipient)
-    - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
-  - [Events](#events)
-    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
-    - [`RecipientUpdated`](#recipientupdated)
-    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
-  - [Invariants](#invariants)
-- [FeeSplitter](#feesplitter)
-  - [Functions](#functions-1)
-    - [`disburseFees`](#disbursefees)
-    - [`setRecipientA`](#setrecipienta)
-    - [`setRecipientAShare`](#setrecipientashare)
-    - [`setRecipientB`](#setrecipientb)
-    - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
-  - [Events](#events-1)
-    - [`FeesDisbursed`](#feesdisbursed)
-    - [`NoFeesCollected`](#nofeescollected)
-    - [`RecipientAUpdated`](#recipientaupdated)
-    - [`RecipientAShareUpdated`](#recipientashareupdated)
-    - [`RecipientBUpdated`](#recipientbupdated)
-    - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
-- [Invariants](#invariants-1)
-- [Security Considerations](#security-considerations)
+- [Predeploys](#predeploys)
+  - [Overview](#overview)
+  - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
+    - [Functions](#functions)
+      - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
+      - [`setRecipient`](#setrecipient)
+      - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+    - [Events](#events)
+      - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+      - [`RecipientUpdated`](#recipientupdated)
+      - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
+    - [Invariants](#invariants)
+  - [FeeSplitter](#feesplitter)
+    - [Functions](#functions-1)
+      - [`disburseFees`](#disbursefees)
+      - [`setRecipientA`](#setrecipienta)
+      - [`setRecipientAShare`](#setrecipientashare)
+      - [`setRecipientB`](#setrecipientb)
+      - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
+    - [Events](#events-1)
+      - [`FeesDisbursed`](#feesdisbursed)
+      - [`NoFeesCollected`](#nofeescollected)
+      - [`RecipientAUpdated`](#recipientaupdated)
+      - [`RecipientAShareUpdated`](#recipientashareupdated)
+      - [`RecipientBUpdated`](#recipientbupdated)
+      - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+  - [Invariants](#invariants-1)
+  - [Security Considerations](#security-considerations)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -137,11 +138,11 @@ recipient in EVERY fee vault.
 
 The contract manages two recipients:
 
-- Recipient A
-- Recipient B
+- Revenue share recipient
+- Remainder recipient
 
-Based on the configured share percentage for Recipient A, the contract sends the corresponding portion of fees
-to Recipient A and sends the remaining amount to Recipient B.
+Based on the configured share percentage for the revenue share recipient, the contract sends the corresponding
+portion of fees to that recipient and sends the remainder to the remainder recipient.
 
 ### Functions
 
@@ -149,31 +150,25 @@ to Recipient A and sends the remaining amount to Recipient B.
 
 Initiates the routing flow by withdrawing the fees that each of the fee vaults has collected and sends the shares
 to the appropriate addresses according to the configured percentage.
+The function MUST revert if the withdrawal is not set to `WithdrawalNetwork.L2`, or if the recipient set is not the `FeeSplitter`.
+The function MUST withdraw the vault's fees balance only if this has a balance equal or greater than the set minimun amount.
 
 When attempting to withdraw from the vaults, it will check that they all have a balance equal to or larger than
 their minimum withdrawal amount, that the withdrawal network is set to `WithdrawalNetwork.L2`, and that the recipient
 of the vault is the `FeeSplitter`. The function MUST revert if any of these conditions is not met.
-The function MUST emit the `NoFeesCollected` event if the contract doesn't have any funds after the vaults have been withdrawn,
-which can happen in scenarios where the vaults have a minimum withdrawal amount of 0.
-
-On chains where any fee vault is not to be used and is not expected to maintain a balance in the contract,
-it is necessary to set the unused fee vault's minimum withdrawal amount to 0 to prevent `disburseFees` from
-reverting when it shouldn't.
-
-Currently this is the case for `OperatorFeeVault` on some chains, so setting its minimum withdrawal amount to
-0 is needed on those chains.
+The function MUST emit the `NoFeesCollected` event if the contract doesn't have any funds after the vaults have been withdrawn.
 
 ```solidity
 function disburseFees() external
 ```
 
-- MUST emit `FeesDisbursed` event upon successful execution.
-- MUST emit `NoFeesCollected` event if there are no funds available in the contract after the vaults have been withdrawn.
-- MUST revert if any vault has a balance below its minimum withdrawal amount.
+- MUST revert if not enough time has passed since the last successful execution.
 - MUST revert if any vault has a recipient different from this contract.
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
-- MUST revert if not enough time has passed since the last successful execution.
 - MUST send the appropriate amounts to the recipients.
+- MUST withdraw vault's fees balance if the vault's balance is equal or greater than the min amount set.
+- MUST emit `NoFeesCollected` event if there are no funds available in the contract after the vaults have been withdrawn.
+- MUST emit `FeesDisbursed` event if the funds were dibursed.
 - The balance of the contract MUST be 0 after a successful execution.
 
 #### `setRecipientA`
