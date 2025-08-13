@@ -2,7 +2,6 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
 - [Overview](#overview)
@@ -17,16 +16,18 @@
     - [`deposit`](#deposit)
     - [`withdraw`](#withdraw)
     - [`fund`](#fund)
+    - [`burn`](#burn)
   - [Events](#events)
     - [`LiquidityDeposited`](#liquiditydeposited)
     - [`LiquidityWithdrawn`](#liquiditywithdrawn)
     - [`LiquidityFunded`](#liquidityfunded)
+    - [`LiquidityBurned`](#liquidityburned)
   - [Invariants](#invariants)
 - [Liquidity Controller](#liquidity-controller)
   - [Functions](#functions-1)
     - [`authorizeMinter`](#authorizeminter)
     - [`mint`](#mint)
-    - [`burn`](#burn)
+    - [`burn`](#burn-1)
     - [`gasPayingAssetName`](#gaspayingassetname)
     - [`gasPayingAssetSymbol`](#gaspayingassetsymbol)
   - [Events](#events-1)
