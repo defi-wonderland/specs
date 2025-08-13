@@ -16,18 +16,16 @@
     - [`deposit`](#deposit)
     - [`withdraw`](#withdraw)
     - [`fund`](#fund)
-    - [`burn`](#burn)
   - [Events](#events)
     - [`LiquidityDeposited`](#liquiditydeposited)
     - [`LiquidityWithdrawn`](#liquiditywithdrawn)
     - [`LiquidityFunded`](#liquidityfunded)
-    - [`LiquidityBurned`](#liquidityburned)
   - [Invariants](#invariants)
 - [Liquidity Controller](#liquidity-controller)
   - [Functions](#functions-1)
     - [`authorizeMinter`](#authorizeminter)
     - [`mint`](#mint)
-    - [`burn`](#burn-1)
+    - [`burn`](#burn)
     - [`gasPayingAssetName`](#gaspayingassetname)
     - [`gasPayingAssetSymbol`](#gaspayingassetsymbol)
   - [Events](#events-1)
@@ -154,7 +152,8 @@ function withdraw(uint256 _amount) external
 
 #### `fund`
 
-Allows funding the contract with native assets. This function is used to initialize the contract with a large liquidity pool, similar to how ETHLiquidity is initialized in interop chains.
+Allows funding the contract with native assets. This function is used to initialize the contract with a large liquidity
+pool, similar to how ETHLiquidity is initialized in interop chains.
 
 ```solidity
 function fund() external payable
@@ -164,20 +163,6 @@ function fund() external payable
 - MUST revert if `msg.value` is zero
 - MUST emit `LiquidityFunded` event
 - MUST be callable by any address
-
-#### `burn`
-
-Burns native supply from the contract, permanently removing it from circulation.
-This function utilizes the Burn.sol library for burn functionality.
-
-```solidity
-function burn(uint256 _amount) external
-```
-
-- MUST burn exactly `_amount` of native asset from the contract balance
-- MUST permanently reduce the total native asset supply
-- MUST revert if the contract balance is insufficient
-- MUST be callable by authorized addresses only
 
 ### Events
 
@@ -205,21 +190,11 @@ Emitted when the contract receives funding, typically during initial deployment.
 event LiquidityFunded(address indexed funder, uint256 amount)
 ```
 
-#### `LiquidityBurned`
-
-Emitted when native assets are permanently burned from the contract.
-
-```solidity
-event LiquidityBurned(address indexed burner, uint256 amount)
-```
-
 ### Invariants
 
 - Only the `LiquidityController` predeploy can call `deposit()` and `withdraw()`
 - All native asset supply changes must go through this contract when CGT mode is active
 - No direct user interaction is permitted with liquidity management functions
-- The `burn()` function permanently reduces total supply and cannot be reversed
-- Burned assets are permanently removed from circulation
 
 ## Liquidity Controller
 
