@@ -254,7 +254,6 @@ function mint(address _to, uint256 _amount) external
 - MUST only be callable by authorized minters
 - MUST call `NativeAssetLiquidity.withdraw(_amount)` to unlock assets
 - MUST send exactly `_amount` of native asset to `_to` address
-- MUST revert if caller is not an authorized minter
 - MUST revert if `NativeAssetLiquidity` has insufficient balance
 - MUST emit `AssetsMinted` event
 
