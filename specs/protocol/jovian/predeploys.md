@@ -3,6 +3,8 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
+**Table of Contents**
+
 - [Predeploys](#predeploys)
   - [Overview](#overview)
   - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
@@ -16,20 +18,26 @@
       - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
     - [Invariants](#invariants)
   - [FeeSplitter](#feesplitter)
+    - [Constants](#constants)
     - [Functions](#functions-1)
+      - [`initialize`](#initialize)
       - [`disburseFees`](#disbursefees)
-      - [`setRecipientA`](#setrecipienta)
-      - [`setRecipientAShare`](#setrecipientashare)
-      - [`setRecipientB`](#setrecipientb)
+      - [`receive`](#receive)
+      - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
+      - [`setNetFeeShareBP`](#setnetfeesharebp)
+      - [`setGrossFeeShareBP`](#setgrossfeesharebp)
+      - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
       - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
     - [Events](#events-1)
       - [`FeesDisbursed`](#feesdisbursed)
       - [`NoFeesCollected`](#nofeescollected)
-      - [`RecipientAUpdated`](#recipientaupdated)
-      - [`RecipientAShareUpdated`](#recipientashareupdated)
-      - [`RecipientBUpdated`](#recipientbupdated)
+      - [`FeesReceived`](#feesreceived)
+      - [`NetFeeShareBPUpdated`](#netfeesharebpupdated)
+      - [`GrossFeeShareBPUpdated`](#grossfeesharebpupdated)
+      - [`Initialized`](#initialized)
+      - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
+      - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
       - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
-  - [Invariants](#invariants-1)
   - [Security Considerations](#security-considerations)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -45,8 +53,7 @@ The `FeeSplitter` predeploy manages the distribution of all L2 fees. Fee vault c
 minimum withdrawal amounts, withdrawal networks, and recipients without requiring new deployments.
 
 Using the `FeeSplitter` requires vaults to use `WithdrawalNetwork.L2` and set the `FeeSplitter` as their
-fee recipient. New chains integrate with the `FeeSplitter` by default but can override this configuration for
-alternative setups. Existing chains can optionally adopt it, ensuring backward compatibility.
+fee recipient. All chains can optionally adopt it or not.
 
 ## Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)
 
@@ -67,7 +74,7 @@ New chain deployments that choose to use the `FeeSplitter` MUST use the default 
 Updates the minimum amount of funds the vault contract must hold before they can be withdrawn.
 
 ```solidity
-function setMinWithdrawalAmount(uint256 _minWithdrawalAmount) external
+function setMinWithdrawalAmount(uint256 _newMinWithdrawalAmount) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`
@@ -78,7 +85,7 @@ function setMinWithdrawalAmount(uint256 _minWithdrawalAmount) external
 Updates the recipient of sequencer fees when they are withdrawn from the vault.
 
 ```solidity
-function setRecipient(address _recipient) external
+function setRecipient(address _newRecipient) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`
@@ -91,7 +98,7 @@ This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 b
 predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
 
 ```solidity
-function setWithdrawalNetwork(WithdrawalNetwork _withdrawalNetwork) external
+function setWithdrawalNetwork(WithdrawalNetwork _newWithdrawalNetwork) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`
@@ -141,22 +148,62 @@ The contract manages two recipients:
 - Revenue share recipient
 - Remainder recipient
 
-Based on the configured share percentage for the revenue share recipient, the contract sends the corresponding
-portion of fees to that recipient and sends the remainder to the remainder recipient.
+And it has two ways of dividing the revenue (considered as the total amount of ETH received by the contract since the last disbursement):
+
+- `grossRevenue`: The whole balance received by the contract.
+- `netRevenue`: Only the fees collected by the `SequencerFeeVault`, `BaseFeeVault` and `OperatorFeeVault`.
+
+Their percentages for each kind of revenue are managed separately.
+The contract will send the maximum amount between calculating the `grossRevenueShare` and `netRevenueShare` with their respective percentages to the `revenueShareRecipient`, and the remaining amount will be sent to the `revenueRemainderRecipient`.
+
+The `FeeSplitter` MUST be proxied and initializable only by the `ProxyAdmin.owner()`.
+
+### Constants
+
+| Name                            | Value    |
+| ------------------------------- | -------- |
+| `BASIS_POINT_SCALE`             | 10000    |
+| `MIN_FEE_DISBURSEMENT_INTERVAL` | 24 hours |
 
 ### Functions
+
+#### `initialize`
+
+Initializes the contract with the initial recipients, fee shares, and disbursement interval.
+
+```solidity
+function initialize(
+        address payable _revenueShareRecipient,
+        address payable _revenueRemainderRecipient,
+        uint40 _feeDisbursementInterval,
+        uint16 _netFeeShareBP,
+        uint16 _grossFeeShareBP
+    ) external
+```
+
+- MUST only be callable once.
+- MUST only be callable by `ProxyAdmin.owner()`.
+- MUST revert if `_revenueShareRecipient` is the zero address.
+- MUST revert if `_revenueRemainderRecipient` is the zero address.
+- MUST revert if `_feeDisbursementInterval` is less than `MIN_FEE_DISBURSEMENT_INTERVAL`.
+- MUST revert if `_netFeeShareBP` exceeds `BASIS_POINT_SCALE`.
+- MUST revert if `_grossFeeShareBP` exceeds `BASIS_POINT_SCALE`.
+- MUST set `revenueShareRecipient` to `_revenueShareRecipient`.
+- MUST set `revenueRemainderRecipient` to `_revenueRemainderRecipient`.
+- MUST set `feeDisbursementInterval` to `_feeDisbursementInterval`.
+- MUST set `netFeeShareBP` to `_netFeeShareBP`.
+- MUST set `grossFeeShareBP` to `_grossFeeShareBP`.
+- MUST emit an `Initialized` event with the provided parameters.
 
 #### `disburseFees`
 
 Initiates the routing flow by withdrawing the fees that each of the fee vaults has collected and sends the shares
 to the appropriate addresses according to the configured percentage.
 The function MUST revert if the withdrawal is not set to `WithdrawalNetwork.L2`, or if the recipient set is not the `FeeSplitter`.
-The function MUST withdraw the vault's fees balance only if this has a balance equal or greater than the set minimun amount.
+The function MUST withdraw only if the vault balance is greater than or equal to its minimum withdrawal amount.
 
-When attempting to withdraw from the vaults, it will check that they all have a balance equal to or larger than
-their minimum withdrawal amount, that the withdrawal network is set to `WithdrawalNetwork.L2`, and that the recipient
-of the vault is the `FeeSplitter`. The function MUST revert if any of these conditions is not met.
-The function MUST emit the `NoFeesCollected` event if the contract doesn't have any funds after the vaults have been withdrawn.
+When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`, and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions is not met.
+It MUST only withdraw if the vault balance is greater than or equal to its minimum withdrawal amount.
 
 ```solidity
 function disburseFees() external
@@ -165,54 +212,86 @@ function disburseFees() external
 - MUST revert if not enough time has passed since the last successful execution.
 - MUST revert if any vault has a recipient different from this contract.
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
-- MUST send the appropriate amounts to the recipients.
 - MUST withdraw vault's fees balance if the vault's balance is equal or greater than the min amount set.
+- MUST set the `lastDisbursementTime` to the current block timestamp.
+- MUST reset the `netRevenueShare` state variable.
+- MUST send the max between `grossRevenueShare` and `netRevenueShare` to the `revenueShareRecipient`.
+- MUST send the `grossRevenue` minus the amount sent to the `revenueShareRecipient` to the `revenueRemainderRecipient`.
 - MUST emit `NoFeesCollected` event if there are no funds available in the contract after the vaults have been withdrawn.
-- MUST emit `FeesDisbursed` event if the funds were dibursed.
+- MUST emit `FeesDisbursed` event if the funds were disbursed.
 - The balance of the contract MUST be 0 after a successful execution.
 
-#### `setRecipientA`
+#### `receive`
+
+Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault`, `BaseFeeVault` or `OperatorFeeVault`.
+
+This function is virtual to allow for overrides in the derived contracts, in case some other custom logic is needed for receiving or accounting the fees.
+
+```solidity
+function receive() external payable virtual
+```
+
+- MUST add the received amount to the `netRevenueShare` balance if the sender is either the `SequencerFeeVault`, `BaseFeeVault` or `OperatorFeeVault`.
+- MUST accept ETH from any sender.
+- MUST emit a `FeesReceived` event upon successful execution.
+
+#### `setRevenueShareRecipient`
 
 Sets the address that should receive the configured share of fees.
 
 ```solidity
-function setRecipientA(address _recipientA) external
+function setRevenueShareRecipient(address _newRevenueShareRecipient) external
 ```
 
+- MUST revert if `_newRevenueShareRecipient` is the zero address.
 - MUST only be callable by `ProxyAdmin.owner()`
-- MUST emit a `RecipientAUpdated` event upon successful execution.
+- MUST emit a `RevenueShareRecipientUpdated` event upon successful execution.
 
-#### `setRecipientAShare`
+#### `setNetFeeShareBP`
 
-Sets the share percentage that recipient A should receive, in basis points.
+Sets the share percentage that the net revenue share recipient should receive, in case the `netRevenueShare` is greater than the `grossRevenueShare`.
 
 ```solidity
-function setRecipientAShare(uint256 _shareBasisPoints) external
+function setNetFeeShareBP(uint256 _newNetFeeShareBP) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`
-- MUST revert if `_shareBasisPoints` exceeds `BASIS_POINT_SCALE`.
-- MUST emit a `RecipientAShareUpdated` event upon successful execution.
+- MUST revert if `_newNetFeeShareBP` exceeds `BASIS_POINT_SCALE`.
+- MUST emit a `NetFeeShareBPUpdated` event upon successful execution.
 
-#### `setRecipientB`
+#### `setGrossFeeShareBP`
 
-Sets the address that should receive the remaining fees after the recipient A share has been deducted.
+Sets the share percentage that revenue remainder recipient should receive, in case the `grossRevenueShare` is greater than the `netRevenueShare`.
 
 ```solidity
-function setRecipientB(address _recipientB) external
+function setGrossFeeShareBP(uint256 _newGrossFeeShareBP) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`
-- MUST emit a `RecipientBUpdated` event upon successful execution.
+- MUST revert if `_newGrossFeeShareBP` exceeds `BASIS_POINT_SCALE`.
+- MUST emit a `GrossFeeShareBPUpdated` event upon successful execution.
+
+#### `setRevenueRemainderRecipient`
+
+Sets the address that should receive the remaining fees.
+
+```solidity
+function setRevenueRemainderRecipient(address _newRevenueRemainderRecipient) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`
+- MUST revert if `_newRevenueRemainderRecipient` is the zero address
+- MUST emit a `RevenueRemainderRecipientUpdated` event upon successful execution.
 
 #### `setFeeDisbursementInterval`
 
 Sets the minimum time, in seconds, that must pass between consecutive calls to `disburseFees`.
 
 ```solidity
-function setFeeDisbursementInterval(uint32 _newInterval) external
+function setFeeDisbursementInterval(uint40 _newInterval) external
 ```
 
+- MUST revert if `_newInterval` is less than `MIN_FEE_DISBURSEMENT_INTERVAL`.
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit a `FeeDisbursementIntervalUpdated` event upon successful execution.
 
@@ -224,42 +303,70 @@ Emitted when fees are successfully withdrawn from fee vaults and distributed to 
 
 ```solidity
 event FeesDisbursed(
-        uint256 indexed disbursementTime, uint256 paidToRecipientA, uint256 paidToRecipientB, uint256 totalFeesDisbursed
+        uint256 disbursementTime, uint256 revenueShareRecipientAmount, uint256 revenueRemainderRecipientAmount, uint256 totalFeesDisbursed
     );
 ```
 
 #### `NoFeesCollected`
 
-Emitted when `disburseFees` is called but there are no funds available in the contract _after_ the fee vaults
-have been withdrawn. This can happen in scenarios where the fee vaults' minimum withdrawal amount is
-configured to `0`.
+Emitted when `disburseFees` is called and, after attempting eligible vault withdrawals, there are no funds available to withdraw or distribute. This can occur when all vaults lack withdrawable funds or when the contract holds no ETH from any other sender.
 
 ```solidity
 event NoFeesCollected()
 ```
 
-#### `RecipientAUpdated`
+#### `FeesReceived`
 
-Emitted when the address of Recipient A is successfully updated.
+Emitted when the contract receives balance.
 
 ```solidity
-event RecipientAUpdated(address indexed oldRecipientA, address indexed newRecipientA)
+event FeesReceived(address indexed sender, uint256 amount)
 ```
 
-#### `RecipientAShareUpdated`
+#### `NetFeeShareBPUpdated`
 
-Emitted when the share percentage for Recipient A is successfully updated.
+Emitted when the net fee share basis points are updated.
 
 ```solidity
-event RecipientAShareUpdated(uint256 oldShare, uint256 newShare)
+event NetFeeShareBPUpdated(uint16 oldNetFeeShareBP, uint16 newNetFeeShareBP)
 ```
 
-#### `RecipientBUpdated`
+#### `GrossFeeShareBPUpdated`
 
-Emitted when the address of Recipient B is successfully updated.
+Emitted when the gross fee share basis points are updated.
 
 ```solidity
-event RecipientBUpdated(address indexed oldRecipientB, address indexed newRecipientB)
+event GrossFeeShareBPUpdated(uint16 oldGrossFeeShareBP, uint16 newGrossFeeShareBP)
+```
+
+#### `Initialized`
+
+Emitted when the contract is initialized with its initial configuration.
+
+```solidity
+event Initialized(
+        address revenueShareRecipient,
+        address revenueRemainderRecipient,
+        uint40 feeDisbursementInterval,
+        uint16 netFeeShareBP,
+        uint16 grossFeeShareBP
+    )
+```
+
+#### `RevenueShareRecipientUpdated`
+
+Emitted when the revenue share recipient is successfully updated.
+
+```solidity
+event RevenueShareRecipientUpdated(address indexed oldRevenueShareRecipient, address indexed newRevenueShareRecipient)
+```
+
+#### `RevenueRemainderRecipientUpdated`
+
+Emitted when the revenue remainder recipient is successfully updated.
+
+```solidity
+event RevenueRemainderRecipientUpdated(address indexed oldRevenueRemainderRecipient, address indexed newRevenueRemainderRecipient)
 ```
 
 #### `FeeDisbursementIntervalUpdated`
@@ -267,17 +374,8 @@ event RecipientBUpdated(address indexed oldRecipientB, address indexed newRecipi
 Emitted when the minimum time interval between consecutive fee disbursements is successfully updated.
 
 ```solidity
-event FeeDisbursementIntervalUpdated(uint256 oldInterval, uint256 newInterval)
+event FeeDisbursementIntervalUpdated(uint256 oldFeeDisbursementInterval, uint256 newFeeDisbursementInterval)
 ```
-
-## Invariants
-
-- Only `ProxyAdmin.owner()` is allowed to call the setter functions.
-- The appropriate amounts based on the configured percentage MUST be sent to the correct addresses.
-- Upon successful disbursement of fees, the sent amounts must sum to the total balance the contract had
-  plus the accumulated fees in the fee vaults.
-- The fee share of recipient A must be equal to or less than 10,000 basis points.
-- `disburseFees` can only be called after `feeDisbursementInterval` seconds have passed since the last successful execution.
 
 ## Security Considerations
 
