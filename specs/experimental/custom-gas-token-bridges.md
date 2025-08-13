@@ -2,7 +2,6 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
 - [Overview](#overview)
@@ -10,14 +9,29 @@
 - [L1CGTBridge](#l1cgtbridge)
   - [Interface](#interface)
   - [Functions](#functions)
+    - [`bridgeCGT`](#bridgecgt)
+    - [`finalizeBridgeCGT`](#finalizebridgecgt)
   - [Events](#events)
+    - [`CGTBridgeInitiated`](#cgtbridgeinitiated)
+    - [`CGTBridgeFinalized`](#cgtbridgefinalized)
 - [L1CGTBridgeWithLegacyWithdrawal](#l1cgtbridgewithlegacywithdrawal)
   - [Additional Interface](#additional-interface)
   - [Legacy Withdrawal Support](#legacy-withdrawal-support)
   - [Additional Functions](#additional-functions)
+    - [`setTrustedStateOnce`](#settrustedstateonce)
+    - [`legacyProveWithdrawalTransaction`](#legacyprovewithdrawaltransaction)
+    - [`legacyFinalizeWithdrawalTransaction`](#legacyfinalizewithdrawaltransaction)
+    - [`enableDeposits` / `disableDeposits`](#enabledeposits--disabledeposits)
+    - [`enableWithdrawals` / `disableWithdrawals`](#enablewithdrawals--disablewithdrawals)
+    - [`trustedMessagePasserStorageRoot`](#trustedmessagepasserstorageroot)
 - [L2CGTBridge](#l2cgtbridge)
+  - [Interface](#interface-1)
   - [Functions](#functions-1)
+    - [`bridgeCGT`](#bridgecgt-1)
+    - [`finalizeBridgeCGT`](#finalizebridgecgt-1)
   - [Events](#events-1)
+    - [`CGTBridgeInitiated`](#cgtbridgeinitiated-1)
+    - [`CGTBridgeFinalized`](#cgtbridgefinalized-1)
   - [Invariants](#invariants)
 - [Bridge Communication](#bridge-communication)
 - [Security Considerations](#security-considerations)
