@@ -2,42 +2,44 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
-- [Overview](#overview)
-- [FeeVault](#feevault)
-  - [Functions](#functions)
-    - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
-    - [`setRecipient`](#setrecipient)
-    - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
-  - [Events](#events)
-    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
-    - [`RecipientUpdated`](#recipientupdated)
-    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
-  - [Invariants](#invariants)
-- [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
-- [FeeSplitter](#feesplitter)
-  - [Constants](#constants)
-  - [Functions](#functions-1)
-    - [`initialize`](#initialize)
-    - [`disburseFees`](#disbursefees)
-    - [`receive`](#receive)
-    - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
-    - [`setNetFeeShareBP`](#setnetfeesharebp)
-    - [`setGrossFeeShareBP`](#setgrossfeesharebp)
-    - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
-    - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
-  - [Events](#events-1)
-    - [`FeesDisbursed`](#feesdisbursed)
-    - [`NoFeesCollected`](#nofeescollected)
-    - [`FeesReceived`](#feesreceived)
-    - [`NetFeeShareBPUpdated`](#netfeesharebpupdated)
-    - [`GrossFeeShareBPUpdated`](#grossfeesharebpupdated)
-    - [`Initialized`](#initialized)
-    - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
-    - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
-    - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
-- [Security Considerations](#security-considerations)
+- [Predeploys](#predeploys)
+  - [Overview](#overview)
+  - [FeeVault](#feevault)
+    - [Functions](#functions)
+      - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
+      - [`setRecipient`](#setrecipient)
+      - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+    - [Events](#events)
+      - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+      - [`RecipientUpdated`](#recipientupdated)
+      - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
+    - [Invariants](#invariants)
+  - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
+  - [FeeSplitter](#feesplitter)
+    - [Constants](#constants)
+    - [Functions](#functions-1)
+      - [`initialize`](#initialize)
+      - [`disburseFees`](#disbursefees)
+      - [`receive`](#receive)
+      - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
+      - [`setNetFeeShareBP`](#setnetfeesharebp)
+      - [`setGrossFeeShareBP`](#setgrossfeesharebp)
+      - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
+      - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
+    - [Events](#events-1)
+      - [`FeesDisbursed`](#feesdisbursed)
+      - [`NoFeesCollected`](#nofeescollected)
+      - [`FeesReceived`](#feesreceived)
+      - [`NetFeeShareBPUpdated`](#netfeesharebpupdated)
+      - [`GrossFeeShareBPUpdated`](#grossfeesharebpupdated)
+      - [`Initialized`](#initialized)
+      - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
+      - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
+      - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+  - [Security Considerations](#security-considerations)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -215,7 +217,7 @@ function disburseFees() external
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
 - MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum withdrawal amount set.
 - MUST set the `lastDisbursementTime` to the current block timestamp.
-- MUST reset the `netRevenueShare` state variable.
+- MUST reset the `netRevenueFee` state variable.
 - MUST send the max between `grossRevenueShare` and `netRevenueShare` to the `revenueShareRecipient`.
 - MUST send the `grossRevenue` minus the amount sent to the `revenueShareRecipient` to the `revenueRemainderRecipient`.
 - MUST emit `NoFeesCollected` event if there are no funds available in the contract after the vaults have been withdrawn.
@@ -224,7 +226,7 @@ function disburseFees() external
 
 #### `receive`
 
-Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault`, `BaseFeeVault`, or `OperatorFeeVault`.
+Receives ETH from any sender, but only accounts for `netRevenueFee` if the sender is either the `SequencerFeeVault`, `BaseFeeVault`, or `OperatorFeeVault`.
 
 This function is virtual to allow for overrides in the derived contracts, in case some other custom logic is needed for receiving or accounting the fees.
 
@@ -232,7 +234,7 @@ This function is virtual to allow for overrides in the derived contracts, in cas
 function receive() external payable virtual
 ```
 
-- MUST add the received amount to the `netRevenueShare` balance if the sender is either the `SequencerFeeVault`, `BaseFeeVault` or `OperatorFeeVault`.
+- MUST add the received amount to the `netRevenueFee` balance if the sender is either the `SequencerFeeVault`, `BaseFeeVault` or `OperatorFeeVault`.
 - MUST accept ETH from any sender.
 - MUST emit a `FeesReceived` event upon successful execution.
 
