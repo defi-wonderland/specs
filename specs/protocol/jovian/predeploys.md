@@ -2,43 +2,42 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
-- [Predeploys](#predeploys)
-  - [Overview](#overview)
-  - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
-    - [Functions](#functions)
-      - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
-      - [`setRecipient`](#setrecipient)
-      - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
-    - [Events](#events)
-      - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
-      - [`RecipientUpdated`](#recipientupdated)
-      - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
-    - [Invariants](#invariants)
-  - [FeeSplitter](#feesplitter)
-    - [Constants](#constants)
-    - [Functions](#functions-1)
-      - [`initialize`](#initialize)
-      - [`disburseFees`](#disbursefees)
-      - [`receive`](#receive)
-      - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
-      - [`setNetFeeShareBP`](#setnetfeesharebp)
-      - [`setGrossFeeShareBP`](#setgrossfeesharebp)
-      - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
-      - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
-    - [Events](#events-1)
-      - [`FeesDisbursed`](#feesdisbursed)
-      - [`NoFeesCollected`](#nofeescollected)
-      - [`FeesReceived`](#feesreceived)
-      - [`NetFeeShareBPUpdated`](#netfeesharebpupdated)
-      - [`GrossFeeShareBPUpdated`](#grossfeesharebpupdated)
-      - [`Initialized`](#initialized)
-      - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
-      - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
-      - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
-  - [Security Considerations](#security-considerations)
+- [Overview](#overview)
+- [FeeVault](#feevault)
+  - [Functions](#functions)
+    - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
+    - [`setRecipient`](#setrecipient)
+    - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+  - [Events](#events)
+    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+    - [`RecipientUpdated`](#recipientupdated)
+    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
+  - [Invariants](#invariants)
+- [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
+- [FeeSplitter](#feesplitter)
+  - [Constants](#constants)
+  - [Functions](#functions-1)
+    - [`initialize`](#initialize)
+    - [`disburseFees`](#disbursefees)
+    - [`receive`](#receive)
+    - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
+    - [`setNetFeeShareBP`](#setnetfeesharebp)
+    - [`setGrossFeeShareBP`](#setgrossfeesharebp)
+    - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
+    - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
+  - [Events](#events-1)
+    - [`FeesDisbursed`](#feesdisbursed)
+    - [`NoFeesCollected`](#nofeescollected)
+    - [`FeesReceived`](#feesreceived)
+    - [`NetFeeShareBPUpdated`](#netfeesharebpupdated)
+    - [`GrossFeeShareBPUpdated`](#grossfeesharebpupdated)
+    - [`Initialized`](#initialized)
+    - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
+    - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
+    - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+- [Security Considerations](#security-considerations)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -53,19 +52,11 @@ The `FeeSplitter` predeploy manages the distribution of all L2 fees. Fee vault c
 minimum withdrawal amounts, withdrawal networks, and recipients without requiring new deployments.
 
 Using the `FeeSplitter` requires vaults to use `WithdrawalNetwork.L2` and set the `FeeSplitter` as their
-fee recipient. All chains can optionally adopt it or not.
+fee recipient. Chains MAY opt in at any time.
 
-## Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)
+## FeeVault
 
-These contracts' configuration includes the withdrawal network and the recipient to which the fees will be sent.
-
-- **WithdrawalNetwork.L1**: Funds are withdrawn to an L1 address (default behavior)
-- **WithdrawalNetwork.L2**: Funds are withdrawn to an L2 address
-
-For existing chains that choose to use the `FeeSplitter` predeploy, `WithdrawalNetwork.L2` as the
-withdrawal network and the `FeeSplitter` as the recipient MUST be set using the setter functions.
-
-New chain deployments that choose to use the `FeeSplitter` MUST use the default configuration.
+The contract will now have storage variables and setters instead of constants for the configuration values, and it will be initializable.
 
 ### Functions
 
@@ -93,7 +84,7 @@ function setRecipient(address _newRecipient) external
 
 #### `setWithdrawalNetwork`
 
-Updates the network to which vault collected fees will be withdrawn.
+Updates the network to which the vault collected fees will be withdrawn.
 This can be either `WithdrawalNetwork.L1` to withdraw them to an address on L1 by using the `L2ToL1MessagePasser`
 predeploy, or `WithdrawalNetwork.L2` to withdraw them to an address on the same chain.
 
@@ -137,10 +128,20 @@ event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, Withdrawa
   MUST be set to the `FeeSplitter` predeploy address.
 - The balance of the vault MUST be preserved between implementation upgrades.
 
+## Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)
+
+These contracts will inherit the changes made to the `FeeVault` contract, meaning that they will have storage variables and setters instead of constants for the configuration values, and they will be initializable.
+
+Their configuration includes the withdrawal network and the recipient to which the fees will be sent:
+
+- **WithdrawalNetwork.L1**: Funds are withdrawn to an L1 address (default behavior)
+- **WithdrawalNetwork.L2**: Funds are withdrawn to an L2 address
+
+For those chains that choose to use the `FeeSplitter` predeploy, `WithdrawalNetwork.L2` as the withdrawal network, and the `FeeSplitter` as the recipient MUST be set using the setter functions.
+
 ## FeeSplitter
 
-This contract splits the ETH it receives and sends the correct amounts to two designated addresses. It integrates with
-the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and setting this predeploy as the
+This contract splits the ETH it receives and sends the correct amounts to two designated addresses. It integrates with the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and setting this predeploy as the
 recipient in EVERY fee vault.
 
 The contract manages two recipients:
@@ -151,7 +152,7 @@ The contract manages two recipients:
 And it has two ways of dividing the revenue (considered as the total amount of ETH received by the contract since the last disbursement):
 
 - `grossRevenue`: The whole balance received by the contract.
-- `netRevenue`: Only the fees collected by the `SequencerFeeVault`, `BaseFeeVault` and `OperatorFeeVault`.
+- `netRevenue`: Only the fees collected by the `SequencerFeeVault`, `BaseFeeVault`, and `OperatorFeeVault`.
 
 Their percentages for each kind of revenue are managed separately.
 The contract will send the maximum amount between calculating the `grossRevenueShare` and `netRevenueShare` with their respective percentages to the `revenueShareRecipient`, and the remaining amount will be sent to the `revenueRemainderRecipient`.
@@ -202,7 +203,7 @@ to the appropriate addresses according to the configured percentage.
 The function MUST revert if the withdrawal is not set to `WithdrawalNetwork.L2`, or if the recipient set is not the `FeeSplitter`.
 The function MUST withdraw only if the vault balance is greater than or equal to its minimum withdrawal amount.
 
-When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`, and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions is not met.
+When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`, and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions are not met.
 It MUST only withdraw if the vault balance is greater than or equal to its minimum withdrawal amount.
 
 ```solidity
@@ -212,7 +213,7 @@ function disburseFees() external
 - MUST revert if not enough time has passed since the last successful execution.
 - MUST revert if any vault has a recipient different from this contract.
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
-- MUST withdraw vault's fees balance if the vault's balance is equal or greater than the min amount set.
+- MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum withdrawal amount set.
 - MUST set the `lastDisbursementTime` to the current block timestamp.
 - MUST reset the `netRevenueShare` state variable.
 - MUST send the max between `grossRevenueShare` and `netRevenueShare` to the `revenueShareRecipient`.
@@ -223,7 +224,7 @@ function disburseFees() external
 
 #### `receive`
 
-Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault`, `BaseFeeVault` or `OperatorFeeVault`.
+Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault`, `BaseFeeVault`, or `OperatorFeeVault`.
 
 This function is virtual to allow for overrides in the derived contracts, in case some other custom logic is needed for receiving or accounting the fees.
 
@@ -252,7 +253,7 @@ function setRevenueShareRecipient(address _newRevenueShareRecipient) external
 Sets the share percentage that the net revenue share recipient should receive, in case the `netRevenueShare` is greater than the `grossRevenueShare`.
 
 ```solidity
-function setNetFeeShareBP(uint256 _newNetFeeShareBP) external
+function setNetFeeShareBP(uint16 _newNetFeeShareBP) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`
@@ -261,10 +262,10 @@ function setNetFeeShareBP(uint256 _newNetFeeShareBP) external
 
 #### `setGrossFeeShareBP`
 
-Sets the share percentage that revenue remainder recipient should receive, in case the `grossRevenueShare` is greater than the `netRevenueShare`.
+Sets the share percentage that the revenue remainder recipient should receive, in case the `grossRevenueShare` is greater than the `netRevenueShare`.
 
 ```solidity
-function setGrossFeeShareBP(uint256 _newGrossFeeShareBP) external
+function setGrossFeeShareBP(uint16 _newGrossFeeShareBP) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`
@@ -379,5 +380,5 @@ event FeeDisbursementIntervalUpdated(uint256 oldFeeDisbursementInterval, uint256
 
 ## Security Considerations
 
-Given that vault recipients can now be updated, it's important to ensure that this can only be done by the appropriate address,
-namely `ProxyAdmin.owner()`.
+- Given that vault recipients can now be updated, it's important to ensure that this can only be done by the appropriate address, namely `ProxyAdmin.owner()`.
+- Upgrading the vaults and making them compatible with the `FeeSplitter` incurs a process where you have to deploy the new implementations and properly configure the vaults, which introduces complexity and potential for errors. It is important to develop a solution, such as a contract to manage the entire upgrade process, simplifying the UX and reducing the risk of errors.
