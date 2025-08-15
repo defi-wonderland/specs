@@ -227,10 +227,8 @@ function disburseFees() external
 
 Receives ETH from any sender, but only accounts for `netRevenueFee` if the sender is either the `SequencerFeeVault`, `BaseFeeVault`, or `OperatorFeeVault`.
 
-This function is virtual to allow for overrides in the derived contracts, in case some other custom logic is needed for receiving or accounting the fees.
-
 ```solidity
-function receive() external payable virtual
+function receive() external payable
 ```
 
 - MUST revert if on a reentrant call after `disburseFees` has been called.
