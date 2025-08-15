@@ -4,12 +4,22 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 **Table of Contents**
 
+- [Definitions](#definitions)
+  - [Custom Gas Token Flag](#custom-gas-token-flag)
 - [Rationale](#rationale)
 - [Function Specification](#function-specification)
+  - [isCustomGasToken](#iscustomgastoken)
   - [donateETH](#donateeth)
   - [depositTransaction](#deposittransaction)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
+## Definitions
+
+### Custom Gas Token Flag
+
+The **Custom Gas Token Flag** (`isCustomGasToken`) is a boolean value that indicates
+whether the chain is operating in Custom Gas Token mode.
 
 ## Rationale
 
@@ -17,10 +27,14 @@ The OptimismPortal’s ETH-related logic must revert when Custom Gas Token mode 
 
 ## Function Specification
 
+### isCustomGasToken
+
+Returns true if the gas token is a custom gas token, false otherwise.
+
 ### donateETH
 
-- MUST revert if `systemConfig.isCustomGasToken()` returns `true` and `msg.value > 0`.
+- MUST revert if `isCustomGasToken()` returns `true` and `msg.value > 0`.
 
 ### depositTransaction
 
-- MUST revert if `systemConfig.isCustomGasToken()` returns `true` and `msg.value > 0`.
+- MUST revert if `isCustomGasToken()` returns `true` and `msg.value > 0`.

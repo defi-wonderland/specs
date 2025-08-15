@@ -16,7 +16,8 @@
 ### Custom Gas Token Flag
 
 The **Custom Gas Token Flag** (`isCustomGasToken`) is a boolean value that indicates
-whether the chain is operating in Custom Gas Token mode.
+whether the chain is operating in Custom Gas Token mode. This flag is stored in
+the OptimismPortal contract.
 
 ## Function Specification
 
@@ -24,4 +25,4 @@ whether the chain is operating in Custom Gas Token mode.
 
 Returns true if the gas token is a custom gas token, false otherwise.
 
-- MUST return the result of a call to `superchainConfig.isCustomGasToken()`.
+- MUST return the result of a call to `optimismPortal.isCustomGasToken()`.
