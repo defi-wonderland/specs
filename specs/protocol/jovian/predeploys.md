@@ -304,7 +304,10 @@ Emitted when fees are successfully withdrawn from fee vaults and distributed to 
 
 ```solidity
 event FeesDisbursed(
-        uint256 disbursementTime, uint256 revenueShareRecipientAmount, uint256 revenueRemainderRecipientAmount, uint256 totalFeesDisbursed
+        address indexed revenueShareRecipient
+        address indexed remainderRecipient
+        uint256 revenueShareRecipientAmount,
+        uint256 revenueRemainderRecipientAmount
     );
 ```
 
