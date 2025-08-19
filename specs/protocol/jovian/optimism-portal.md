@@ -23,7 +23,9 @@ whether the chain is operating in Custom Gas Token mode.
 
 ## Rationale
 
-The OptimismPortal’s ETH-related logic must revert when Custom Gas Token mode is enabled to prevent ETH from acting as the native asset. Since the client side does not discern native asset supply creation, allowing ETH deposits would incorrectly imply that it can be minted in the chain.
+The OptimismPortal's ETH-related logic must revert when Custom Gas Token mode is enabled to prevent ETH from
+acting as the native asset. Since the client side does not discern native asset supply creation, allowing
+ETH deposits would incorrectly imply that it can be minted in the chain.
 
 ## Function Specification
 

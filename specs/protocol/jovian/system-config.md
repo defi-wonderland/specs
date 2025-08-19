@@ -15,10 +15,6 @@
 
 ### Custom Gas Token Flag
 
-The **Custom Gas Token Flag** (`isCustomGasToken`) is a boolean value that indicates
-whether the chain is operating in Custom Gas Token mode. This flag is stored in
-the OptimismPortal contract.
-
 ## Function Specification
 
 ### isCustomGasToken
