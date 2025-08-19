@@ -2,17 +2,21 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Overview](#overview)
 - [WETH9](#weth9)
+- [L1Block](#l1block)
+  - [Functions](#functions)
+    - [`setCustomGasToken`](#setcustomgastoken)
 - [L2CrossDomainMessenger](#l2crossdomainmessenger)
 - [L2StandardBridge](#l2standardbridge)
 - [SequencerFeeVault](#sequencerfeevault)
 - [BaseFeeVault](#basefeevault)
 - [L1FeeVault](#l1feevault)
 - [Native Asset Liquidity](#native-asset-liquidity)
-  - [Functions](#functions)
+  - [Functions](#functions-1)
     - [`deposit`](#deposit)
     - [`withdraw`](#withdraw)
     - [`fund`](#fund)
@@ -22,7 +26,7 @@
     - [`LiquidityFunded`](#liquidityfunded)
   - [Invariants](#invariants)
 - [Liquidity Controller](#liquidity-controller)
-  - [Functions](#functions-1)
+  - [Functions](#functions-2)
     - [`authorizeMinter`](#authorizeminter)
     - [`mint`](#mint)
     - [`burn`](#burn)
@@ -59,6 +63,25 @@ Migration only focuses on chains utilizing the old CGT implementation.
 
 For fresh Custom Gas Token deployments, the `L1Block` is deployed from genesis
 with the metadata functions already configured to fetch from the `LiquidityController`.
+
+## L1Block
+
+### Functions
+
+#### `setCustomGasToken`
+
+Sets the Custom Gas Token flag to `true`, enabling Custom Gas Token mode for the chain.
+
+```solidity
+function setCustomGasToken() external
+```
+
+- MUST only be callable by the `DEPOSITOR_ACCOUNT`
+- MUST set the internal `isCustomGasToken` flag to `true`
+- MUST be callable only once per chain (the flag cannot be reverted to `false`)
+
+Once enabled, various predeploys will check `L1Block.isCustomGasToken()` to determine if ETH
+bridging operations should be blocked.
 
 ## L2CrossDomainMessenger
 
