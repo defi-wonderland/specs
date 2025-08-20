@@ -10,6 +10,9 @@
     - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
     - [`setRecipient`](#setrecipient)
     - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+    - [`recipient`](#recipient)
+    - [`minWithdrawalAmount`](#minwithdrawalamount)
+    - [`withdrawalNetwork`](#withdrawalnetwork)
   - [Events](#events)
     - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
     - [`RecipientUpdated`](#recipientupdated)
@@ -23,16 +26,12 @@
     - [`disburseFees`](#disbursefees)
     - [`receive`](#receive)
     - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
-    - [`setNetFeeShareBP`](#setnetfeesharebp)
-    - [`setGrossFeeShareBP`](#setgrossfeesharebp)
     - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
     - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
   - [Events](#events-1)
     - [`FeesDisbursed`](#feesdisbursed)
     - [`NoFeesCollected`](#nofeescollected)
     - [`FeesReceived`](#feesreceived)
-    - [`NetFeeShareBPUpdated`](#netfeesharebpupdated)
-    - [`GrossFeeShareBPUpdated`](#grossfeesharebpupdated)
     - [`Initialized`](#initialized)
     - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
     - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
@@ -56,7 +55,7 @@ fee recipient. Chains MAY opt in at any time.
 
 ## FeeVault
 
-The contract will now have storage variables and setters instead of constants for the configuration values, and it will be initializable.
+Legacy immutables are preserved for network-specific config, and storage-based overrides are enabled via getters. Each getter returns the storage value if set; otherwise it falls back to the immutable. Setters write the storage value to opt-in to overrides. There will be a flag to track whether the storage var was set or not.
 
 ### Functions
 
@@ -94,6 +93,42 @@ function setWithdrawalNetwork(WithdrawalNetwork _newWithdrawalNetwork) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `WithdrawalNetworkUpdated` event
+
+#### `recipient`
+
+Returns the current recipient address, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+
+```solidity
+function recipient() external view returns (address)
+```
+
+- MUST check the flag to see if the storage var was set or not.
+- MUST return the storage-configured recipient if a storage override has been set via `setRecipient`.
+- MUST otherwise return the legacy immutable recipient value.
+
+#### `minWithdrawalAmount`
+
+Returns the current minimum withdrawal amount, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+
+```solidity
+function minWithdrawalAmount() external view returns (uint256)
+```
+
+- MUST check the flag to see if the storage var was set or not.
+- MUST return the storage-configured minimum if a storage override has been set via `setMinWithdrawalAmount`.
+- MUST otherwise return the legacy immutable minimum withdrawal amount.
+
+#### `withdrawalNetwork`
+
+Returns the current withdrawal network, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+
+```solidity
+function withdrawalNetwork() external view returns (WithdrawalNetwork)
+```
+
+- MUST check the flag to see if the storage var was set or not.
+- MUST return the storage-configured network if a storage override has been set via `setWithdrawalNetwork`.
+- MUST otherwise return the legacy immutable withdrawal network.
 
 ### Events
 
@@ -161,24 +196,26 @@ The `FeeSplitter` MUST be proxied and initializable only by the `ProxyAdmin.owne
 
 ### Constants
 
-| Name                            | Value    |
-| ------------------------------- | -------- |
-| `BASIS_POINT_SCALE`             | 10000    |
-| `MIN_FEE_DISBURSEMENT_INTERVAL` | 24 hours |
+The gross and net revenue fee shares rates will be defined as 2.5% of the gross revenue and 15% of the net revenue.
+
+| Name                            | Value |
+| ------------------------------- | ----- |
+| `MIN_FEE_DISBURSEMENT_INTERVAL` | 1 day |
+| `BASIS_POINT_SCALE`             | 10000 |
+| `NET_FEE_SHARE_BP`              | 250   |
+| `GROSS_FEE_SHARE_BP`            | 1500  |
 
 ### Functions
 
 #### `initialize`
 
-Initializes the contract with the initial recipients, fee shares, and disbursement interval.
+Initializes the contract with the initial recipients and disbursement interval.
 
 ```solidity
 function initialize(
         address payable _revenueShareRecipient,
         address payable _revenueRemainderRecipient,
-        uint40 _feeDisbursementInterval,
-        uint16 _netFeeShareBP,
-        uint16 _grossFeeShareBP
+        uint40 _feeDisbursementInterval
     ) external
 ```
 
@@ -187,13 +224,9 @@ function initialize(
 - MUST revert if `_revenueShareRecipient` is the zero address.
 - MUST revert if `_revenueRemainderRecipient` is the zero address.
 - MUST revert if `_feeDisbursementInterval` is less than `MIN_FEE_DISBURSEMENT_INTERVAL`.
-- MUST revert if `_netFeeShareBP` exceeds `BASIS_POINT_SCALE`.
-- MUST revert if `_grossFeeShareBP` exceeds `BASIS_POINT_SCALE`.
 - MUST set `revenueShareRecipient` to `_revenueShareRecipient`.
 - MUST set `revenueRemainderRecipient` to `_revenueRemainderRecipient`.
 - MUST set `feeDisbursementInterval` to `_feeDisbursementInterval`.
-- MUST set `netFeeShareBP` to `_netFeeShareBP`.
-- MUST set `grossFeeShareBP` to `_grossFeeShareBP`.
 - MUST emit an `Initialized` event with the provided parameters.
 
 #### `disburseFees`
@@ -214,7 +247,7 @@ function disburseFees() external
 - MUST revert if any vault has a recipient different from this contract.
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
 - MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum withdrawal amount set.
-- MUST set the `lastDisbursementTime` to the current block timestamp.
+- If any fees were collected, MUST set the `lastDisbursementTime` to the current block timestamp.
 - MUST reset the `netRevenueShare` state variable.
 - MUST send the max between `grossRevenueShare` and `netRevenueShare` to the `revenueShareRecipient`.
 - MUST send the `grossRevenue` minus the amount sent to the `revenueShareRecipient` to the `revenueRemainderRecipient`.
@@ -226,10 +259,8 @@ function disburseFees() external
 
 Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault`, `BaseFeeVault`, or `OperatorFeeVault`.
 
-This function is virtual to allow for overrides in the derived contracts, in case some other custom logic is needed for receiving or accounting the fees.
-
 ```solidity
-function receive() external payable virtual
+function receive() external payable
 ```
 
 - MUST add the received amount to the `netRevenueShare` balance if the sender is either the `SequencerFeeVault`, `BaseFeeVault` or `OperatorFeeVault`.
@@ -248,29 +279,7 @@ function setRevenueShareRecipient(address _newRevenueShareRecipient) external
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit a `RevenueShareRecipientUpdated` event upon successful execution.
 
-#### `setNetFeeShareBP`
-
-Sets the share percentage that the net revenue share recipient should receive, in case the `netRevenueShare` is greater than the `grossRevenueShare`.
-
-```solidity
-function setNetFeeShareBP(uint16 _newNetFeeShareBP) external
-```
-
-- MUST only be callable by `ProxyAdmin.owner()`
-- MUST revert if `_newNetFeeShareBP` exceeds `BASIS_POINT_SCALE`.
-- MUST emit a `NetFeeShareBPUpdated` event upon successful execution.
-
-#### `setGrossFeeShareBP`
-
-Sets the share percentage that the revenue remainder recipient should receive, in case the `grossRevenueShare` is greater than the `netRevenueShare`.
-
-```solidity
-function setGrossFeeShareBP(uint16 _newGrossFeeShareBP) external
-```
-
-- MUST only be callable by `ProxyAdmin.owner()`
-- MUST revert if `_newGrossFeeShareBP` exceeds `BASIS_POINT_SCALE`.
-- MUST emit a `GrossFeeShareBPUpdated` event upon successful execution.
+<!-- Fee share basis points are hardcoded constants; no setters are exposed. -->
 
 #### `setRevenueRemainderRecipient`
 
@@ -324,22 +333,6 @@ Emitted when the contract receives balance.
 event FeesReceived(address indexed sender, uint256 amount)
 ```
 
-#### `NetFeeShareBPUpdated`
-
-Emitted when the net fee share basis points are updated.
-
-```solidity
-event NetFeeShareBPUpdated(uint16 oldNetFeeShareBP, uint16 newNetFeeShareBP)
-```
-
-#### `GrossFeeShareBPUpdated`
-
-Emitted when the gross fee share basis points are updated.
-
-```solidity
-event GrossFeeShareBPUpdated(uint16 oldGrossFeeShareBP, uint16 newGrossFeeShareBP)
-```
-
 #### `Initialized`
 
 Emitted when the contract is initialized with its initial configuration.
@@ -348,9 +341,7 @@ Emitted when the contract is initialized with its initial configuration.
 event Initialized(
         address revenueShareRecipient,
         address revenueRemainderRecipient,
-        uint40 feeDisbursementInterval,
-        uint16 netFeeShareBP,
-        uint16 grossFeeShareBP
+        uint40 feeDisbursementInterval
     )
 ```
 
