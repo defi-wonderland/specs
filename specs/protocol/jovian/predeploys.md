@@ -2,7 +2,6 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
 
 - [Overview](#overview)
   - [Disburse Fees Flow](#disburse-fees-flow)
@@ -95,7 +94,7 @@ sequenceDiagram
 
 ## FeeVault
 
-Legacy immutables are preserved for network-specific config, and storage-based overrides are enabled via getters. Each getter returns the storage value if set; otherwise it falls back to the immutable. Setters write the storage value to opt-in to overrides. There will be a flag to track whether the storage var was set or not.
+Legacy immutables are preserved for network-specific config, and storage-based overrides are enabled via getters. Each getter returns the storage value if set; otherwise, it falls back to the immutable. Setters write the storage value to opt-in to overrides. There will be a flag to track whether the storage variable was set or not.
 
 ### Functions
 
@@ -305,7 +304,7 @@ function receive() external payable
 ```
 
 - MUST revert if on a reentrant call after `disburseFees` has been called.
-- MUST add the received amount to the `netRevenueFee` balance if the sender is either the `SequencerFeeVault` or `BaseFeeVault`.
+- MUST add the received amount to the `netRevenueShare` balance if the sender is either the `SequencerFeeVault` or `BaseFeeVault`.
 - MUST accept ETH from any sender.
 - MUST emit a `FeesReceived` event upon successful execution.
 
@@ -355,8 +354,8 @@ Emitted when fees are successfully withdrawn from fee vaults and distributed to 
 
 ```solidity
 event FeesDisbursed(
-        address indexed revenueShareRecipient
-        address indexed remainderRecipient
+        address indexed revenueShareRecipient,
+        address indexed remainderRecipient,
         uint256 revenueShareRecipientAmount,
         uint256 revenueRemainderRecipientAmount
     );
@@ -421,4 +420,4 @@ event FeeDisbursementIntervalUpdated(uint256 oldFeeDisbursementInterval, uint256
 
 ## Open Questions
 
-- Should we block zero-address recipients during initialize?
+- Should we block zero-address recipients during initialization?
