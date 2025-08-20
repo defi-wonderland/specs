@@ -2,42 +2,45 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
-- [Overview](#overview)
-- [FeeVault](#feevault)
-  - [Functions](#functions)
-    - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
-    - [`setRecipient`](#setrecipient)
-    - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
-  - [Events](#events)
-    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
-    - [`RecipientUpdated`](#recipientupdated)
-    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
-  - [Invariants](#invariants)
-- [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
-- [FeeSplitter](#feesplitter)
-  - [Constants](#constants)
-  - [Functions](#functions-1)
-    - [`initialize`](#initialize)
-    - [`disburseFees`](#disbursefees)
-    - [`receive`](#receive)
-    - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
-    - [`setNetFeeShareBP`](#setnetfeesharebp)
-    - [`setGrossFeeShareBP`](#setgrossfeesharebp)
-    - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
-    - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
-  - [Events](#events-1)
-    - [`FeesDisbursed`](#feesdisbursed)
-    - [`NoFeesCollected`](#nofeescollected)
-    - [`FeesReceived`](#feesreceived)
-    - [`NetFeeShareBPUpdated`](#netfeesharebpupdated)
-    - [`GrossFeeShareBPUpdated`](#grossfeesharebpupdated)
-    - [`Initialized`](#initialized)
-    - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
-    - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
-    - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
-- [Security Considerations](#security-considerations)
+- [Predeploys](#predeploys)
+  - [Overview](#overview)
+    - [Disburse Fees Flow](#disburse-fees-flow)
+  - [FeeVault](#feevault)
+    - [Functions](#functions)
+      - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
+      - [`setRecipient`](#setrecipient)
+      - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+      - [`recipient`](#recipient)
+      - [`minWithdrawalAmount`](#minwithdrawalamount)
+      - [`withdrawalNetwork`](#withdrawalnetwork)
+    - [Events](#events)
+      - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+      - [`RecipientUpdated`](#recipientupdated)
+      - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
+    - [Invariants](#invariants)
+  - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
+  - [FeeSplitter](#feesplitter)
+    - [Constants](#constants)
+    - [Functions](#functions-1)
+      - [`initialize`](#initialize)
+      - [`disburseFees`](#disbursefees)
+      - [`receive`](#receive)
+      - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
+      - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
+      - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
+    - [Events](#events-1)
+      - [`FeesDisbursed`](#feesdisbursed)
+      - [`NoFeesCollected`](#nofeescollected)
+      - [`FeesReceived`](#feesreceived)
+      - [`Initialized`](#initialized)
+      - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
+      - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
+      - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+  - [Security Considerations](#security-considerations)
+  - [Open Questions](#open-questions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -45,7 +48,7 @@
 
 | Name        | Address                                    | Introduced | Deprecated | Proxied |
 | ----------- | ------------------------------------------ | ---------- | ---------- | ------- |
-| FeeSplitter | 0x420000000000000000000000000000000000001C | Jovian     | No         | Yes     |
+| FeeSplitter | 0x4200000000000000000000000000000000000029 | Jovian     | No         | Yes     |
 
 The `FeeSplitter` predeploy manages the distribution of all L2 fees. Fee vault contracts (`OperatorFeeVault`,
 `BaseFeeVault`, `L1FeeVault`, and `SequencerFeeVault`) update their configuration via setter functions for
@@ -54,9 +57,47 @@ minimum withdrawal amounts, withdrawal networks, and recipients without requirin
 Using the `FeeSplitter` requires vaults to use `WithdrawalNetwork.L2` and set the `FeeSplitter` as their
 fee recipient. Chains MAY opt in at any time.
 
+### Disburse Fees Flow
+
+```mermaid
+sequenceDiagram
+
+    participant OperatorFeeVault
+    participant L1FeeVault
+    participant BaseFeeVault
+    participant SequencerFeeVault
+    participant FeeSplitter
+    actor Caller
+    participant RevenueShareRecipient
+    participant RevenueRemainderRecipient
+
+
+
+    Caller ->> FeeSplitter: 1) disburseFees()
+
+    Note over FeeSplitter: Check interval and vault config <br> (WithdrawalNetwork=L2, Recipient=FeeSplitter). <br/>Only withdraw if enough fees collected.
+
+    FeeSplitter ->> SequencerFeeVault: 2) withdraw()
+    SequencerFeeVault -->> FeeSplitter:
+
+    FeeSplitter ->> BaseFeeVault: 3) withdraw()
+    BaseFeeVault -->> FeeSplitter:
+
+    FeeSplitter ->> L1FeeVault: 4) withdraw()
+    L1FeeVault -->> FeeSplitter:
+
+    FeeSplitter ->> OperatorFeeVault: 5) withdraw()
+    OperatorFeeVault -->> FeeSplitter:
+
+    Note over FeeSplitter: If any fees were collected, calculate the share and <br> remaining amounts to transfer based on the rates.
+
+    FeeSplitter ->> RevenueShareRecipient: 6) send(share)
+    FeeSplitter ->> RevenueRemainderRecipient: 7) send(total - share)
+```
+
 ## FeeVault
 
-The contract will now have storage variables and setters instead of constants for the configuration values, and it will be initializable.
+Legacy immutables are preserved for network-specific config, and storage-based overrides are enabled via getters. Each getter returns the storage value if set; otherwise it falls back to the immutable. Setters write the storage value to opt-in to overrides. There will be a flag to track whether the storage var was set or not.
 
 ### Functions
 
@@ -94,6 +135,42 @@ function setWithdrawalNetwork(WithdrawalNetwork _newWithdrawalNetwork) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `WithdrawalNetworkUpdated` event
+
+#### `recipient`
+
+Returns the current recipient address, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+
+```solidity
+function recipient() external view returns (address)
+```
+
+- MUST check the flag to see if the storage var was set or not.
+- MUST return the storage-configured recipient if a storage override has been set via `setRecipient`.
+- MUST otherwise return the legacy immutable recipient value.
+
+#### `minWithdrawalAmount`
+
+Returns the current minimum withdrawal amount, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+
+```solidity
+function minWithdrawalAmount() external view returns (uint256)
+```
+
+- MUST check the flag to see if the storage var was set or not.
+- MUST return the storage-configured minimum if a storage override has been set via `setMinWithdrawalAmount`.
+- MUST otherwise return the legacy immutable minimum withdrawal amount.
+
+#### `withdrawalNetwork`
+
+Returns the current withdrawal network, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+
+```solidity
+function withdrawalNetwork() external view returns (WithdrawalNetwork)
+```
+
+- MUST check the flag to see if the storage var was set or not.
+- MUST return the storage-configured network if a storage override has been set via `setWithdrawalNetwork`.
+- MUST otherwise return the legacy immutable withdrawal network.
 
 ### Events
 
@@ -161,24 +238,26 @@ The `FeeSplitter` MUST be proxied and initializable only by the `ProxyAdmin.owne
 
 ### Constants
 
-| Name                            | Value    |
-| ------------------------------- | -------- |
-| `BASIS_POINT_SCALE`             | 10000    |
-| `MIN_FEE_DISBURSEMENT_INTERVAL` | 24 hours |
+The gross and net revenue fee shares rates will be defined as 2.5% of the gross revenue and 15% of the net revenue.
+
+| Name                            | Value |
+| ------------------------------- | ----- |
+| `MIN_FEE_DISBURSEMENT_INTERVAL` | 1 day |
+| `BASIS_POINT_SCALE`             | 10000 |
+| `NET_FEE_SHARE_BP`              | 250   |
+| `GROSS_FEE_SHARE_BP`            | 1500  |
 
 ### Functions
 
 #### `initialize`
 
-Initializes the contract with the initial recipients, fee shares, and disbursement interval.
+Initializes the contract with the initial recipients and disbursement interval.
 
 ```solidity
 function initialize(
         address payable _revenueShareRecipient,
         address payable _revenueRemainderRecipient,
-        uint40 _feeDisbursementInterval,
-        uint16 _netFeeShareBP,
-        uint16 _grossFeeShareBP
+        uint40 _feeDisbursementInterval
     ) external
 ```
 
@@ -187,13 +266,9 @@ function initialize(
 - MUST revert if `_revenueShareRecipient` is the zero address.
 - MUST revert if `_revenueRemainderRecipient` is the zero address.
 - MUST revert if `_feeDisbursementInterval` is less than `MIN_FEE_DISBURSEMENT_INTERVAL`.
-- MUST revert if `_netFeeShareBP` exceeds `BASIS_POINT_SCALE`.
-- MUST revert if `_grossFeeShareBP` exceeds `BASIS_POINT_SCALE`.
 - MUST set `revenueShareRecipient` to `_revenueShareRecipient`.
 - MUST set `revenueRemainderRecipient` to `_revenueRemainderRecipient`.
 - MUST set `feeDisbursementInterval` to `_feeDisbursementInterval`.
-- MUST set `netFeeShareBP` to `_netFeeShareBP`.
-- MUST set `grossFeeShareBP` to `_grossFeeShareBP`.
 - MUST emit an `Initialized` event with the provided parameters.
 
 #### `disburseFees`
@@ -215,8 +290,8 @@ function disburseFees() external
 - MUST revert if any vault has a recipient different from this contract.
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
 - MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum withdrawal amount set.
-- MUST set the `lastDisbursementTime` to the current block timestamp.
-- MUST reset the `netRevenueFee` state variable.
+- If any fees were collected, MUST set the `lastDisbursementTime` to the current block timestamp.
+- MUST reset the `netRevenueShare` state variable.
 - MUST send the max between `grossRevenueShare` and `netRevenueShare` to the `revenueShareRecipient`.
 - MUST send the `grossRevenue` minus the amount sent to the `revenueShareRecipient` to the `revenueRemainderRecipient`.
 - MUST emit `NoFeesCollected` event if there are no funds available in the contract after the vaults have been withdrawn.
@@ -225,7 +300,7 @@ function disburseFees() external
 
 #### `receive`
 
-Receives ETH from any sender, but only accounts for `netRevenueFee` if the sender is either the `SequencerFeeVault`, `BaseFeeVault`, or `OperatorFeeVault`.
+Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault`, `BaseFeeVault`, or `OperatorFeeVault`.
 
 ```solidity
 function receive() external payable
@@ -248,29 +323,7 @@ function setRevenueShareRecipient(address _newRevenueShareRecipient) external
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit a `RevenueShareRecipientUpdated` event upon successful execution.
 
-#### `setNetFeeShareBP`
-
-Sets the share percentage that the net revenue share recipient should receive, in case the `netRevenueShare` is greater than the `grossRevenueShare`.
-
-```solidity
-function setNetFeeShareBP(uint16 _newNetFeeShareBP) external
-```
-
-- MUST only be callable by `ProxyAdmin.owner()`
-- MUST revert if `_newNetFeeShareBP` exceeds `BASIS_POINT_SCALE`.
-- MUST emit a `NetFeeShareBPUpdated` event upon successful execution.
-
-#### `setGrossFeeShareBP`
-
-Sets the share percentage that the revenue remainder recipient should receive, in case the `grossRevenueShare` is greater than the `netRevenueShare`.
-
-```solidity
-function setGrossFeeShareBP(uint16 _newGrossFeeShareBP) external
-```
-
-- MUST only be callable by `ProxyAdmin.owner()`
-- MUST revert if `_newGrossFeeShareBP` exceeds `BASIS_POINT_SCALE`.
-- MUST emit a `GrossFeeShareBPUpdated` event upon successful execution.
+<!-- Fee share basis points are hardcoded constants; no setters are exposed. -->
 
 #### `setRevenueRemainderRecipient`
 
@@ -327,22 +380,6 @@ Emitted when the contract receives balance.
 event FeesReceived(address indexed sender, uint256 amount)
 ```
 
-#### `NetFeeShareBPUpdated`
-
-Emitted when the net fee share basis points are updated.
-
-```solidity
-event NetFeeShareBPUpdated(uint16 oldNetFeeShareBP, uint16 newNetFeeShareBP)
-```
-
-#### `GrossFeeShareBPUpdated`
-
-Emitted when the gross fee share basis points are updated.
-
-```solidity
-event GrossFeeShareBPUpdated(uint16 oldGrossFeeShareBP, uint16 newGrossFeeShareBP)
-```
-
 #### `Initialized`
 
 Emitted when the contract is initialized with its initial configuration.
@@ -351,9 +388,7 @@ Emitted when the contract is initialized with its initial configuration.
 event Initialized(
         address revenueShareRecipient,
         address revenueRemainderRecipient,
-        uint40 feeDisbursementInterval,
-        uint16 netFeeShareBP,
-        uint16 grossFeeShareBP
+        uint40 feeDisbursementInterval
     )
 ```
 
@@ -384,4 +419,8 @@ event FeeDisbursementIntervalUpdated(uint256 oldFeeDisbursementInterval, uint256
 ## Security Considerations
 
 - Given that vault recipients can now be updated, it's important to ensure that this can only be done by the appropriate address, namely `ProxyAdmin.owner()`.
-- Upgrading the vaults and making them compatible with the `FeeSplitter` incurs a process where you have to deploy the new implementations and properly configure the vaults, which introduces complexity and potential for errors. It is important to develop a solution, such as a contract to manage the entire upgrade process, simplifying the UX and reducing the risk of errors.
+- Upgrading the vaults and making them compatible with the `FeeSplitter` incurs a process that requires deploying the new implementations and properly configuring the vaults, which introduces complexity and potential for errors. It is important to develop a solution, such as a contract to manage the entire upgrade process, simplifying the UX and reducing the risk of errors.
+
+## Open Questions
+
+- Should we block zero-address recipients during initialize?
