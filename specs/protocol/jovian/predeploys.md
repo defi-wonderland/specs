@@ -2,43 +2,43 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
-- [Predeploys](#predeploys)
-  - [Overview](#overview)
-  - [FeeVault](#feevault)
-    - [Functions](#functions)
-      - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
-      - [`setRecipient`](#setrecipient)
-      - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
-      - [`recipient`](#recipient)
-      - [`minWithdrawalAmount`](#minwithdrawalamount)
-      - [`withdrawalNetwork`](#withdrawalnetwork)
-    - [Events](#events)
-      - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
-      - [`RecipientUpdated`](#recipientupdated)
-      - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
-    - [Invariants](#invariants)
-  - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
-  - [FeeSplitter](#feesplitter)
-    - [Constants](#constants)
-    - [Functions](#functions-1)
-      - [`initialize`](#initialize)
-      - [`disburseFees`](#disbursefees)
-      - [`receive`](#receive)
-      - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
-      - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
-      - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
-    - [Events](#events-1)
-      - [`FeesDisbursed`](#feesdisbursed)
-      - [`NoFeesCollected`](#nofeescollected)
-      - [`FeesReceived`](#feesreceived)
-      - [`Initialized`](#initialized)
-      - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
-      - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
-      - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
-  - [Security Considerations](#security-considerations)
+- [Overview](#overview)
+  - [Disburse Fees Flow](#disburse-fees-flow)
+- [FeeVault](#feevault)
+  - [Functions](#functions)
+    - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
+    - [`setRecipient`](#setrecipient)
+    - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+    - [`recipient`](#recipient)
+    - [`minWithdrawalAmount`](#minwithdrawalamount)
+    - [`withdrawalNetwork`](#withdrawalnetwork)
+  - [Events](#events)
+    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+    - [`RecipientUpdated`](#recipientupdated)
+    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
+  - [Invariants](#invariants)
+- [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
+- [FeeSplitter](#feesplitter)
+  - [Constants](#constants)
+  - [Functions](#functions-1)
+    - [`initialize`](#initialize)
+    - [`disburseFees`](#disbursefees)
+    - [`receive`](#receive)
+    - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
+    - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
+    - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
+  - [Events](#events-1)
+    - [`FeesDisbursed`](#feesdisbursed)
+    - [`NoFeesCollected`](#nofeescollected)
+    - [`FeesReceived`](#feesreceived)
+    - [`Initialized`](#initialized)
+    - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
+    - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
+    - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+- [Security Considerations](#security-considerations)
+- [Open Questions](#open-questions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -46,7 +46,7 @@
 
 | Name        | Address                                    | Introduced | Deprecated | Proxied |
 | ----------- | ------------------------------------------ | ---------- | ---------- | ------- |
-| FeeSplitter | 0x420000000000000000000000000000000000001C | Jovian     | No         | Yes     |
+| FeeSplitter | 0x4200000000000000000000000000000000000029 | Jovian     | No         | Yes     |
 
 The `FeeSplitter` predeploy manages the distribution of all L2 fees. Fee vault contracts (`OperatorFeeVault`,
 `BaseFeeVault`, `L1FeeVault`, and `SequencerFeeVault`) update their configuration via setter functions for
@@ -54,6 +54,44 @@ minimum withdrawal amounts, withdrawal networks, and recipients without requirin
 
 Using the `FeeSplitter` requires vaults to use `WithdrawalNetwork.L2` and set the `FeeSplitter` as their
 fee recipient. Chains MAY opt in at any time.
+
+### Disburse Fees Flow
+
+```mermaid
+sequenceDiagram
+
+    participant OperatorFeeVault
+    participant L1FeeVault
+    participant BaseFeeVault
+    participant SequencerFeeVault
+    participant FeeSplitter
+    actor Caller
+    participant RevenueShareRecipient
+    participant RevenueRemainderRecipient
+
+
+
+    Caller ->> FeeSplitter: 1) disburseFees()
+
+    Note over FeeSplitter: Check interval and vault config <br> (WithdrawalNetwork=L2, Recipient=FeeSplitter). <br/>Only withdraw if enough fees collected.
+
+    FeeSplitter ->> SequencerFeeVault: 2) withdraw()
+    SequencerFeeVault -->> FeeSplitter:
+
+    FeeSplitter ->> BaseFeeVault: 3) withdraw()
+    BaseFeeVault -->> FeeSplitter:
+
+    FeeSplitter ->> L1FeeVault: 4) withdraw()
+    L1FeeVault -->> FeeSplitter:
+
+    FeeSplitter ->> OperatorFeeVault: 5) withdraw()
+    OperatorFeeVault -->> FeeSplitter:
+
+    Note over FeeSplitter: If any fees were collected, calculate the share and <br> remaining amounts to transfer based on the rates.
+
+    FeeSplitter ->> RevenueShareRecipient: 6) send(share)
+    FeeSplitter ->> RevenueRemainderRecipient: 7) send(total - share)
+```
 
 ## FeeVault
 
@@ -375,3 +413,7 @@ event FeeDisbursementIntervalUpdated(uint256 oldFeeDisbursementInterval, uint256
 
 - Given that vault recipients can now be updated, it's important to ensure that this can only be done by the appropriate address, namely `ProxyAdmin.owner()`.
 - Upgrading the vaults and making them compatible with the `FeeSplitter` incurs a process that requires deploying the new implementations and properly configuring the vaults, which introduces complexity and potential for errors. It is important to develop a solution, such as a contract to manage the entire upgrade process, simplifying the UX and reducing the risk of errors.
+
+## Open Questions
+
+- Should we block zero-address recipients during initialize?
