@@ -1,90 +1,57 @@
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-**Table of Contents**
+**Table of Contents**  *generated with [DocToc](https://github.com/thlorenz/doctoc)*
 
 - [FeeVaultInitializer](#feevaultinitializer)
-    - [Functions](#functions)
-      - [`migrate`](#migrate)
+    - [Constructor](#constructor)
     - [Events](#events)
-    - [NUTs (Network Upgrade Transaction)](#nuts-network-upgrade-transaction)
+  - [Upgrade Path](#upgrade-path)
     - [Considerations](#considerations)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
 # FeeVaultInitializer
 
-This contract bundles the migration and configuration steps required to make Fee Vaults compatible with the `FeeSplitter`. It upgrades each vault proxy to the new implementation, initializes them, and applies the current configuration in one go. The goal is to make the full flow a single, well-defined operation that reduces UX complexity and the risk of mistakes.
+This contract serve as a runbook to deploy the new vaults implementations keeping the configuration values of the current vaults to be upgraded. It is intended to be used in a NUT series context to upgrade the vaults to the new implementation once they are deployed.
 
-### Functions
+### Constructor
 
-#### `migrate`
+On deployment, the constructor will:
 
-For each vault (`SequencerFeeVault`, `L1FeeVault`, `BaseFeeVault`, `OperatorFeeVault`), it will:
+- Read the current configuration from each live vault (`SequencerFeeVault`, `L1FeeVault`, `BaseFeeVault`, `OperatorFeeVault`): recipient, withdrawal network, and minimum withdrawal amount
+- Deploy a new implementation for each vault, passing these values as constructor immutables
+- Emit a single event containing the four deployed implementation addresses
 
-- Get the current configuration of the vault
-- Deploy the new implementation
-- Initialize the vault with the current configuration
+Invariants:
 
-The function does not perform any auth checks. No params are required because the values are queried from the existing contracts.
-In case an update is needed, the proxy admin can update it through the setters.
-
-```solidity
-function migrate() external;
-```
-
-- It MUST initialize the newly deployed vault's storage variables with the current configuration values from the existing constants.
-- Vault's balance MUST remain unchanged.
+- It MUST deploy implementations whose constructor immutables match the current configuration values.
+- It MUST emit an event with the deployed implementation addresses.
 
 ### Events
 
-Events are per-vault emitted:
+Single event with all deployed implementation addresses:
 
 ```solidity
-event SequencerFeeVaultUpgraded(
-    address indexed oldImplementation,
-    address indexed newImplementation,
-    address recipient,
-    Types.WithdrawalNetwork network,
-    uint256 minWithdrawalAmount
-)
-
-event L1FeeVaultUpgraded(
-    address indexed oldImplementation,
-    address indexed newImplementation,
-    address recipient,
-    Types.WithdrawalNetwork network,
-    uint256 minWithdrawalAmount
-)
-
-event BaseFeeVaultUpgraded(
-    address indexed oldImplementation,
-    address indexed newImplementation,
-    address recipient,
-    Types.WithdrawalNetwork network,
-    uint256 minWithdrawalAmount
-)
-
-event OperatorFeeVaultUpgraded(
-    address indexed oldImplementation,
-    address indexed newImplementation,
-    address recipient,
-    Types.WithdrawalNetwork network,
-    uint256 minWithdrawalAmount
+event FeeVaultImplementationsDeployed(
+    address sequencerFeeVaultImplementation,
+    address l1FeeVaultImplementation,
+    address baseFeeVaultImplementation,
+    address operatorFeeVaultImplementation
 )
 ```
 
-### NUTs (Network Upgrade Transaction)
+## Upgrade Path
 
-For it to be able to upgrade the vault implementations and initialize them, it has to be proxied by the `ProxyAdmin` contract.
-To make this possible, a series of NUTs will be required:
+These are the steps to deploy and activate new implementations through NUTs:
 
-1. Deploy the `FeeVaultInitializer` contract using CREATE2 Preinstall, so the address can be precalculated for the next NUTs.
-2. Upgrade the `ProxyAdmin` implementation to point to the `FeeVaultInitializer` contract.
-3. Call the `FeeVaultInitializer.migrate()` function on the `ProxyAdmin` proxy.
-4. Reset the `ProxyAdmin` implementation to the previous or default one.
+0. Precalculate:
+   a. `FeeVaultInitializer` address to be deployed
+   b. each of the vaults implementation addresses to be deployed by the `FeeVaultInitializer` address
+1. Deploy the `FeeVaultInitializer`. Its constructor deploys the new implementations keeping the current configuration values.
+2. For each vault proxy, call `upgradeTo` (or `upgradeToAndCall` if local policy requires) from the admin or via the `address(0)` NUT flow to point the proxy at the emitted implementation addresses (4 different NUTs).
 
-It's important to execute them sequentially in the defined order for the entire batch to succeed.
+Execute in order so deployments exist before proxies are upgraded.
 
 ### Considerations
 
-For the migration process to be successful, on all the current vaults, the `WITHDRAWAL_NETWORK` MUST be set to `WithdrawalNetwork.L2` and the `RECIPIENT` MUST be set to the `FeeSplitter` address.
+For chains opting into `FeeSplitter`, ensure `WITHDRAWAL_NETWORK = L2` and `RECIPIENT = FeeSplitter` after upgrade (via admin setters).
