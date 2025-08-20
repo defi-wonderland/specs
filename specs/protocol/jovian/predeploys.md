@@ -2,45 +2,43 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
-
 **Table of Contents**
 
-- [Predeploys](#predeploys)
-  - [Overview](#overview)
-    - [Disburse Fees Flow](#disburse-fees-flow)
-  - [FeeVault](#feevault)
-    - [Functions](#functions)
-      - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
-      - [`setRecipient`](#setrecipient)
-      - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
-      - [`recipient`](#recipient)
-      - [`minWithdrawalAmount`](#minwithdrawalamount)
-      - [`withdrawalNetwork`](#withdrawalnetwork)
-    - [Events](#events)
-      - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
-      - [`RecipientUpdated`](#recipientupdated)
-      - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
-    - [Invariants](#invariants)
-  - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
-  - [FeeSplitter](#feesplitter)
-    - [Constants](#constants)
-    - [Functions](#functions-1)
-      - [`initialize`](#initialize)
-      - [`disburseFees`](#disbursefees)
-      - [`receive`](#receive)
-      - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
-      - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
-      - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
-    - [Events](#events-1)
-      - [`FeesDisbursed`](#feesdisbursed)
-      - [`NoFeesCollected`](#nofeescollected)
-      - [`FeesReceived`](#feesreceived)
-      - [`Initialized`](#initialized)
-      - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
-      - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
-      - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
-  - [Security Considerations](#security-considerations)
-  - [Open Questions](#open-questions)
+- [Overview](#overview)
+  - [Disburse Fees Flow](#disburse-fees-flow)
+- [FeeVault](#feevault)
+  - [Functions](#functions)
+    - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
+    - [`setRecipient`](#setrecipient)
+    - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+    - [`recipient`](#recipient)
+    - [`minWithdrawalAmount`](#minwithdrawalamount)
+    - [`withdrawalNetwork`](#withdrawalnetwork)
+  - [Events](#events)
+    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+    - [`RecipientUpdated`](#recipientupdated)
+    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
+  - [Invariants](#invariants)
+- [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
+- [FeeSplitter](#feesplitter)
+  - [Constants](#constants)
+  - [Functions](#functions-1)
+    - [`initialize`](#initialize)
+    - [`disburseFees`](#disbursefees)
+    - [`receive`](#receive)
+    - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
+    - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
+    - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
+  - [Events](#events-1)
+    - [`FeesDisbursed`](#feesdisbursed)
+    - [`NoFeesCollected`](#nofeescollected)
+    - [`FeesReceived`](#feesreceived)
+    - [`Initialized`](#initialized)
+    - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
+    - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
+    - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+- [Security Considerations](#security-considerations)
+- [Open Questions](#open-questions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -229,7 +227,7 @@ The contract manages two recipients:
 And it has two ways of dividing the revenue (considered as the total amount of ETH received by the contract since the last disbursement):
 
 - `grossRevenue`: The whole balance received by the contract.
-- `netRevenue`: Only the fees collected by the `SequencerFeeVault`, `BaseFeeVault`, and `OperatorFeeVault`.
+- `netRevenue`: Only the fees collected by the `SequencerFeeVault` and `BaseFeeVault`.
 
 Their percentages for each kind of revenue are managed separately.
 The contract will send the maximum amount between calculating the `grossRevenueShare` and `netRevenueShare` with their respective percentages to the `revenueShareRecipient`, and the remaining amount will be sent to the `revenueRemainderRecipient`.
@@ -300,14 +298,14 @@ function disburseFees() external
 
 #### `receive`
 
-Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault`, `BaseFeeVault`, or `OperatorFeeVault`.
+Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault` or `BaseFeeVault`.
 
 ```solidity
 function receive() external payable
 ```
 
 - MUST revert if on a reentrant call after `disburseFees` has been called.
-- MUST add the received amount to the `netRevenueFee` balance if the sender is either the `SequencerFeeVault`, `BaseFeeVault` or `OperatorFeeVault`.
+- MUST add the received amount to the `netRevenueFee` balance if the sender is either the `SequencerFeeVault` or `BaseFeeVault`.
 - MUST accept ETH from any sender.
 - MUST emit a `FeesReceived` event upon successful execution.
 
