@@ -242,6 +242,18 @@ function authorizeMinter(address _minter) external
 - MUST authorize `_minter` to call the `mint()` function
 - MUST emit `MinterAuthorized` event
 
+#### `deauthorizeMinter`
+
+Deauthorizes an address from minting native assets from the liquidity pool.
+
+```solidity
+function deauthorizeMinter(address _minter) external
+```
+
+- MUST only be callable by the L1 ProxyAdmin owner
+- MUST deauthorize `_minter` from calling the `mint()` function
+- MUST emit `MinterDeauthorized` event
+
 #### `mint`
 
 Unlocks native assets from the `NativeAssetLiquidity` contract and sends them to a specified address.
