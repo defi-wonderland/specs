@@ -125,16 +125,184 @@ Extensibility:
 
 ## Risks & Uncertainties
 
-- `TSTORE` availability/assumptions: we rely on transient storage being available on the target L2; if disabled, recipients can’t read metadata that way (fallback still works via plain ETH transfer).
-- DoS via many recipients: we currently don’t cap outputs or enforce min payout amounts. Low risk (calculator is set by the permissioned chain op and can be updated quickly), but we’ll keep it in mind. If needed, we can add `MAX_PAYOUTS_PER_TX` and `MIN_PAYOUT_AMOUNT` as admin‑settable limits.
-- Calculator bugs: if a calculator misbehaves (sum mismatch or downstream recipients revert), disbursements will revert. We’ll validate outputs and keep calculator swaps gated by `ProxyAdmin.owner()`.
+- `TSTORE` availability/assumptions: we rely on transient storage being available on the target L2;
+  if disabled, recipients can’t read metadata that way (fallback still works via plain ETH transfer).
+- DoS via many recipients: we currently don’t cap outputs or enforce min payout amounts.
+  Low risk (calculator is set by the permissioned chain op and can be updated quickly), but we’ll keep it in
+  mind. If needed, we can add `MAX_PAYOUTS_PER_TX` and `MIN_PAYOUT_AMOUNT` as admin‑settable limits.
+- Calculator bugs: if a calculator misbehaves (sum mismatch or downstream recipients revert),
+  disbursements will revert. We’ll validate outputs and keep calculator swaps gated by `ProxyAdmin.owner()`.
 
 Open items we decided
 
 - `withdrawalNetwork` is part of the calculator output (per‑recipient L2/L1 destination).
-- `metadata`: a bytes metadata field is supported; `FeeSplitter` `TSTORE`s it before each send so recipients that want it can read it. We keep `SafeCall.send()` to avoid breaking EOAs/multisigs.
-- Inputs to calculator: we pass `gross`, `net`, and `perVault` totals (calculator can ignore what it doesn’t need).
+- `metadata`: a bytes metadata field is supported; `FeeSplitter` `TSTORE`s it before each send
+  so recipients that want it can read it. We keep `SafeCall.send()` to avoid breaking EOAs/multisigs.
 - Failure policy: revert the whole disbursement if any payout fails.
 - Rounding: last wei goes to the last `recipient`.
 - Events: single aggregate event with arrays per disbursement.
-- Gas forwarded: no special limit initially (set by chain op, can be updated quickly if needed). We can add a cap later if we see an issue.
+- Gas forwarded: no special limit initially (set by chain op, can be updated quickly if needed).
+  We can add a cap later if we see an issue.
+
+## Appendix A: SuperchainRevSharesCalculator
+
+We provide a Superchain implementation for the `ISharesCalculator` specification. It pays the greater amount
+between 2.5% of gross revenue or 15% of net revenue (gross minus L1 fees) to the configured share recipient.
+The second configured recipient receives the full remainder via FeeSplitter's remainder send.
+
+It allows the `ProxyAdmin.owner` to configure the recipient address of the Superchain revenue share and the
+recipient of the remainder.
+
+### Functions
+
+#### `getRecipientsAndValues`
+
+Calculates the share for each of the two recipients based on the following formula:
+
+```solidity
+GrossRevenue = Sum of all vault fee revenues
+GrossShare = GrossRevenue × 2.5%
+NetShare = (GrossRevenue - L1FeeRevenue) × 15%
+
+ShareRecipientAmount = max(GrossShare, NetShare)
+RemainderRecipientAmount = GrossRevenue - ShareRecipientAmount
+```
+
+```solidity
+function getRecipientsAndValues(uint256 _sequencerFeeRevenue, uint256 _baseFeeRevenue, uint256 _operatorFeeRevenue, uint256 _l1FeeRevenue) external view returns (ShareInfo[] memory shareInfo)
+```
+
+- MUST return the correct partition of shares based on the above formula.
+
+#### `setShareRecipient`
+
+Sets the recipient of the shares calculated by the fee sharing formula.
+
+```solidity
+function setShareRecipient(address payable _shareRecipient) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner`.
+- MUST emit `ShareRecipientUpdated`.
+- MUST update the `shareRecipient` storage variable.
+
+#### `setRemainderRecipient`
+
+Sets the recipient of the remainder of the fees once the shares for the share recipient have been calculated.
+
+```solidity
+function setRemainderRecipient(address payable _remainderRecipient) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner`.
+- MUST emit `RemainderRecipientUpdated`.
+- MUST update the `remainderRecipient` storage variable.
+
+## Appendix B: L1Withdrawer
+
+An optional periphery contract designed to be used as a recipient for a portion of the shares sent
+by the `FeeSplitter`. Its sole purpose is to initiate a withdrawal to L1 via `L2ToL1MessagePasser.initiateWithdrawal`
+once it has received enough funds.
+
+### Functions
+
+#### `receive`
+
+Initiates the withdrawal process to L1 once the contract holds funds equal to or above the `minWithdrawalAmount` threshold.
+
+```solidity
+receive() external payable
+```
+
+- MUST start the withdrawal process ONLY if the funds in the contract are equal to or above the minimum threshold.
+- MUST emit the `WithdrawalInitiated` event.
+
+#### `setMinWithdrawalAmount`
+
+Updates the minimum withdrawal amount the contract must hold before the withdrawal process can be initiated.
+
+```solidity
+function setMinWithdrawalAmount(uint256 _newMinWithdrawalAmount) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`.
+- MUST emit the `MinWithdrawalAmountUpdated` event.
+- MUST update the `minWithdrawalAmount` storage variable.
+
+#### `setRecipient`
+
+Updates the address that will receive the funds on L1 during the withdrawal process.
+
+```solidity
+function setRecipient(address _newRecipient) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`.
+- MUST emit the `RecipientUpdated` event.
+- MUST update the `recipient` storage variable.
+
+#### `setWithdrawalGasLimit`
+
+Updates the gas limit for the withdrawal on L1.
+
+```solidity
+function setWithdrawalGasLimit(uint256 _newWithdrawalGasLimit) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`.
+- MUST emit the `WithdrawalGasLimitUpdated` event.
+- MUST update the `withdrawalGasLimit` storage variable.
+
+#### `setWithdrawalData`
+
+Updates the additional calldata sent to the funds recipient on L1.
+
+```solidity
+function setWithdrawalData(bytes memory _newWithdrawalData) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`.
+- MUST emit the `WithdrawalDataUpdated` event.
+- MUST update the `withdrawalData` storage variable.
+
+### Events
+
+#### `WithdrawalInitiated`
+
+Emitted when a withdrawal to L1 is initiated.
+
+```solidity
+event WithdrawalInitiated(uint256 amount, address indexed recipient)
+```
+
+#### `MinWithdrawalAmountUpdated`
+
+Emitted when the minimum withdrawal amount before the withdrawal can be initiated is updated.
+
+```solidity
+event MinWithdrawalAmountUpdated(uint256 oldMinWithdrawalAmount, uint256 newMinWithdrawalAmount)
+```
+
+#### `RecipientUpdated`
+
+Emitted when the recipient of the funds on L1 is updated.
+
+```solidity
+event RecipientUpdated(address oldRecipient, address newRecipient)
+```
+
+#### `WithdrawalGasLimitUpdated`
+
+Emitted when the withdrawal gas limit on L1 is updated.
+
+```solidity
+event WithdrawalGasLimitUpdated(uint256 oldWithdrawalGasLimit, uint256 newWithdrawalGasLimit)
+```
+
+#### `WithdrawalDataUpdated`
+
+Emitted when the additional calldata sent as part of the withdrawal is updated.
+
+```solidity
+event WithdrawalDataUpdated(bytes oldWithdrawalData, bytes newWithdrawalData)
+```
