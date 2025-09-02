@@ -46,8 +46,7 @@ Key components:
   the `isCustomGasToken()` flag.
 - **ETH Bridging Disabled**: ETH bridging functions in `L2ToL1MessagePasser` and `OptimismPortal` MUST revert
   when CGT mode is enabled to prevent confusion about which asset is the native currency.
-- **WETH as ERC20**: ETH can still be bridged as WETH using the standard `OptimismMintableERC20` bridging
-  path through `L2StandardBridge`.
+- **ETH as an ERC20 representation**: ETH can be bridged by wrapping it as an ERC20 token (e.g., WETH) and using the `StandardBridge` to mint an `OptimismMintableERC20` representation.
 
 OP Stack chains that use a native asset other than ETH (or the native asset of the settlement layer)
 introduce custom requirements that go beyond the current supply management model based on deposits and
