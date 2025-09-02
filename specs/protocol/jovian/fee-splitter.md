@@ -1,4 +1,4 @@
-### FeeSplitter + Pluggable Revenue Share: Design Doc
+# FeeSplitter + Pluggable Revenue Share: Design Doc
 
 |                    |                      |
 | ------------------ | -------------------- |
@@ -8,13 +8,55 @@
 | Need Approval From | _Tynes, Agus, Joxes_ |
 | Status             | _Draft_              |
 
+<!-- START doctoc generated TOC please keep comment here to allow auto update -->
+<!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
+- [Purpose](#purpose)
+- [Summary](#summary)
+- [Problem Statement + Context](#problem-statement--context)
+- [Proposed Solution](#proposed-solution)
+  - [Invariants](#invariants)
+  - [Resource Usage](#resource-usage)
+  - [Single Point of Failure and Multi Client Considerations](#single-point-of-failure-and-multi-client-considerations)
+- [Failure Mode Analysis](#failure-mode-analysis)
+- [Impact on Developer Experience](#impact-on-developer-experience)
+- [Alternatives Considered](#alternatives-considered)
+- [Risks & Uncertainties](#risks--uncertainties)
+- [Appendix A: SuperchainRevSharesCalculator](#appendix-a-superchainrevsharescalculator)
+  - [Functions](#functions)
+    - [`getRecipientsAndValues`](#getrecipientsandvalues)
+    - [`setShareRecipient`](#setsharerecipient)
+    - [`setRemainderRecipient`](#setremainderrecipient)
+- [Appendix B: L1Withdrawer](#appendix-b-l1withdrawer)
+  - [Functions](#functions-1)
+    - [`receive`](#receive)
+    - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
+    - [`setRecipient`](#setrecipient)
+    - [`setWithdrawalGasLimit`](#setwithdrawalgaslimit)
+    - [`setWithdrawalData`](#setwithdrawaldata)
+  - [Events](#events)
+    - [`WithdrawalInitiated`](#withdrawalinitiated)
+    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+    - [`RecipientUpdated`](#recipientupdated)
+    - [`WithdrawalGasLimitUpdated`](#withdrawalgaslimitupdated)
+    - [`WithdrawalDataUpdated`](#withdrawaldataupdated)
+
+<!-- END doctoc generated TOC please keep comment here to allow auto update -->
+
 ## Purpose
 
-Make fee revenue sharing dynamic and per‑chain extensible. Allow any chain to plug in their own revenue share logic without forking the `FeeSplitter` but integrating with it.
+Make fee revenue sharing dynamic and per‑chain extensible. Allow any chain to plug in their own revenue share
+logic without forking the `FeeSplitter` but integrating with it.
 
 ## Summary
 
-`FeeSplitter` aggregates fees from all the `FeeVault`s on L2, enforces the configured checks, and then disburses funds to recipients based on shares computed by a pluggable `SharesCalculator`. The calculator returns an array of disbursements—each with a `recipient`, `withdrawalNetwork`, `amount`, and optional `metadata`—and `FeeSplitter` iterates through this list to execute each payout as an L2 transfer or an L1 withdrawal. We ship with a `StandardSuperchainRevenueShare` calculator by default, and chains can swap in their own module as needed. Each disbursement emits a single aggregate event containing arrays of `recipients`, `networks`, and `amounts`.
+`FeeSplitter` aggregates fees from all the `FeeVault`s on L2, enforces the configured checks, and then
+disburses funds to recipients based on shares computed by a pluggable `SharesCalculator`.
+The calculator returns an array of disbursements—each with a `recipient`, `withdrawalNetwork`, `amount`, and
+optional `metadata`—and `FeeSplitter` iterates through this list to execute each payout as an L2 transfer or
+an L1 withdrawal. We ship with a [`SuperchainRevSharesCalculator`](#appendix-a-superchainrevsharescalculator)
+by default, and chains can swap in their own module as needed. Each disbursement emits a single aggregate
+event containing arrays of `recipients`, `networks`, and `amounts`.
 
 ## Problem Statement + Context
 
@@ -22,13 +64,14 @@ Fixed fee shares are too rigid: chains want custom splits, L1/L2 destinations, a
 
 - A safe, permissioned way to plug in chain‑specific logic.
 - A stable, minimal surface in `FeeSplitter` to keep operations simple.
-- Backwards‑compatible behavior by default (standard superchain revshare).
+- Backwards‑compatible behavior by default (standard superchain revenue share).
 
 ## Proposed Solution
 
 High‑level flow:
 
-1. `FeeSplitter.disburseFees()` checks interval and vault config, pulls eligible funds from vaults, and computes both `gross` and `net` amounts (and per‑vault totals for future granularity).
+1. `FeeSplitter.disburseFees()` checks interval and vault config, pulls eligible funds from vaults,
+   and computes both `gross` and `net` amounts (and per‑vault totals for future granularity).
 2. `FeeSplitter` calls the chain‑configured `SharesCalculator` with the inputs to compute disbursements.
 3. `FeeSplitter` validates outputs (basic invariants) and then pays each item:
    - L2: native transfer
@@ -37,23 +80,25 @@ High‑level flow:
 
 Interfaces and ownership:
 
-- `SharesCalculator` naming: use `IRevenueShareCalculator` (short: `RevenueShareCalculator`). Method: `computeDisbursements(gross, net[, perVault])`.
-- Admin (`ProxyAdmin.owner()`) can set the calculator via `setShareCalculator(address)` and update the disbursement interval.
-- The default calculator is `StandardSuperchainRevenueShare` (our previous 2‑recipient, gross/net max behavior).
+- `SharesCalculator` naming: use `IRevenueShareCalculator` (short: `RevenueShareCalculator`).
+  Method: `getRecipientsAndValues(per vault fee revenue)`.
+- Admin (`ProxyAdmin.owner()`) can set the calculator via `setSharesCalculator(address)` and update the disbursement interval.
+- The default calculator is `SuperchainRevSharesCalculator` (our previous 2‑recipient, gross/net max behavior).
 
 Inputs to the calculator:
 
-- `gross` (sum of all vault withdrawals this call).
-- `net` (sum of Sequencer/Base this call).
-- Optionally per‑vault amounts (to enable more complex policies). We’ll pass them; calculators can ignore.
+- Per‑vault amounts (to enable more complex policies). We’ll pass them; calculators can ignore.
 
 Outputs from the calculator:
 
-- `Disbursement[]` where each item is `{recipient, withdrawalNetwork, amount}`. We also provision a `metadata` bytes field slot; see below.
+- `ShareInfo[]` where each item is `{recipient, value}`. We also provision a `metadata` bytes field slot; see below.
 
 Metadata and recipients:
 
-- We’ll support an optional `metadata` bytes blob per disbursement. As agreed, we’ll `TSTORE` the metadata on `FeeSplitter` right before the corresponding send, so recipients that rely on it can read it in their payable fallback/receive code path. We keep `SafeCall.send()` to stay compatible with EOAs and multisigs (no new interface requirement).
+- We’ll support an optional `metadata` bytes blob per disbursement. As agreed, we’ll `TSTORE` the metadata
+  on `FeeSplitter` right before the corresponding send, so recipients that rely on it can read it in their
+  payable fallback/receive code path. We keep `SafeCall.send()` to stay compatible with EOAs
+  and multisigs (no new interface requirement).
 
 Invariants and validation:
 
@@ -74,16 +119,20 @@ Events:
 
 Extensibility:
 
-- Start with `StandardSuperchainRevenueShare` to preserve current semantics.
-- RAAS providers can deploy their own calculators and the chain can point to them via `setShareCalculator`.
+- Start with `SuperchainRevSharesCalculator` to preserve current semantics.
+- RAAS providers can deploy their own calculators and the chain can point to them via `setSharesCalculator`.
 
 ### Invariants
 
-- All fee vaults MUST be correctly configured (`WithdrawalNetwork = L2` and `RECIPIENT = FeeSplitter`) or `disburseFees` MUST revert.
-- `SharesCalculator` output MUST be valid: `sum(amounts) == totalCollected`, each `recipient != address(0)`, and each `withdrawalNetwork` is supported; otherwise `disburseFees` MUST revert.
-- Disbursement MUST be atomic: if any individual payout fails (L2 transfer or L1 withdrawal), `disburseFees` MUST revert the entire transaction.
-- If no funds are collected for the call, `disburseFees` MUST return early and MUST NOT consume the disbursement interval.
-- Cross‑function reentrancy MUST be prevented: `disburseFees` is non‑reentrant and `receive` MUST revert while a disbursement is in progress.
+- All fee vaults MUST be correctly configured (`WithdrawalNetwork = L2` and `RECIPIENT = FeeSplitter`) or
+  `disburseFees` MUST revert.
+- `SharesCalculator` output MUST be valid: `sum(amounts) == totalCollected`, each `recipient != address(0)`,
+  and each `withdrawalNetwork` is supported; otherwise `disburseFees` MUST revert.
+- Disbursement MUST be atomic: if any individual payout fails (L2 transfer or L1 withdrawal),
+  `disburseFees` MUST revert the entire transaction.
+- If no funds are collected for the call, `disburseFees` MUST revert.
+- Cross‑function reentrancy MUST be prevented: `disburseFees` is non‑reentrant enforced by tstorage sentinel,
+  enabling receiving funds if and only if the disburse fees process has been initiated.
 
 ### Resource Usage
 
@@ -106,13 +155,13 @@ Extensibility:
 - DoS due to very high gas consumption by a recipient ending in OOG
 - Misconfigured recipients that don't allow receiving the fees from the splitter, leading to a failed disbursement.
 - Buggy SharesCalculator that returns incorrect or malformed outputs, leading to a failed disbursement.
--
 
 ## Impact on Developer Experience
 
 - Chains get a clean plug‑in point to customize revshare without forking `FeeSplitter`.
 - Default behavior matches the current two‑recipient superchain revshare until a chain swaps calculators.
-- Recipients don’t need to implement a new interface; we continue using `SafeCall.send()`. Advanced recipients can optionally read metadata via `TSTORE` if they want more context.
+- Recipients don’t need to implement a new interface; we continue using `SafeCall.send()`.
+  Advanced recipients can optionally read metadata via `TSTORE` if they want more context.
 
 ## Alternatives Considered
 

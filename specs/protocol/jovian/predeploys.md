@@ -94,7 +94,9 @@ sequenceDiagram
 
 ## FeeVault
 
-Legacy immutables are preserved for network-specific config, and storage-based overrides are enabled via getters. Each getter returns the storage value if set; otherwise, it falls back to the immutable. Setters write the storage value to opt-in to overrides. There will be a flag to track whether the storage variable was set or not.
+Legacy immutables are preserved for network-specific config, and storage-based overrides are enabled via getters.
+Each getter returns the storage value if set; otherwise, it falls back to the immutable. Setters write the
+storage value to opt-in to overrides. There will be a flag to track whether the storage variable was set or not.
 
 ### Functions
 
@@ -135,7 +137,8 @@ function setWithdrawalNetwork(WithdrawalNetwork _newWithdrawalNetwork) external
 
 #### `recipient`
 
-Returns the current recipient address, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+Returns the current recipient address, preferring the storage override if set; otherwise falls back to the
+legacy immutable value.
 
 ```solidity
 function recipient() external view returns (address)
@@ -147,7 +150,8 @@ function recipient() external view returns (address)
 
 #### `minWithdrawalAmount`
 
-Returns the current minimum withdrawal amount, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+Returns the current minimum withdrawal amount, preferring the storage override if set; otherwise falls back to
+the legacy immutable value.
 
 ```solidity
 function minWithdrawalAmount() external view returns (uint256)
@@ -159,7 +163,8 @@ function minWithdrawalAmount() external view returns (uint256)
 
 #### `withdrawalNetwork`
 
-Returns the current withdrawal network, preferring the storage override if set; otherwise falls back to the legacy immutable value.
+Returns the current withdrawal network, preferring the storage override if set; otherwise falls back to the
+legacy immutable value.
 
 ```solidity
 function withdrawalNetwork() external view returns (WithdrawalNetwork)
@@ -204,18 +209,22 @@ event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, Withdrawa
 
 ## Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)
 
-These contracts will inherit the changes made to the `FeeVault` contract, meaning that they will have storage variables and setters instead of constants for the configuration values, and they will be initializable.
+These contracts will inherit the changes made to the `FeeVault` contract, meaning that they will have storage
+variables and setters instead of constants for the configuration values, and they will be initializable.
 
 Their configuration includes the withdrawal network and the recipient to which the fees will be sent:
 
 - **WithdrawalNetwork.L1**: Funds are withdrawn to an L1 address (default behavior)
 - **WithdrawalNetwork.L2**: Funds are withdrawn to an L2 address
 
-For those chains that choose to use the `FeeSplitter` predeploy, `WithdrawalNetwork.L2` as the withdrawal network, and the `FeeSplitter` as the recipient MUST be set using the setter functions.
+For those chains that choose to use the `FeeSplitter` predeploy, `WithdrawalNetwork.L2` as the withdrawal
+network, and the `FeeSplitter` as the recipient MUST be set using the setter functions.
 
 ## FeeSplitter
 
-This contract splits the ETH it receives and sends the correct amounts to two designated addresses. It integrates with the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and setting this predeploy as the
+This contract splits the ETH it receives and sends the correct amounts to two designated addresses.
+It integrates with the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and
+setting this predeploy as the
 recipient in EVERY fee vault.
 
 The contract manages two recipients:
@@ -223,13 +232,16 @@ The contract manages two recipients:
 - Revenue share recipient
 - Remainder recipient
 
-And it has two ways of dividing the revenue (considered as the total amount of ETH received by the contract since the last disbursement):
+And it has two ways of dividing the revenue (considered as the total amount of ETH received by the contract
+since the last disbursement):
 
 - `grossRevenue`: The whole balance received by the contract.
 - `netRevenue`: Only the fees collected by the `SequencerFeeVault` and `BaseFeeVault`.
 
 Their percentages for each kind of revenue are managed separately.
-The contract will send the maximum amount between calculating the `grossRevenueShare` and `netRevenueShare` with their respective percentages to the `revenueShareRecipient`, and the remaining amount will be sent to the `revenueRemainderRecipient`.
+The contract will send the maximum amount between calculating the `grossRevenueShare` and `netRevenueShare`
+with their respective percentages to the `revenueShareRecipient`, and the remaining amount will be sent to the
+`revenueRemainderRecipient`.
 
 The `FeeSplitter` MUST be proxied and initializable only by the `ProxyAdmin.owner()`.
 
@@ -275,7 +287,8 @@ to the appropriate addresses according to the configured percentage.
 The function MUST revert if the withdrawal is not set to `WithdrawalNetwork.L2`, or if the recipient set is not the `FeeSplitter`.
 The function MUST withdraw only if the vault balance is greater than or equal to its minimum withdrawal amount.
 
-When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`, and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions are not met.
+When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`,
+and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions are not met.
 It MUST only withdraw if the vault balance is greater than or equal to its minimum withdrawal amount.
 In addition, it will follow a `nonReentrant` pattern, to avoid receiving balance back once the fees are being disbursed.
 
@@ -286,7 +299,8 @@ function disburseFees() external
 - MUST revert if not enough time has passed since the last successful execution.
 - MUST revert if any vault has a recipient different from this contract.
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
-- MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum withdrawal amount set.
+- MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum
+  withdrawal amount set.
 - If any fees were collected, MUST set the `lastDisbursementTime` to the current block timestamp.
 - MUST reset the `netRevenueShare` state variable.
 - MUST send the max between `grossRevenueShare` and `netRevenueShare` to the `revenueShareRecipient`.
@@ -297,7 +311,8 @@ function disburseFees() external
 
 #### `receive`
 
-Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either the `SequencerFeeVault` or `BaseFeeVault`.
+Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either
+the `SequencerFeeVault` or `BaseFeeVault`.
 
 ```solidity
 function receive() external payable
@@ -363,7 +378,9 @@ event FeesDisbursed(
 
 #### `NoFeesCollected`
 
-Emitted when `disburseFees` is called and, after attempting eligible vault withdrawals, there are no funds available to withdraw or distribute. This can occur when all vaults lack withdrawable funds or when the contract holds no ETH from any other sender.
+Emitted when `disburseFees` is called and, after attempting eligible vault withdrawals, there are no funds
+available to withdraw or distribute. This can occur when all vaults lack withdrawable funds or when the
+contract holds no ETH from any other sender.
 
 ```solidity
 event NoFeesCollected()
@@ -415,8 +432,12 @@ event FeeDisbursementIntervalUpdated(uint256 oldFeeDisbursementInterval, uint256
 
 ## Security Considerations
 
-- Given that vault recipients can now be updated, it's important to ensure that this can only be done by the appropriate address, namely `ProxyAdmin.owner()`.
-- Upgrading the vaults and making them compatible with the `FeeSplitter` incurs a process that requires deploying the new implementations and properly configuring the vaults, which introduces complexity and potential for errors. It is important to develop a solution, such as a contract to manage the entire upgrade process, simplifying the UX and reducing the risk of errors.
+- Given that vault recipients can now be updated, it's important to ensure that this can only be done by the
+  appropriate address, namely `ProxyAdmin.owner()`.
+- Upgrading the vaults and making them compatible with the `FeeSplitter` incurs a process that requires deploying
+  the new implementations and properly configuring the vaults, which introduces complexity and potential for errors.
+  It is important to develop a solution, such as a contract to manage the entire upgrade process, simplifying
+  the UX and reducing the risk of errors.
 
 ## Open Questions
 
