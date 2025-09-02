@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Execution Layer](#execution-layer)
@@ -45,8 +46,6 @@ Key components:
   the `isCustomGasToken()` flag.
 - **ETH Bridging Disabled**: ETH bridging functions in `L2ToL1MessagePasser` and `OptimismPortal` MUST revert
   when CGT mode is enabled to prevent confusion about which asset is the native currency.
-- **Native Asset Bridging**: Custom Gas Token chains use dedicated CGT bridges (`L1CGTBridge` and
-  `L2CGTBridge`) for native asset transfers between L1 ERC20 tokens and L2 native assets.
 - **WETH as ERC20**: ETH can still be bridged as WETH using the standard `OptimismMintableERC20` bridging
   path through `L2StandardBridge`.
 
