@@ -13,6 +13,7 @@
     - [`recipient`](#recipient)
     - [`minWithdrawalAmount`](#minwithdrawalamount)
     - [`withdrawalNetwork`](#withdrawalnetwork)
+    - [`withdraw`](#withdraw)
   - [Events](#events)
     - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
     - [`RecipientUpdated`](#recipientupdated)
@@ -96,6 +97,8 @@ sequenceDiagram
 
 Legacy immutables are preserved for network-specific config, and storage-based overrides are enabled via getters. Each getter returns the storage value if set; otherwise, it falls back to the immutable. Setters write the storage value to opt-in to overrides. There will be a flag to track whether the storage variable was set or not.
 
+The `withdraw` function returns the value that was withdrawn from the vault at the time of the function call.
+
 ### Functions
 
 #### `setMinWithdrawalAmount`
@@ -168,6 +171,19 @@ function withdrawalNetwork() external view returns (WithdrawalNetwork)
 - MUST check the flag to see if the storage var was set or not.
 - MUST return the storage-configured network if a storage override has been set via `setWithdrawalNetwork`.
 - MUST otherwise return the legacy immutable withdrawal network.
+
+#### `withdraw`
+
+Withdraws the funds stored in the vault to the recipient. If the recipient is an address on L2, a `SafeCall.send` is performed; if it's an address on L1, `IL2ToL1MessagePasser.initiateWithdrawal` is used. Returns the value of the withdrawal.
+
+```solidity
+function withdraw() external returns(uint256)
+```
+
+- MUST revert if the vault's balance is below `minWithdrawalAmount()`.
+- MUST emit the `Withdrawal(uint256 value, address to, address from)` event.
+- MUST emit the `Withdrawal(uint256 value, address to, address from, WithdrawalNetwork withdrawalNetwork)` event.
+- MUST send the vault's total balance to the appropriate recipient.
 
 ### Events
 
