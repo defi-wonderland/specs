@@ -37,8 +37,8 @@ receive() external payable
 ```
 
 - MUST start the withdrawal process ONLY if the funds in the contract are equal to or above the minimum threshold.
-- MUST emit the `WithdrawalInitiated` event.
-- MUST emit the `FundsReceived` event if funds are received but no withdrawal is initiated.
+- MUST emit the `FundsReceived` with the sender, amount received and balance.
+- MUST emit the `WithdrawalInitiated` event only if the threshold is reached.
 
 ### `setMinWithdrawalAmount`
 
