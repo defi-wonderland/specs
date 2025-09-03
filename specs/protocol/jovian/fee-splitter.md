@@ -50,13 +50,17 @@ logic without forking the `FeeSplitter` but integrating with it.
 
 ## Summary
 
-`FeeSplitter` aggregates fees from all the `FeeVault`s on L2, enforces the configured checks, and then
-disburses funds to recipients based on shares computed by a pluggable `SharesCalculator`.
-The calculator returns an array of disbursements—each with a `recipient`, `withdrawalNetwork`, `amount`, and
-optional `metadata`—and `FeeSplitter` iterates through this list to execute each payout as an L2 transfer or
-an L1 withdrawal. We ship with a [`SuperchainRevSharesCalculator`](#appendix-a-superchainrevsharescalculator)
-by default, and chains can swap in their own module as needed. Each disbursement emits a single aggregate
-event containing arrays of `recipients`, `networks`, and `amounts`.
+`FeeSplitter` aggregates fees from all `FeeVault`s on L2, enforces the configured checks, and then disburses
+funds to recipients based on shares computed by a pluggable `SharesCalculator`. The calculator returns an
+array of disbursements—each containing a `recipient` and `amount`—and `FeeSplitter` iterates through this list
+to execute each payout as an L2 transfer. We ship with a
+[`SuperchainRevSharesCalculator`](#appendix-a-superchainrevsharescalculator) by default, and chains can swap
+in their own module as needed.
+
+It's possible that chain operators may desire the option to withdraw part of the fees to L1.
+This can be achieved using the default [`L1Withdrawer`](#appendix-b-l1withdrawer), but the modular
+architecture allows operators to use any other solution that better suits their needs. Each disbursement emits
+a single aggregate event containing arrays of `recipients`, `networks`, and `amounts`.
 
 ## Problem Statement + Context
 
@@ -122,8 +126,8 @@ Extensibility:
 - Disbursement MUST be atomic: if any individual payout fails (L2 transfer or L1 withdrawal),
   `disburseFees` MUST revert the entire transaction.
 - If no funds are collected for the call, `disburseFees` MUST revert.
-- Cross‑function reentrancy MUST be prevented: `disburseFees` is non‑reentrant enforced by tstorage sentinel,
-  enabling receiving funds if and only if the disburse fees process has been initiated.
+- Cross‑function reentrancy MUST be prevented: `disburseFees` is non‑reentrant enforced by a `TSTORE` flag
+  with a check, enabling receiving funds if and only if the disburse fees process has been initiated.
 
 ### Resource Usage
 
