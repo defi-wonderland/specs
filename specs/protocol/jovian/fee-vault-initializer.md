@@ -18,7 +18,7 @@
 ## Purpose
 
 This contract serves as a runbook for deploying new vault implementations while preserving the current vault
-configuration. It is intended to be used in a NUT series context to upgrade the vaults to the new
+configuration. It is intended to be used in a NUT (Network Upgrade Transaction) series context to upgrade the vaults to the new
 implementation once they are deployed.
 
 ### Constructor
