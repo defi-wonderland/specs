@@ -95,7 +95,7 @@ function setWithdrawalData(bytes memory _newWithdrawalData) external
 Emitted when a withdrawal to L1 is initiated.
 
 ```solidity
-event WithdrawalInitiated(uint256 amount, address indexed recipient)
+event WithdrawalInitiated(address indexed recipient, uint256 amount)
 ```
 
 ### `MinWithdrawalAmountUpdated`
@@ -135,5 +135,5 @@ event WithdrawalDataUpdated(bytes oldWithdrawalData, bytes newWithdrawalData)
 Emitted whenever funds are received but the balance in the contract is below the withdrawal threshold.
 
 ```solidity
-event FundsReceived(uint256 amount, uint256 newBalance)
+event FundsReceived(address indexed sender, uint256 amount, uint256 newBalance)
 ```
