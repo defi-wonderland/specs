@@ -257,6 +257,7 @@ receive() external payable
 
 - MUST start the withdrawal process ONLY if the funds in the contract are equal to or above the minimum threshold.
 - MUST emit the `WithdrawalInitiated` event.
+- MUST emit the `FundsReceived` event if funds are received but no withdrawal is initiated.
 
 #### `setMinWithdrawalAmount`
 
@@ -346,4 +347,12 @@ Emitted when the additional calldata sent as part of the withdrawal is updated.
 
 ```solidity
 event WithdrawalDataUpdated(bytes oldWithdrawalData, bytes newWithdrawalData)
+```
+
+#### `FundsReceived`
+
+Emitted whenever funds are received but the balance in the contract is below the withdrawal threshold.
+
+```solidity
+event FundsReceived(uint256 amount, uint256 newBalance)
 ```
