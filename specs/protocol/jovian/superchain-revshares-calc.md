@@ -4,6 +4,8 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Summary](#summary)
+- [Structs](#structs)
+  - [`ShareInfo`](#shareinfo)
 - [Functions](#functions)
   - [`getRecipientsAndValues`](#getrecipientsandvalues)
   - [`setShareRecipient`](#setsharerecipient)
@@ -22,6 +24,19 @@ The second configured recipient receives the full remainder via FeeSplitter's re
 
 It allows the `ProxyAdmin.owner` to configure the recipient address of the Superchain revenue share and the
 recipient of the remainder.
+
+## Structs
+
+### `ShareInfo`
+
+A struct containing both a recipient and the corresponding value of funds for a transfer. [`getRecipientsAndValues`](#getrecipientsandvalues) uses this struct to calculate the distribution of fees.
+
+```solidity
+struct ShareInfo {
+    address payable recipient;
+    uint256 value;
+}
+```
 
 ## Functions
 
