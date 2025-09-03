@@ -29,12 +29,12 @@ recipient of the remainder.
 
 ### `ShareInfo`
 
-A struct containing both a recipient and the corresponding value of funds for a transfer. [`getRecipientsAndValues`](#getrecipientsandvalues) uses this struct to calculate the distribution of fees.
+A struct containing both a recipient and the corresponding amount of funds for a transfer. [`getRecipientsAndValues`](#getrecipientsandvalues) uses this struct to calculate the distribution of fees.
 
 ```solidity
 struct ShareInfo {
     address payable recipient;
-    uint256 value;
+    uint256 amount;
 }
 ```
 
@@ -90,7 +90,7 @@ function setRemainderRecipient(address payable _remainderRecipient) external
 Emitted when the recipient for the calculated share of the fees is updated.
 
 ```solidity
-event ShareRecipientUpdated(address indexed oldShareRecipient, address indexed shareRecipient);
+event ShareRecipientUpdated(address indexed oldShareRecipient, address indexed newShareRecipient);
 ```
 
 ### `RemainderRecipientUpdated`
@@ -98,5 +98,5 @@ event ShareRecipientUpdated(address indexed oldShareRecipient, address indexed s
 Emitted when the recipient for the remainder of the fees is updated.
 
 ```solidity
-event RemainderRecipientUpdated(address indexed oldRemainderRecipient, address indexed remainderRecipient);
+event RemainderRecipientUpdated(address indexed oldRemainderRecipient, address indexed newRemainderRecipient);
 ```
