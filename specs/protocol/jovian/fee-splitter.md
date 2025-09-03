@@ -68,7 +68,8 @@ Fixed fee shares are too rigid: chains want custom splits, L1/L2 destinations, a
 
 - A safe, permissioned way to plug in chain‑specific logic.
 - A stable, minimal surface in `FeeSplitter` to keep operations simple.
-- Backwards‑compatible behavior by default (standard superchain revenue share).
+- Backwards‑compatible behavior by default that works with solutions that are already being used by
+  some chain operators.
 
 ## Proposed Solution
 
@@ -102,14 +103,14 @@ Invariants and validation:
 
 - Sum of `amounts` MUST equal total collected (rounding policy below).
 - `recipients` MUST be non‑zero.
-- If any payout fails (recipient reverts or bridge call fails), revert the whole transaction.
+- If any payout fails, revert the whole transaction.
 - If the calculator returns zero total, short‑circuit (no interval consumed).
 - Misconfigured vault (wrong network or recipient) reverts (consistent with current behavior).
 
 Events:
 
-- One aggregate event on each disbursement with arrays:
-  - `recipients[]`, `networks[]`, `amounts[]`, `total`, `calculator` address.
+- One aggregate event on each disbursement with `grossRevenue` and arrays:
+  - `recipients[]`, `amounts[]`.
 
 Extensibility:
 
@@ -132,9 +133,10 @@ Extensibility:
 - `disburseFees` does:
   - Up to four vault withdrawals (each with eligibility checks).
   - One external call to the calculator (view/pure).
-  - Iterates through the returned `disbursements` and performs transfers/bridge calls.
+  - Iterates through the returned `disbursements` and performs transfers.
   - Emits one aggregate event.
-- Compared to “vault → L1 direct,” this adds an extra step at disbursement time (slightly higher gas). Acceptable on L2.
+- Compared to "vault → L1 direct," this adds an extra step at disbursement time (slightly higher gas).
+  This is acceptable on L2.
 - Admin setters (`setShareCalculator`, `setFeeDisbursementInterval`) are trivial (single storage write + event).
 
 ### Single Point of Failure and Multi Client Considerations
