@@ -60,7 +60,7 @@ in their own module as needed.
 It's possible that chain operators may desire the option to withdraw part of the fees to L1.
 This can be achieved using the default [`L1Withdrawer`](#appendix-b-l1withdrawer), but the modular
 architecture allows operators to use any other solution that better suits their needs. Each disbursement emits
-a single aggregate event containing arrays of `recipients`, `networks`, and `amounts`.
+a single aggregate event containing arrays of `recipients` and `amounts`, alongside the `grossRevenue`.
 
 ## Problem Statement + Context
 
@@ -74,17 +74,16 @@ Fixed fee shares are too rigid: chains want custom splits, L1/L2 destinations, a
 
 High‑level flow:
 
-1. `FeeSplitter.disburseFees()` checks interval and vault config, pulls eligible funds from vaults,
-   and computes both `gross` and `net` amounts (and per‑vault totals for future granularity).
+1. `FeeSplitter.disburseFees()` checks the interval and vault config, pulls eligible funds from vaults,
+   and computes the gross and per‑vault revenue for granularity.
 2. `FeeSplitter` calls the chain‑configured `SharesCalculator` with the inputs to compute disbursements.
-3. `FeeSplitter` validates outputs (basic invariants) and then pays each item:
-   - L2: native transfer
-   - L1: use `L2ToL1MessagePasser` to withdraw
-4. Emit one aggregate event (arrays). Update internal accounting.
+3. `FeeSplitter` validates outputs (basic invariants) and then transfers the corresponding amount to each
+   recipient.
+4. Emits one aggregate event (arrays). Updates the `lastDisbursementTime`.
 
 Interfaces and ownership:
 
-- `SharesCalculator` naming: use `IRevenueShareCalculator` (short: `RevenueShareCalculator`).
+- `SharesCalculator` naming: use `ISharesCalculator`.
   Method: `getRecipientsAndValues(per vault fee revenue)`.
 - Admin (`ProxyAdmin.owner()`) can set the calculator via `setSharesCalculator(address)` and update the disbursement interval.
 - The default calculator is `SuperchainRevSharesCalculator` (our previous 2‑recipient, gross/net max behavior).
@@ -121,10 +120,9 @@ Extensibility:
 
 - All fee vaults MUST be correctly configured (`WithdrawalNetwork = L2` and `RECIPIENT = FeeSplitter`) or
   `disburseFees` MUST revert.
-- `SharesCalculator` output MUST be valid: `sum(amounts) == totalCollected`, each `recipient != address(0)`,
-  and each `withdrawalNetwork` is supported; otherwise `disburseFees` MUST revert.
-- Disbursement MUST be atomic: if any individual payout fails (L2 transfer or L1 withdrawal),
-  `disburseFees` MUST revert the entire transaction.
+- `SharesCalculator` output MUST be valid: `sum(amounts) == totalCollected` and each `recipient != address(0)`;
+  otherwise `disburseFees` MUST revert.
+- Disbursement MUST be atomic: if any individual payout fails, `disburseFees` MUST revert the entire transaction.
 - If no funds are collected for the call, `disburseFees` MUST revert.
 - Cross‑function reentrancy MUST be prevented: `disburseFees` is non‑reentrant enforced by a `TSTORE` flag
   with a check, enabling receiving funds if and only if the disburse fees process has been initiated.
@@ -168,8 +166,6 @@ Extensibility:
 
 ## Risks & Uncertainties
 
-- `TSTORE` availability/assumptions: we rely on transient storage being available on the target L2;
-  if disabled, recipients can’t read metadata that way (fallback still works via plain ETH transfer).
 - DoS via many recipients: we currently don’t cap outputs or enforce min payout amounts.
   Low risk (calculator is set by the permissioned chain op and can be updated quickly), but we’ll keep it in
   mind. If needed, we can add `MAX_PAYOUTS_PER_TX` and `MIN_PAYOUT_AMOUNT` as admin‑settable limits.
@@ -178,9 +174,7 @@ Extensibility:
 
 Open items we decided
 
-- `withdrawalNetwork` is part of the calculator output (per‑recipient L2/L1 destination).
 - Failure policy: revert the whole disbursement if any payout fails.
-- Rounding: last wei goes to the last `recipient`.
 - Events: single aggregate event with arrays per disbursement.
 - Gas forwarded: no special limit initially (set by chain op, can be updated quickly if needed).
   We can add a cap later if we see an issue.
