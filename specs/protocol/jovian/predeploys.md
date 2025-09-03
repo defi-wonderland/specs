@@ -219,7 +219,8 @@ network, and the `FeeSplitter` as the recipient MUST be set using the setter fun
 ## FeeSplitter
 
 This contract splits the funds it receives from the vaults using a configured revenue shares calculator to determine
-which addresses should receive funds and in what amounts, a default [`SuperchainRevSharesCalculator`](./superchain-revshares-calc.md) is provided.
+which addresses should receive funds and in what amounts,
+a default [`SuperchainRevSharesCalculator`](./superchain-revshares-calc.md) is provided.
 It integrates with the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and
 setting this predeploy as the recipient in every fee vault.
 
@@ -250,7 +251,8 @@ to the appropriate addresses according to the amounts returned by the set calcul
 When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`,
 and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions are not met.
 It MUST only withdraw if the vault balance is greater than or equal to its minimum withdrawal amount.
-In addition, it will follow a `nonReentrant` pattern using `TSORE`d flags, to avoid receiving balance back once the fees are being disbursed.
+In addition, it will follow a `nonReentrant` pattern using `TSORE`d flags, to avoid receiving balance back
+once the fees are being disbursed.
 
 ```solidity
 function disburseFees() external
@@ -269,7 +271,8 @@ function disburseFees() external
 
 #### `receive`
 
-Receives funds from any of the `FeeVault`s if and only if the disbursing process is in progress, and reverts otherwise. This is enforced using transient storage flags.
+Receives funds from any of the `FeeVault`s if and only if the disbursing process is in progress, and reverts
+otherwise. This is enforced using transient storage flags.
 
 ```solidity
 function receive() external payable

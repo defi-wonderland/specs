@@ -29,7 +29,8 @@ recipient of the remainder.
 
 ### `ShareInfo`
 
-A struct containing both a recipient and the corresponding amount of funds for a transfer. [`getRecipientsAndValues`](#getrecipientsandvalues) uses this struct to calculate the distribution of fees.
+A struct containing both a recipient and the corresponding amount of funds for a transfer.
+[`getRecipientsAndValues`](#getrecipientsandvalues) uses this struct to calculate the distribution of fees.
 
 ```solidity
 struct ShareInfo {
