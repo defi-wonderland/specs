@@ -181,6 +181,7 @@ function withdraw() external returns(uint256)
 ```
 
 - MUST revert if the vault's balance is below `minWithdrawalAmount()`.
+- MUST increment `totalProcessed` by the balance the vault had at the time of the function call.
 - MUST emit the `Withdrawal(uint256 value, address to, address from)` event.
 - MUST emit the `Withdrawal(uint256 value, address to, address from, WithdrawalNetwork withdrawalNetwork)` event.
 - MUST send the vault's total balance to the appropriate recipient.
