@@ -103,10 +103,6 @@ Invariants and validation:
 - If the calculator returns zero total, short‑circuit (no interval consumed).
 - Misconfigured vault (wrong network or recipient) reverts (consistent with current behavior).
 
-Rounding:
-
-- Any last‑wei rounding delta goes to the last `recipient` returned by the calculator.
-
 Events:
 
 - One aggregate event on each disbursement with arrays:
