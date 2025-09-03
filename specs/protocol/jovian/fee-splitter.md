@@ -91,14 +91,9 @@ Inputs to the calculator:
 
 Outputs from the calculator:
 
-- `ShareInfo[]` where each item is `{recipient, value}`. We also provision a `metadata` bytes field slot; see below.
-
-Metadata and recipients:
-
-- We’ll support an optional `metadata` bytes blob per disbursement. As agreed, we’ll `TSTORE` the metadata
-  on `FeeSplitter` right before the corresponding send, so recipients that rely on it can read it in their
-  payable fallback/receive code path. We keep `SafeCall.send()` to stay compatible with EOAs
-  and multisigs (no new interface requirement).
+- We keep `SafeCall.send()` to stay compatible with EOAs and multisigs (no new interface requirement).
+- `ShareInfo[]` where each item contains both a `recipient` to receive the fees and a `value` for the
+  corresponding share of the fees.
 
 Invariants and validation:
 
@@ -161,7 +156,6 @@ Extensibility:
 - Chains get a clean plug‑in point to customize revshare without forking `FeeSplitter`.
 - Default behavior matches the current two‑recipient superchain revshare until a chain swaps calculators.
 - Recipients don’t need to implement a new interface; we continue using `SafeCall.send()`.
-  Advanced recipients can optionally read metadata via `TSTORE` if they want more context.
 
 ## Alternatives Considered
 
@@ -185,8 +179,6 @@ Extensibility:
 Open items we decided
 
 - `withdrawalNetwork` is part of the calculator output (per‑recipient L2/L1 destination).
-- `metadata`: a bytes metadata field is supported; `FeeSplitter` `TSTORE`s it before each send
-  so recipients that want it can read it. We keep `SafeCall.send()` to avoid breaking EOAs/multisigs.
 - Failure policy: revert the whole disbursement if any payout fails.
 - Rounding: last wei goes to the last `recipient`.
 - Events: single aggregate event with arrays per disbursement.
