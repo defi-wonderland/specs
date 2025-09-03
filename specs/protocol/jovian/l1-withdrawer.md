@@ -30,7 +30,8 @@ once it has received enough funds.
 
 ### `receive`
 
-Initiates the withdrawal process to L1 once the contract holds funds equal to or above the `minWithdrawalAmount` threshold.
+Initiates the withdrawal process to L1 if and only if the contract holds funds equal to or above the
+`minWithdrawalAmount` threshold.
 
 ```solidity
 receive() external payable

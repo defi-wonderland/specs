@@ -27,11 +27,12 @@ On deployment, the constructor will:
 
 - Read and grab the current values for `recipient()`, `withdrawalNetwork()`, and `minWithdrawalAmount()` from
   each live vault (`SequencerFeeVault`, `L1FeeVault`, `BaseFeeVault`, `OperatorFeeVault`).
-  Use a `try/catch` block to handle the case where the call fails because the vault is a legacy one, and query
-  for the `RECIPIENT()` and `MIN_WITHDRAWAL_AMOUNT()` immutable values instead.
+  There can be scenarios where the vault that is being upgraded is a legacy vault and it doesn't have
+  the `WITHDRAWAL_NETWORK` function. For these cases we use a low-level staticcall and assign the default value
+  of `Types.WithdrawalNetwork.L2` when it's not possible to read this configuration.
 - Deploy a new implementation for each vault, passing the grabbed values per vault as constructor immutables,
   and also passing `L2` as the `WITHDRAWAL_NETWORK` constructor immutable.
-- Emit a single event containing the four deployed implementation addresses
+- Emit a single event containing the four deployed implementation addresses.
 
 Invariants:
 
@@ -76,7 +77,6 @@ grant it permission to call `initialize()` on each vault after proxies are upgra
      target (pre-calculated).
   3. From address(0) (NUT) or via admin, call `upgradeTo` for each vault proxy to point to the new
      implementation.
-  4. Call `FeeVaultInitializer.initializeVaults()` so it pushes the stored config into each vault via `initialize()`.
 
 ```solidity
 address public immutable FEE_VAULT_INITIALIZER;

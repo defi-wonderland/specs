@@ -1,4 +1,4 @@
-# FeeSplitter + Pluggable Revenue Share: Design Doc
+# FeeSplitter + Pluggable Revenue Shares Calculator
 
 |                    |                      |
 | ------------------ | -------------------- |
@@ -50,8 +50,6 @@ Fixed fee shares are too rigid: chains want custom splits, L1/L2 destinations, a
 
 - A safe, permissioned way to plug in chain‑specific logic.
 - A stable, minimal surface in `FeeSplitter` to keep operations simple.
-- Backwards‑compatible behavior by default that works with solutions that are already being used by
-  some chain operators.
 
 ## Proposed Solution
 
@@ -73,12 +71,12 @@ Interfaces and ownership:
 
 Inputs to the calculator:
 
-- Per‑vault amounts (to enable more complex policies). We’ll pass them; calculators can ignore.
+- Per‑vault amounts (to enable complex policies).
 
 Outputs from the calculator:
 
 - We keep `SafeCall.send()` to stay compatible with EOAs and multisigs (no new interface requirement).
-- `ShareInfo[]` where each item contains both a `recipient` to receive the fees and a `value` for the
+- `ShareInfo[]` where each item contains both a `recipient` to receive the fees and an `amount` for the
   corresponding share of the fees.
 
 Invariants and validation:
@@ -91,7 +89,7 @@ Invariants and validation:
 
 Events:
 
-- One aggregate event on each disbursement with `grossRevenue` and arrays:
+- One single aggregated `FeesDisbursed` event on each disbursement with `grossRevenue` and arrays:
   - `recipients[]`, `amounts[]`.
 
 Extensibility:
