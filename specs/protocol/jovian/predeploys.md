@@ -20,24 +20,18 @@
   - [Invariants](#invariants)
 - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
 - [FeeSplitter](#feesplitter)
-  - [Constants](#constants)
   - [Functions](#functions-1)
     - [`initialize`](#initialize)
     - [`disburseFees`](#disbursefees)
     - [`receive`](#receive)
-    - [`setRevenueShareRecipient`](#setrevenuesharerecipient)
-    - [`setRevenueRemainderRecipient`](#setrevenueremainderrecipient)
+    - [`setSharesCalculator`](#setsharescalculator)
     - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
   - [Events](#events-1)
     - [`FeesDisbursed`](#feesdisbursed)
-    - [`NoFeesCollected`](#nofeescollected)
     - [`FeesReceived`](#feesreceived)
-    - [`Initialized`](#initialized)
-    - [`RevenueShareRecipientUpdated`](#revenuesharerecipientupdated)
-    - [`RevenueRemainderRecipientUpdated`](#revenueremainderrecipientupdated)
     - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+    - [`SharesCalculatorUpdated`](#sharescalculatorupdated)
 - [Security Considerations](#security-considerations)
-- [Open Questions](#open-questions)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -90,7 +84,7 @@ sequenceDiagram
     ISharesCalculator -->> FeeSplitter: ShareInfo[]
 
     loop For each ShareInfo
-        FeeSplitter ->> RevenueShareRecipient: 7) send(shareInfo.value)
+        FeeSplitter ->> RevenueShareRecipient: 7) send(shareInfo.amount)
     end
 ```
 
@@ -224,39 +218,12 @@ network, and the `FeeSplitter` as the recipient MUST be set using the setter fun
 
 ## FeeSplitter
 
-This contract splits the ETH it receives and sends the correct amounts to two designated addresses.
+This contract splits the funds it receives from the vaults using a configured revenue shares calculator to determine
+which addresses should receive funds and in what amounts, a default [`SuperchainRevSharesCalculator`](./superchain-revshares-calc.md) is provided.
 It integrates with the fee vault system by configuring each Fee Vault to use `WithdrawalNetwork.L2` and
-setting this predeploy as the
-recipient in EVERY fee vault.
-
-The contract manages two recipients:
-
-- Revenue share recipient
-- Remainder recipient
-
-And it has two ways of dividing the revenue (considered as the total amount of ETH received by the contract
-since the last disbursement):
-
-- `grossRevenue`: The whole balance received by the contract.
-- `netRevenue`: Only the fees collected by the `SequencerFeeVault` and `BaseFeeVault`.
-
-Their percentages for each kind of revenue are managed separately.
-The contract will send the maximum amount between calculating the `grossRevenueShare` and `netRevenueShare`
-with their respective percentages to the `revenueShareRecipient`, and the remaining amount will be sent to the
-`revenueRemainderRecipient`.
+setting this predeploy as the recipient in every fee vault.
 
 The `FeeSplitter` MUST be proxied and initializable only by the `ProxyAdmin.owner()`.
-
-### Constants
-
-The gross and net revenue fee shares rates will be defined as 2.5% of the gross revenue and 15% of the net revenue.
-
-| Name                            | Value |
-| ------------------------------- | ----- |
-| `MIN_FEE_DISBURSEMENT_INTERVAL` | 1 day |
-| `BASIS_POINT_SCALE`             | 10000 |
-| `NET_FEE_SHARE_BP`              | 250   |
-| `GROSS_FEE_SHARE_BP`            | 1500  |
 
 ### Functions
 
@@ -266,33 +233,24 @@ Initializes the contract with the initial recipients and disbursement interval.
 
 ```solidity
 function initialize(
-        address payable _revenueShareRecipient,
-        address payable _revenueRemainderRecipient,
-        uint40 _feeDisbursementInterval
+        ISharesCalculator _sharesCalculator,
+        uint128 _feeDisbursementInterval
     ) external
 ```
 
 - MUST only be callable once.
-- MUST only be callable by `ProxyAdmin.owner()`.
-- MUST revert if `_revenueShareRecipient` is the zero address.
-- MUST revert if `_revenueRemainderRecipient` is the zero address.
-- MUST revert if `_feeDisbursementInterval` is less than `MIN_FEE_DISBURSEMENT_INTERVAL`.
-- MUST set `revenueShareRecipient` to `_revenueShareRecipient`.
-- MUST set `revenueRemainderRecipient` to `_revenueRemainderRecipient`.
 - MUST set `feeDisbursementInterval` to `_feeDisbursementInterval`.
 - MUST emit an `Initialized` event with the provided parameters.
 
 #### `disburseFees`
 
 Initiates the routing flow by withdrawing the fees that each of the fee vaults has collected and sends the shares
-to the appropriate addresses according to the configured percentage.
-The function MUST revert if the withdrawal is not set to `WithdrawalNetwork.L2`, or if the recipient set is not the `FeeSplitter`.
-The function MUST withdraw only if the vault balance is greater than or equal to its minimum withdrawal amount.
+to the appropriate addresses according to the amounts returned by the set calculator.
 
 When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`,
 and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions are not met.
 It MUST only withdraw if the vault balance is greater than or equal to its minimum withdrawal amount.
-In addition, it will follow a `nonReentrant` pattern, to avoid receiving balance back once the fees are being disbursed.
+In addition, it will follow a `nonReentrant` pattern using `TSORE`d flags, to avoid receiving balance back once the fees are being disbursed.
 
 ```solidity
 function disburseFees() external
@@ -303,53 +261,36 @@ function disburseFees() external
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
 - MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum
   withdrawal amount set.
-- If any fees were collected, MUST set the `lastDisbursementTime` to the current block timestamp.
+- If any fees were disbursed, MUST set the `lastDisbursementTime` to the current block timestamp.
 - MUST reset the `netRevenueShare` state variable.
-- MUST send the max between `grossRevenueShare` and `netRevenueShare` to the `revenueShareRecipient`.
-- MUST send the `grossRevenue` minus the amount sent to the `revenueShareRecipient` to the `revenueRemainderRecipient`.
-- MUST emit `NoFeesCollected` event if there are no funds available in the contract after the vaults have been withdrawn.
+- MUST revert if there are no funds available in the contract after the vaults have been withdrawn.
 - MUST emit `FeesDisbursed` event if the funds were disbursed.
 - The balance of the contract MUST be 0 after a successful execution.
 
 #### `receive`
 
-Receives ETH from any sender, but only accounts for `netRevenueShare` if the sender is either
-the `SequencerFeeVault` or `BaseFeeVault`.
+Receives funds from any of the `FeeVault`s if and only if the disbursing process is in progress, and reverts otherwise. This is enforced using transient storage flags.
 
 ```solidity
 function receive() external payable
 ```
 
-- MUST revert if on a reentrant call after `disburseFees` has been called.
-- MUST add the received amount to the `netRevenueShare` balance if the sender is either the `SequencerFeeVault` or `BaseFeeVault`.
-- MUST accept ETH from any sender.
+- MUST revert if the disbursing process is not in progress.
+- MUST accept funds from the `FeeVault`s only.
 - MUST emit a `FeesReceived` event upon successful execution.
 
-#### `setRevenueShareRecipient`
+#### `setSharesCalculator`
 
-Sets the address that should receive the configured share of fees.
+Sets the address of the calculator used to partion the fees.
 
 ```solidity
-function setRevenueShareRecipient(address _newRevenueShareRecipient) external
+function setSharesCalculator(ISharesCalculator _newSharesCalculator) external
 ```
 
-- MUST revert if `_newRevenueShareRecipient` is the zero address.
 - MUST only be callable by `ProxyAdmin.owner()`
-- MUST emit a `RevenueShareRecipientUpdated` event upon successful execution.
+- MUST emit a `SharesCalculatorUpdated` event upon successful execution.
 
 <!-- Fee share basis points are hardcoded constants; no setters are exposed. -->
-
-#### `setRevenueRemainderRecipient`
-
-Sets the address that should receive the remaining fees.
-
-```solidity
-function setRevenueRemainderRecipient(address _newRevenueRemainderRecipient) external
-```
-
-- MUST only be callable by `ProxyAdmin.owner()`
-- MUST revert if `_newRevenueRemainderRecipient` is the zero address
-- MUST emit a `RevenueRemainderRecipientUpdated` event upon successful execution.
 
 #### `setFeeDisbursementInterval`
 
@@ -359,7 +300,6 @@ Sets the minimum time, in seconds, that must pass between consecutive calls to `
 function setFeeDisbursementInterval(uint40 _newInterval) external
 ```
 
-- MUST revert if `_newInterval` is less than `MIN_FEE_DISBURSEMENT_INTERVAL`.
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit a `FeeDisbursementIntervalUpdated` event upon successful execution.
 
@@ -370,58 +310,15 @@ function setFeeDisbursementInterval(uint40 _newInterval) external
 Emitted when fees are successfully withdrawn from fee vaults and distributed to recipients.
 
 ```solidity
-event FeesDisbursed(
-        address indexed revenueShareRecipient,
-        address indexed remainderRecipient,
-        uint256 revenueShareRecipientAmount,
-        uint256 revenueRemainderRecipientAmount
-    );
-```
-
-#### `NoFeesCollected`
-
-Emitted when `disburseFees` is called and, after attempting eligible vault withdrawals, there are no funds
-available to withdraw or distribute. This can occur when all vaults lack withdrawable funds or when the
-contract holds no ETH from any other sender.
-
-```solidity
-event NoFeesCollected()
+event FeesDisbursed(ShareInfo[] shareInfo, uint256 grossRevenue)
 ```
 
 #### `FeesReceived`
 
-Emitted when the contract receives balance.
+Emitted when the contract receives funds.
 
 ```solidity
 event FeesReceived(address indexed sender, uint256 amount)
-```
-
-#### `Initialized`
-
-Emitted when the contract is initialized with its initial configuration.
-
-```solidity
-event Initialized(
-        address revenueShareRecipient,
-        address revenueRemainderRecipient,
-        uint40 feeDisbursementInterval
-    )
-```
-
-#### `RevenueShareRecipientUpdated`
-
-Emitted when the revenue share recipient is successfully updated.
-
-```solidity
-event RevenueShareRecipientUpdated(address indexed oldRevenueShareRecipient, address indexed newRevenueShareRecipient)
-```
-
-#### `RevenueRemainderRecipientUpdated`
-
-Emitted when the revenue remainder recipient is successfully updated.
-
-```solidity
-event RevenueRemainderRecipientUpdated(address indexed oldRevenueRemainderRecipient, address indexed newRevenueRemainderRecipient)
 ```
 
 #### `FeeDisbursementIntervalUpdated`
@@ -429,7 +326,15 @@ event RevenueRemainderRecipientUpdated(address indexed oldRevenueRemainderRecipi
 Emitted when the minimum time interval between consecutive fee disbursements is successfully updated.
 
 ```solidity
-event FeeDisbursementIntervalUpdated(uint256 oldFeeDisbursementInterval, uint256 newFeeDisbursementInterval)
+event FeeDisbursementIntervalUpdated(uint128 oldFeeDisbursementInterval, uint128 newFeeDisbursementInterval)
+```
+
+#### `SharesCalculatorUpdated`
+
+Emitted when the shares calculator is updated.
+
+```solidity
+event SharesCalculatorUpdated(address oldSharesCalculator, address newSharesCalculator)
 ```
 
 ## Security Considerations
