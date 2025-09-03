@@ -18,7 +18,7 @@
 
 ## Summary
 
-We provide a Superchain implementation for the `ISharesCalculator` specification. It pays the greater amount
+A Superchain implementation is provided for the `ISharesCalculator` specification. It pays the greater amount
 between 2.5% of gross revenue or 15% of net revenue (gross minus L1 fees) to the configured share recipient.
 The second configured recipient receives the full remainder via FeeSplitter's remainder send.
 
