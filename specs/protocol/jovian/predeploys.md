@@ -65,10 +65,8 @@ sequenceDiagram
     participant SequencerFeeVault
     participant FeeSplitter
     actor Caller
+    participant ISharesCalculator
     participant RevenueShareRecipient
-    participant RevenueRemainderRecipient
-
-
 
     Caller ->> FeeSplitter: 1) disburseFees()
 
@@ -88,8 +86,12 @@ sequenceDiagram
 
     Note over FeeSplitter: If any fees were collected, calculate the share and <br> remaining amounts to transfer based on the rates.
 
-    FeeSplitter ->> RevenueShareRecipient: 6) send(share)
-    FeeSplitter ->> RevenueRemainderRecipient: 7) send(total - share)
+    FeeSplitter ->> ISharesCalculator: 6) getRecipientsAndValues(per-vault revenue)
+    ISharesCalculator -->> FeeSplitter: ShareInfo[]
+
+    loop For each ShareInfo
+        FeeSplitter ->> RevenueShareRecipient: 7) send(shareInfo.value)
+    end
 ```
 
 ## FeeVault
@@ -438,7 +440,3 @@ event FeeDisbursementIntervalUpdated(uint256 oldFeeDisbursementInterval, uint256
   the new implementations and properly configuring the vaults, which introduces complexity and potential for errors.
   It is important to develop a solution, such as a contract to manage the entire upgrade process, simplifying
   the UX and reducing the risk of errors.
-
-## Open Questions
-
-- Should we block zero-address recipients during initialization?
