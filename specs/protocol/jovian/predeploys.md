@@ -46,7 +46,7 @@ The `FeeSplitter` predeploy manages the distribution of all L2 fees. Fee vault c
 minimum withdrawal amounts, withdrawal networks, and recipients without requiring new deployments.
 
 Using the `FeeSplitter` requires vaults to use `WithdrawalNetwork.L2` and set the `FeeSplitter` as their
-fee recipient. Chains MAY opt in at any time.
+fee recipient. Chain operators may opt-in at any time or they can continue using other solutions.
 
 ### Disburse Fees Flow
 
