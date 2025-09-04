@@ -270,11 +270,8 @@ function disburseFees() external
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
 - MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum
   withdrawal amount set.
-- If any fees were disbursed, MUST set the `lastDisbursementTime` to the current block timestamp.
-- MUST reset the `netRevenueShare` state variable.
-- MUST revert if there are no funds available in the contract after the vaults have been withdrawn.
+- It MUST set the `lastDisbursementTime` to the current block timestamp.
 - MUST emit `FeesDisbursed` event if the funds were disbursed.
-- The balance of the contract MUST be 0 after a successful execution.
 
 #### `receive`
 
@@ -286,7 +283,7 @@ function receive() external payable
 ```
 
 - MUST revert if the disbursing process is not in progress.
-- MUST accept funds from the `FeeVault`s only.
+- MUST accept funds from the `BaseFeeVault`, `L1FeeVault`, `SequencerFeeVault` and `OperatorFeeVault` only.
 - MUST emit a `FeesReceived` event upon successful execution.
 
 #### `setSharesCalculator`
@@ -351,7 +348,8 @@ event SharesCalculatorUpdated(address oldSharesCalculator, address newSharesCalc
 
 - Given that vault recipients can now be updated, it's important to ensure that this can only be done by the
   appropriate address, namely `ProxyAdmin.owner()`.
-- Upgrading the vaults and making them compatible with the `FeeSplitter` incurs a process that requires deploying
+- Upgrading the vaults and making them compatible with the `FeeSplitter` incurs a process
+  that requires deploying. We provide a [`FeeVaultInitializer`](./fee-vault-initializer.md) that performs this upgrade.
   the new implementations and properly configuring the vaults, which introduces complexity and potential for errors.
   It is important to develop a solution, such as a contract to manage the entire upgrade process, simplifying
   the UX and reducing the risk of errors.
