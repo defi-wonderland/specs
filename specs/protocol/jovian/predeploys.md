@@ -39,7 +39,7 @@
 
 | Name        | Address                                    | Introduced | Deprecated | Proxied |
 | ----------- | ------------------------------------------ | ---------- | ---------- | ------- |
-| FeeSplitter | 0x4200000000000000000000000000000000000029 | Jovian     | No         | Yes     |
+| FeeSplitter | 0x420000000000000000000000000000000000002B | Jovian     | No         | Yes     |
 
 The `FeeSplitter` predeploy manages the distribution of all L2 fees. Fee vault contracts (`OperatorFeeVault`,
 `BaseFeeVault`, `L1FeeVault`, and `SequencerFeeVault`) update their configuration via setter functions for
