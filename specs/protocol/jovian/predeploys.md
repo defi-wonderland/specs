@@ -267,7 +267,7 @@ function disburseFees() external
 - MUST revert if not enough time has passed since the last successful execution.
 - MUST revert if any vault has a recipient different from this contract.
 - MUST revert if any vault has a withdrawal network different from `WithdrawalNetwork.L2`.
-- MUST withdraw the vault's fees balance if the vault's balance is equal to or greater than the minimum
+- MUST revert if total fees collected are 0.
   withdrawal amount set.
 - It MUST set the `lastDisbursementTime` to the current block timestamp.
 - MUST emit `FeesDisbursed` event if the funds were disbursed.
