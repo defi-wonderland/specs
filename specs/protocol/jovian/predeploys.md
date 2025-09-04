@@ -90,9 +90,12 @@ sequenceDiagram
 
 ## FeeVault
 
-Legacy immutables are preserved for network-specific config, and storage-based overrides are enabled via getters.
-Each getter returns the storage value if set; otherwise, it falls back to the immutable. Setters write the
-storage value to opt-in to overrides. There will be a flag to track whether the storage variable was set or not.
+Legacy immutables are preserved for network-specific config, and storage-based overrides are
+enabled via getters. Each getter returns the storage value if set; otherwise, it falls back
+to the immutable. Setters write to storage to opt into overrides. A flag tracks whether the
+storage variable was set. This allows the [`FeeVaultInitializer`](./fee-vault-initializer.
+md) to set legacy (immutable) values when deploying the new fee vault implementation,
+then enables the `ProxyAdmin.owner` to override those immutables once the new configuration is ready.
 
 ### Functions
 
