@@ -60,7 +60,7 @@ sequenceDiagram
     participant FeeSplitter
     actor Caller
     participant ISharesCalculator
-    participant RevenueShareRecipient
+    participant Recipient
 
     Caller ->> FeeSplitter: 1) disburseFees()
 
@@ -84,7 +84,7 @@ sequenceDiagram
     ISharesCalculator -->> FeeSplitter: ShareInfo[]
 
     loop For each ShareInfo
-        FeeSplitter ->> RevenueShareRecipient: 7) send(shareInfo.amount)
+        FeeSplitter ->> Recipient: 7) send(shareInfo.amount)
     end
 ```
 
