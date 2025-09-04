@@ -45,16 +45,17 @@ When the initializer is deployed, it will:
 - Handle legacy vaults that may not have the `WITHDRAWAL_NETWORK` function by using a low-level staticcall and
   assigning the default value of `WithdrawalNetwork.L2` when the configuration cannot be read.
 - Deploy a new implementation for each vault, passing the retrieved values per vault as constructor
-  immutables, and passing `L2` as the `WITHDRAWAL_NETWORK` constructor immutable.
+  immutables, and passing `L2` as the `WITHDRAWAL_NETWORK` constructor immutable in case a legacy vault is
+  being upgraded.
 - Emit the `FeeVaultDeployed` event for each newly deployed vault.
 
 ```solidity
 constructor()
 ```
 
-- MUST deploy implementations whose constructor immutables match the current configuration values
-- For legacy vaults, MUST assign a default `WithdrawalNetwork.L2` value to the network configuration on the new implementation
-- For each vault, MUST emit the `FeeVaultDeployed` event
+- MUST deploy implementations whose constructor immutables match the current configuration values.
+- For legacy vaults, MUST assign a default `WithdrawalNetwork.L2` value to the network configuration on the new implementation.
+- For each vault, MUST emit the `FeeVaultDeployed` event.
 
 ## Events
 
