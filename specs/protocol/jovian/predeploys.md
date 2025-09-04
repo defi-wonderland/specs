@@ -208,6 +208,7 @@ event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, Withdrawa
 - If using the `FeeSplitter`, the withdrawal network MUST be set to `WithdrawalNetwork.L2` and the recipient
   MUST be set to the `FeeSplitter` predeploy address.
 - The balance of the vault MUST be preserved between implementation upgrades.
+- On successful `withdraw()` execution, it MUST withdraw the entire balance.
 
 ## Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)
 
