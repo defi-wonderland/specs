@@ -27,9 +27,12 @@ To deploy and activate new FeeVault implementations through NUTs, we must:
    - `FeeVaultInitializer` address to be deployed
    - Each vault implementation address to be deployed by the `FeeVaultInitializer`
 
-2. **Deploy the `FeeVaultInitializer`:** The constructor deploys the new implementations while preserving the current configuration values.
+2. **Deploy the `FeeVaultInitializer`:** The constructor deploys the new implementations while
+   preserving the current configuration values.
 
-3. **Upgrade each vault proxy:** For each vault proxy, call `upgradeTo` (or `upgradeToAndCall` if required by local policy) from the admin or via the `address(0)` NUT flow to point the proxy to the emitted implementation addresses (requires 4 separate NUTs).
+3. **Upgrade each vault proxy:** For each vault proxy, call `upgradeTo` (or `upgradeToAndCall` if required
+   by local policy) from the admin or via the `address(0)` NUT flow to point the proxy to the emitted
+   implementation addresses (requires 4 separate NUTs).
 
 ## Functions
 
