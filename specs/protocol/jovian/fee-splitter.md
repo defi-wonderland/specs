@@ -89,8 +89,8 @@ Invariants and validation:
 
 Events:
 
-- One single aggregated `FeesDisbursed` event on each disbursement with `grossRevenue` and arrays:
-  - `recipients[]`, `amounts[]`.
+- A single aggregated `FeesDisbursed` event emitted on each disbursement, containing a `ShareInfo[]` array
+  `shareInfo` and `grossRevenue`.
 
 Extensibility:
 
