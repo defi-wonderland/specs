@@ -39,7 +39,7 @@ receive() external payable
 
 - MUST initiate a withdrawal to the set recipient if and only if the `minWithdrawalAmount` threshold is reached,
   passing the `withdrawalGasLimit` and `withdrawalData` storage variables to `initiateWithdrawal`.
-- MUST emit the `FundsReceived` with the sender, amount received and balance.
+- MUST emit the `FundsReceived` event with the sender, amount received and balance.
 - MUST emit the `WithdrawalInitiated` event only if the threshold is reached.
 
 ### `setMinWithdrawalAmount`

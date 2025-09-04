@@ -93,9 +93,8 @@ sequenceDiagram
 Legacy immutables are preserved for network-specific config, and storage-based overrides are
 enabled via getters. Each getter returns the storage value if set; otherwise, it falls back
 to the immutable. Setters write to storage to opt into overrides. A flag tracks whether the
-storage variable was set. This allows the [`FeeVaultInitializer`](./fee-vault-initializer.
-md) to set legacy (immutable) values when deploying the new fee vault implementation,
-then enables the `ProxyAdmin.owner` to override those immutables once the new configuration is ready.
+storage variable was set. This allows the [`FeeVaultInitializer`](./fee-vault-initializer.md) to set legacy (immutable) values when deploying the new fee vault implementation and enables the `ProxyAdmin.owner`
+to override what is returned by the getters once the new configuration has been set.
 
 ### Functions
 
@@ -212,10 +211,10 @@ event WithdrawalNetworkUpdated(WithdrawalNetwork oldWithdrawalNetwork, Withdrawa
 
 ## Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)
 
-These contracts will inherit the changes made to the `FeeVault` contract, meaning that they will have storage
-variables and setters instead of constants for the configuration values, and they will be initializable.
+These contracts inherit the changes made to the `FeeVault` contract, meaning that they have storage
+variables and setters instead of constants for the configuration values, and they are initializable.
 
-Their configuration includes the withdrawal network and the recipient to which the fees will be sent:
+Their configuration includes the withdrawal network and the recipient to which the fees are sent:
 
 - **WithdrawalNetwork.L1**: Funds are withdrawn to an L1 address (default behavior)
 - **WithdrawalNetwork.L2**: Funds are withdrawn to an L2 address
@@ -255,10 +254,10 @@ function initialize(
 Initiates the routing flow by withdrawing the fees that each of the fee vaults has collected and sends the shares
 to the appropriate addresses according to the amounts returned by the set shares calculator.
 
-When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`,
-and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions are not met.
+When attempting to withdraw from the vaults, it checks that the withdrawal network is set to `WithdrawalNetwork.L2`,
+and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions is not met.
 It MUST only withdraw if the vault balance is greater than or equal to its minimum withdrawal amount.
-In addition, it will follow a `nonReentrant` pattern using `TSORE`d flags, to avoid receiving balance back
+In addition, it follows a `nonReentrant` pattern using `TSORE`d flags, to avoid receiving balance back
 once the fees are being disbursed.
 
 ```solidity
@@ -296,6 +295,7 @@ function setSharesCalculator(ISharesCalculator _newSharesCalculator) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit a `SharesCalculatorUpdated` event upon successful execution.
+- MUST update the `sharesCalculator` storage variable.
 
 <!-- Fee share basis points are hardcoded constants; no setters are exposed. -->
 
@@ -309,6 +309,7 @@ function setFeeDisbursementInterval(uint40 _newInterval) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit a `FeeDisbursementIntervalUpdated` event upon successful execution.
+- MUST update the `feeDisbursementInterval` storage variable.
 
 ### Events
 
