@@ -37,7 +37,8 @@ Initiates the withdrawal process to L1 if and only if the contract holds funds e
 receive() external payable
 ```
 
-- MUST start the withdrawal process ONLY if the funds in the contract are equal to or above the minimum threshold.
+- MUST initiate a withdrawal to the set recipient if and only if the `minWithdrawalAmount` threshold is reached,
+  passing the `withdrawalGasLimit` and `withdrawalData` storage variables to `initiateWithdrawal`.
 - MUST emit the `FundsReceived` with the sender, amount received and balance.
 - MUST emit the `WithdrawalInitiated` event only if the threshold is reached.
 
