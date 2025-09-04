@@ -80,7 +80,7 @@ sequenceDiagram
 
     Note over FeeSplitter: If any fees were collected, calculate the share and <br> remaining amounts to transfer based on the rates.
 
-    FeeSplitter ->> ISharesCalculator: 6) getRecipientsAndValues(per-vault revenue)
+    FeeSplitter ->> ISharesCalculator: 6) getRecipientsAndAmounts(per-vault revenue)
     ISharesCalculator -->> FeeSplitter: ShareInfo[]
 
     loop For each ShareInfo

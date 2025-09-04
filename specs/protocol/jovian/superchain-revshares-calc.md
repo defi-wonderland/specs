@@ -7,7 +7,7 @@
 - [Structs](#structs)
   - [`ShareInfo`](#shareinfo)
 - [Functions](#functions)
-  - [`getRecipientsAndValues`](#getrecipientsandvalues)
+  - [`getRecipientsAndAmounts`](#getrecipientsandamounts)
   - [`setShareRecipient`](#setsharerecipient)
   - [`setRemainderRecipient`](#setremainderrecipient)
 - [Events](#events)
@@ -30,7 +30,7 @@ recipient of the remainder.
 ### `ShareInfo`
 
 A struct containing both a recipient and the corresponding amount of funds for a transfer.
-[`getRecipientsAndValues`](#getrecipientsandvalues) uses this struct to calculate the distribution of fees.
+[`getRecipientsAndAmounts`](#getrecipientsandamounts) uses this struct to calculate the distribution of fees.
 
 ```solidity
 struct ShareInfo {
@@ -41,7 +41,7 @@ struct ShareInfo {
 
 ## Functions
 
-### `getRecipientsAndValues`
+### `getRecipientsAndAmounts`
 
 Calculates the share for each of the two recipients based on the following formula:
 
@@ -55,7 +55,7 @@ RemainderRecipientAmount = GrossRevenue - ShareRecipientAmount
 ```
 
 ```solidity
-function getRecipientsAndValues(uint256 _sequencerFeeRevenue, uint256 _baseFeeRevenue, uint256 _operatorFeeRevenue, uint256 _l1FeeRevenue) external view returns (ShareInfo[] memory shareInfo)
+function getRecipientsAndAmounts(uint256 _sequencerFeeRevenue, uint256 _baseFeeRevenue, uint256 _operatorFeeRevenue, uint256 _l1FeeRevenue) external view returns (ShareInfo[] memory shareInfo)
 ```
 
 - MUST return the correct partition of shares based on the above formula.

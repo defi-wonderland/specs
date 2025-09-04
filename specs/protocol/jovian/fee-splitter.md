@@ -65,7 +65,7 @@ High‑level flow:
 Interfaces and ownership:
 
 - `SharesCalculator` naming: use `ISharesCalculator`.
-  Method: `getRecipientsAndValues(per vault fee revenue)`.
+  Method: `getRecipientsAndAmounts(per vault fee revenue)`.
 - Admin (`ProxyAdmin.owner()`) can set the calculator via `setSharesCalculator(address)` and update the disbursement interval.
 - The default calculator is `SuperchainRevSharesCalculator` (our previous 2‑recipient, gross/net max behavior).
 
