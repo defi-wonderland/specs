@@ -109,6 +109,7 @@ function setMinWithdrawalAmount(uint256 _newMinWithdrawalAmount) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `MinWithdrawalAmountUpdated` event
+- MUST update the `_minWithdrawalAmount` storage variable
 
 #### `setRecipient`
 
@@ -120,6 +121,7 @@ function setRecipient(address _newRecipient) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `RecipientUpdated` event
+- MUST update the `_recipient` storage variable
 
 #### `setWithdrawalNetwork`
 
@@ -133,6 +135,7 @@ function setWithdrawalNetwork(WithdrawalNetwork _newWithdrawalNetwork) external
 
 - MUST only be callable by `ProxyAdmin.owner()`
 - MUST emit the `WithdrawalNetworkUpdated` event
+- MUST update the `_withdrawalNetwork` storage variable
 
 #### `recipient`
 
