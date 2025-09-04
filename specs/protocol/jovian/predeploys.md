@@ -252,7 +252,7 @@ function initialize(
 #### `disburseFees`
 
 Initiates the routing flow by withdrawing the fees that each of the fee vaults has collected and sends the shares
-to the appropriate addresses according to the amounts returned by the set calculator.
+to the appropriate addresses according to the amounts returned by the set shares calculator.
 
 When attempting to withdraw from the vaults, it will check that the withdrawal network is set to `WithdrawalNetwork.L2`,
 and that the recipient of the vault is the `FeeSplitter`. It MUST revert if any of these conditions are not met.
