@@ -4,8 +4,6 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Summary](#summary)
-- [Structs](#structs)
-  - [`ShareInfo`](#shareinfo)
 - [Functions](#functions)
   - [`getRecipientsAndAmounts`](#getrecipientsandamounts)
   - [`setShareRecipient`](#setsharerecipient)
@@ -18,26 +16,12 @@
 
 ## Summary
 
-A Superchain implementation is provided for the `ISharesCalculator` specification. It pays the greater amount
+A Superchain implementation is provided for the `ISharesCalculator` interface. It pays the greater amount
 between 2.5% of gross revenue or 15% of net revenue (gross minus L1 fees) to the configured share recipient.
-The second configured recipient receives the full remainder via FeeSplitter's remainder send.
+The second configured recipient receives the full remainder via `FeeSplitter`'s remainder send.
 
 It allows the `ProxyAdmin.owner` to configure the recipient address of the Superchain revenue share and the
 recipient of the remainder.
-
-## Structs
-
-### `ShareInfo`
-
-A struct containing both a recipient and the corresponding amount of funds for a transfer.
-[`getRecipientsAndAmounts`](#getrecipientsandamounts) uses this struct to calculate the distribution of fees.
-
-```solidity
-struct ShareInfo {
-    address payable recipient;
-    uint256 amount;
-}
-```
 
 ## Functions
 
@@ -58,7 +42,8 @@ RemainderRecipientAmount = GrossRevenue - ShareRecipientAmount
 function getRecipientsAndAmounts(uint256 _sequencerFeeRevenue, uint256 _baseFeeRevenue, uint256 _operatorFeeRevenue, uint256 _l1FeeRevenue) external view returns (ShareInfo[] memory shareInfo)
 ```
 
-- MUST return the correct partition of shares based on the above formula.
+- MUST return the correct partition of shares for each of the `shareRecipient` and `remainderRecipient` addresses
+  based on the above formula.
 
 ### `setShareRecipient`
 
