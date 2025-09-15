@@ -7,12 +7,14 @@
 - [Functions](#functions)
   - [`receive`](#receive)
   - [`setMinDepositAmount`](#setmindepositamount)
-  - [`setRecipient`](#setrecipient)
+  - [`setL2Recipient`](#setl2recipient)
+  - [`setGasLimit`](#setgaslimit)
 - [Events](#events)
-  - [`DepositInitiated`](#depositinitiated)
+  - [`FeesDeposited`](#feesdeposited)
   - [`MinDepositAmountUpdated`](#mindepositamountupdated)
-  - [`RecipientUpdated`](#recipientupdated)
+  - [`L2RecipientUpdated`](#l2recipientupdated)
   - [`FundsReceived`](#fundsreceived)
+  - [`GasLimitUpdated`](#gaslimitupdated)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -32,7 +34,7 @@ receive() external payable
 
 - MUST initiate a deposit transaction to the recipient on OP Mainnet if the `minDepositAmount` threshold is reached.
 - MUST emit the `FundsReceived` event with the sender, amount received, and the current balance of the contract.
-- MUST emit the `DepositInitiated` event only if the threshold is reached.
+- MUST emit the `FeesDeposited` event only if the threshold is reached.
 
 ### `setMinDepositAmount`
 
@@ -46,26 +48,38 @@ function setMinDepositAmount(uint256 _newMinDepositAmount) external
 - MUST emit the `MinDepositAmountUpdated` event.
 - MUST update the `minDepositAmount` storage variable.
 
-### `setRecipient`
+### `setL2Recipient`
 
 Updates the address that will receive the funds on OP Mainnet during the deposit process.
 
 ```solidity
-function setRecipient(address _newRecipient) external
+function setL2Recipient(address _newRecipient) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`.
 - MUST emit the `RecipientUpdated` event.
-- MUST update the `recipient` storage variable.
+- MUST update the `l2Recipient` storage variable.
+
+### `setGasLimit`
+
+Updates the gas limit used for the deposit transaction during the fees deposit process.
+
+```solidity
+function setGasLimit(uint64 _gasLimit) external
+```
+
+- MUST only be callable by `ProxyAdmin.owner()`.
+- MUST emit the `GasLimitUpdated` event.
+- MUST update the `gasLimit` storage variable.
 
 ## Events
 
-### `DepositInitiated`
+### `FeesDeposited`
 
 Emitted when a deposit to OP Mainnet is initiated.
 
 ```solidity
-event DepositInitiated(address indexed recipient, uint256 amount)
+event FeesDeposited(address indexed recipient, uint256 amount)
 ```
 
 ### `MinDepositAmountUpdated`
@@ -76,12 +90,12 @@ Emitted when the minimum deposit amount before the deposit process can be initia
 event MinDepositAmountUpdated(uint256 oldMinDepositAmount, uint256 newMinDepositAmount)
 ```
 
-### `RecipientUpdated`
+### `L2RecipientUpdated`
 
 Emitted when the recipient of the funds on OP Mainnet is updated.
 
 ```solidity
-event RecipientUpdated(address oldRecipient, address newRecipient)
+event L2RecipientUpdated(address oldL2Recipient, address newL2Recipient)
 ```
 
 ### `FundsReceived`
@@ -90,4 +104,12 @@ Emitted whenever funds are received.
 
 ```solidity
 event FundsReceived(address indexed sender, uint256 amount, uint256 newBalance)
+```
+
+### `GasLimitUpdated`
+
+Emitted when the gas limit for the deposit transaction is updated.
+
+```solidity
+event GasLimitUpdated(uint64 oldGasLimit, uint64 newGasLimit)
 ```
