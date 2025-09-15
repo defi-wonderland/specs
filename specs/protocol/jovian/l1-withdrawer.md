@@ -9,13 +9,11 @@
   - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
   - [`setRecipient`](#setrecipient)
   - [`setWithdrawalGasLimit`](#setwithdrawalgaslimit)
-  - [`setWithdrawalData`](#setwithdrawaldata)
 - [Events](#events)
   - [`WithdrawalInitiated`](#withdrawalinitiated)
   - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
   - [`RecipientUpdated`](#recipientupdated)
   - [`WithdrawalGasLimitUpdated`](#withdrawalgaslimitupdated)
-  - [`WithdrawalDataUpdated`](#withdrawaldataupdated)
   - [`FundsReceived`](#fundsreceived)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
@@ -38,7 +36,7 @@ receive() external payable
 ```
 
 - MUST initiate a withdrawal to the set recipient if and only if the `minWithdrawalAmount` threshold is reached,
-  passing the `withdrawalGasLimit` and `withdrawalData` storage variables to `initiateWithdrawal`.
+  passing the `withdrawalGasLimit` variable to `initiateWithdrawal`.
 - MUST emit the `FundsReceived` event with the sender, amount received and balance.
 - MUST emit the `WithdrawalInitiated` event only if the threshold is reached.
 
@@ -78,18 +76,6 @@ function setWithdrawalGasLimit(uint256 _newWithdrawalGasLimit) external
 - MUST emit the `WithdrawalGasLimitUpdated` event.
 - MUST update the `withdrawalGasLimit` storage variable.
 
-### `setWithdrawalData`
-
-Updates the additional calldata sent to the funds recipient on L1.
-
-```solidity
-function setWithdrawalData(bytes memory _newWithdrawalData) external
-```
-
-- MUST only be callable by `ProxyAdmin.owner()`.
-- MUST emit the `WithdrawalDataUpdated` event.
-- MUST update the `withdrawalData` storage variable.
-
 ## Events
 
 ### `WithdrawalInitiated`
@@ -124,17 +110,9 @@ Emitted when the withdrawal gas limit on L1 is updated.
 event WithdrawalGasLimitUpdated(uint256 oldWithdrawalGasLimit, uint256 newWithdrawalGasLimit)
 ```
 
-### `WithdrawalDataUpdated`
-
-Emitted when the additional calldata sent as part of the withdrawal is updated.
-
-```solidity
-event WithdrawalDataUpdated(bytes oldWithdrawalData, bytes newWithdrawalData)
-```
-
 ### `FundsReceived`
 
-Emitted whenever funds are received but the balance in the contract is below the withdrawal threshold.
+Emitted whenever funds are received.
 
 ```solidity
 event FundsReceived(address indexed sender, uint256 amount, uint256 newBalance)
