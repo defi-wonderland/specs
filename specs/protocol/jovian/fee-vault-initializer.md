@@ -4,7 +4,6 @@
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
 
 - [Summary](#summary)
-- [Upgrade Path](#upgrade-path)
 - [Functions](#functions)
   - [`constructor`](#constructor)
 - [Events](#events)
@@ -17,22 +16,6 @@
 A contract responsible for deploying new vault implementations while preserving the current vault configuration.
 It is intended to be used in a Network Upgrade Transaction (NUT) series context to upgrade each vault to the
 new implementation once deployed.
-
-## Upgrade Path
-
-To deploy and activate new FeeVault implementations through NUTs, we must:
-
-1. **Precalculate:**
-
-   - `FeeVaultInitializer` address to be deployed
-   - Each vault implementation address to be deployed by the `FeeVaultInitializer`
-
-2. **Deploy the `FeeVaultInitializer`:** The constructor deploys the new implementations while
-   preserving the current configuration values.
-
-3. **Upgrade each vault proxy:** For each vault proxy, call `upgradeTo` (or `upgradeToAndCall` if required
-   by local policy) from the admin or via the `address(0)` NUT flow to point the proxy to the emitted
-   implementation addresses (requires 4 separate NUTs).
 
 ## Functions
 
