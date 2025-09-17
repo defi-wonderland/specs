@@ -20,7 +20,9 @@
 
 ## Summary
 
-An optional periphery contract on L1 that acts as a recipient of the fees sent by the `L1Withdrawer` contract on L2. Its purpose is to perform a deposit transaction to OP Mainnet with those fees via the `OptimismPortal` once it has received enough funds.
+A periphery contract on L1 that acts as a recipient of fees sent by the `L1Withdrawer` contract on L2. Its purpose is to perform a deposit transaction to OP Mainnet with those fees via the `OptimismPortal` once it has received sufficient funds.
+
+It's a proxied contract with the owner of the `ProxyAdmin` as the address allowed to call the setter functions.
 
 ## Functions
 
