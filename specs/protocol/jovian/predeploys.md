@@ -332,7 +332,7 @@ function setSharesCalculator(ISharesCalculator _newSharesCalculator) external
 Sets the minimum time, in seconds, that must pass between consecutive calls to `disburseFees`.
 
 ```solidity
-function setFeeDisbursementInterval(uint40 _newInterval) external
+function setFeeDisbursementInterval(uint128 _newInterval) external
 ```
 
 - MUST only be callable by `ProxyAdmin.owner()`
