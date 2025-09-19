@@ -227,6 +227,11 @@ network, and the `FeeSplitter` as the recipient MUST be set using the setter fun
 This contract splits the funds it receives from the vaults using a configured `ISharesCalculator` compatible revenue shares calculator to determine which addresses should receive funds and in what amounts by querying `ISharesCalculator.getRecipientsAndAmounts`:
 
 ```solidity
+struct ShareInfo {
+  address payable recipient;
+  uint256 amount;
+}
+
 function getRecipientsAndAmounts(
         uint256 _sequencerFeeVaultBalance,
         uint256 _baseFeeVaultBalance,
