@@ -24,6 +24,33 @@ A periphery contract on L1 that acts as a recipient of fees sent by the `L1Withd
 
 It's a proxied contract with the owner of the `ProxyAdmin` as the address allowed to call the setter functions.
 
+The following shows how fees flow through the `L1Withdrawer` and `FeesDepositor` during the disbursement process once
+they have been pulled from the vaults on L2:
+
+```mermaid
+flowchart LR
+    subgraph SourceChain["OP Stack Chain"]
+        FS[FeeSplitter]
+        L1W[L1Withdrawer]
+    end
+
+    subgraph L1["L1 (Ethereum)"]
+        OP1["OptimismPortal<br/>(OP Stack Chain)"]
+        FD[FeesDepositor]
+        OP2["OptimismPortal<br/>(OP Mainnet)"]
+    end
+
+    subgraph TargetChain["OP Mainnet"]
+        L2R[L2 Recipient]
+    end
+
+    FS -->|"1. Send fees"| L1W
+    L1W -->|"2. Withdraw to L1<br/>(if threshold is reached)"| OP1
+    OP1 -->|"3. Send fees"| FD
+    FD -->|"4. Deposit to OP Mainnet<br/>(if threshold is reached)"| OP2
+    OP2 -->|"5. Execute on OP Mainnet"| L2R
+```
+
 ## Functions
 
 ### `receive`
