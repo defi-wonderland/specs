@@ -96,7 +96,8 @@ sequenceDiagram
 
 ## FeeVault
 
-Legacy getters are preserved, but default to the newly added storage variables now.
+Legacy getters are preserved as part of the interface, but default to the newly added storage variables, this means that
+now both the legacy and the new storage variables values will match.
 
 The `withdraw` function returns the value that was withdrawn from the vault at the time of the function call.
 
