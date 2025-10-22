@@ -4,38 +4,40 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
-- [Overview](#overview)
-  - [Disburse Fees Flow](#disburse-fees-flow)
-- [FeeVault](#feevault)
-  - [Functions](#functions)
-    - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
-    - [`setRecipient`](#setrecipient)
-    - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
-    - [`recipient`](#recipient)
-    - [`minWithdrawalAmount`](#minwithdrawalamount)
-    - [`withdrawalNetwork`](#withdrawalnetwork)
-    - [`withdraw`](#withdraw)
-  - [Events](#events)
-    - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
-    - [`RecipientUpdated`](#recipientupdated)
-    - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
-  - [Invariants](#invariants)
-- [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
-- [FeeSplitter](#feesplitter)
-  - [Functions](#functions-1)
-    - [`initialize`](#initialize)
-    - [`disburseFees`](#disbursefees)
-    - [`receive`](#receive)
-    - [`setSharesCalculator`](#setsharescalculator)
-    - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
-  - [Events](#events-1)
-    - [`FeesDisbursed`](#feesdisbursed)
-    - [`FeesReceived`](#feesreceived)
-    - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
-    - [`SharesCalculatorUpdated`](#sharescalculatorupdated)
-- [Security Considerations](#security-considerations)
+- [Predeploys](#predeploys)
+  - [Overview](#overview)
+    - [Disburse Fees Flow](#disburse-fees-flow)
+  - [FeeVault](#feevault)
+    - [Functions](#functions)
+      - [`setMinWithdrawalAmount`](#setminwithdrawalamount)
+      - [`setRecipient`](#setrecipient)
+      - [`setWithdrawalNetwork`](#setwithdrawalnetwork)
+      - [`recipient`](#recipient)
+      - [`minWithdrawalAmount`](#minwithdrawalamount)
+      - [`withdrawalNetwork`](#withdrawalnetwork)
+      - [`withdraw`](#withdraw)
+    - [Events](#events)
+      - [`MinWithdrawalAmountUpdated`](#minwithdrawalamountupdated)
+      - [`RecipientUpdated`](#recipientupdated)
+      - [`WithdrawalNetworkUpdated`](#withdrawalnetworkupdated)
+    - [Invariants](#invariants)
+  - [Fee Vaults (SequencerFeeVault, L1FeeVault, BaseFeeVault, OperatorFeeVault)](#fee-vaults-sequencerfeevault-l1feevault-basefeevault-operatorfeevault)
+  - [FeeSplitter](#feesplitter)
+    - [Functions](#functions-1)
+      - [`initialize`](#initialize)
+      - [`disburseFees`](#disbursefees)
+      - [`receive`](#receive)
+      - [`setSharesCalculator`](#setsharescalculator)
+      - [`setFeeDisbursementInterval`](#setfeedisbursementinterval)
+    - [Events](#events-1)
+      - [`FeesDisbursed`](#feesdisbursed)
+      - [`FeesReceived`](#feesreceived)
+      - [`FeeDisbursementIntervalUpdated`](#feedisbursementintervalupdated)
+      - [`SharesCalculatorUpdated`](#sharescalculatorupdated)
+  - [Security Considerations](#security-considerations)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 
@@ -141,42 +143,33 @@ function setWithdrawalNetwork(WithdrawalNetwork _newWithdrawalNetwork) external
 
 #### `recipient`
 
-Returns the current recipient address, preferring the storage override if set; otherwise falls back to the
-legacy immutable value.
+Returns the current recipient address from storage.
 
 ```solidity
 function recipient() external view returns (address)
 ```
 
-- MUST check the flag to see if the storage var was set or not.
-- MUST return the storage-configured recipient if a storage override has been set via `setRecipient`.
-- MUST otherwise return the legacy immutable recipient value.
+- MUST return the recipient address from storage.
 
 #### `minWithdrawalAmount`
 
-Returns the current minimum withdrawal amount, preferring the storage override if set; otherwise falls back to
-the legacy immutable value.
+Returns the current minimum withdrawal amount from storage.
 
 ```solidity
 function minWithdrawalAmount() external view returns (uint256)
 ```
 
-- MUST check the flag to see if the storage var was set or not.
-- MUST return the storage-configured minimum if a storage override has been set via `setMinWithdrawalAmount`.
-- MUST otherwise return the legacy immutable minimum withdrawal amount.
+- MUST return the minimum withdrawal amount from storage.
 
 #### `withdrawalNetwork`
 
-Returns the current withdrawal network, preferring the storage override if set; otherwise falls back to the
-legacy immutable value.
+Returns the current withdrawal network from storage.
 
 ```solidity
 function withdrawalNetwork() external view returns (WithdrawalNetwork)
 ```
 
-- MUST check the flag to see if the storage var was set or not.
-- MUST return the storage-configured network if a storage override has been set via `setWithdrawalNetwork`.
-- MUST otherwise return the legacy immutable withdrawal network.
+- MUST return the withdrawal network from storage.
 
 #### `withdraw`
 
@@ -276,7 +269,7 @@ The `FeeSplitter` MUST be proxied and initializable only by the `ProxyAdmin.owne
 
 #### `initialize`
 
-Initializes the contract with the initial recipients and sets disbursement interval to `1 days` as default.
+Initializes the contract with the shares calculator and sets disbursement interval to `1 days` as default.
 
 ```solidity
 function initialize(
@@ -285,8 +278,9 @@ function initialize(
 ```
 
 - MUST only be callable once.
-- MUST set `feeDisbursementInterval` to `_feeDisbursementInterval`.
-- MUST emit an `Initialized` event with the provided parameters.
+- MUST set `sharesCalculator` to `_sharesCalculator`.
+- MUST set `feeDisbursementInterval` to `1 days`.
+- MUST emit an `Initialized(uint8 version)` event.
 
 #### `disburseFees`
 
@@ -316,7 +310,7 @@ Receives funds from any of the `FeeVault`s if and only if the disbursing process
 otherwise. This is enforced using transient storage flags.
 
 ```solidity
-function receive() external payable
+receive() external payable
 ```
 
 - MUST revert if the disbursing process is not in progress.

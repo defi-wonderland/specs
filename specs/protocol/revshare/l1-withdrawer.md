@@ -22,8 +22,9 @@
 ## Summary
 
 An optional periphery contract designed to be used as a recipient for a portion of the shares sent
-by the `FeeSplitter`. Its sole purpose is to initiate a withdrawal to L1 via `L2ToL1MessagePasser.initiateWithdrawal`
-once it has received enough funds.
+by the `FeeSplitter`. Its sole purpose is to initiate a withdrawal to L1 via `L2CrossDomainMessenger.sendMessage()`
+once it has received enough funds. Using the CrossDomainMessenger allows failed withdrawal messages to be replayed,
+providing better reliability than direct message passing.
 
 ## Functions
 
@@ -37,7 +38,7 @@ receive() external payable
 ```
 
 - MUST initiate a withdrawal to the set recipient if and only if the `minWithdrawalAmount` threshold is reached,
-  passing the `withdrawalGasLimit` variable to `initiateWithdrawal`.
+  using `L2CrossDomainMessenger.sendMessage()` with the contract's entire balance and the configured `withdrawalGasLimit`.
 - MUST emit the `FundsReceived` event with the sender, amount received and balance.
 - MUST emit the `WithdrawalInitiated` event only if the threshold is reached.
 
