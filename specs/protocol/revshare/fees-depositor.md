@@ -66,7 +66,8 @@ for ensuring failed transactions can be replayed, preventing funds from being lo
 receive() external payable
 ```
 
-- MUST initiate a deposit transaction to the recipient on OP Mainnet via `CrossDomainMessenger.sendMessage()` if the `minDepositAmount` threshold is reached.
+- MUST initiate a deposit transaction to the recipient on OP Mainnet via `CrossDomainMessenger.sendMessage()` if the
+  `minDepositAmount` threshold is reached.
 - MUST emit the `FundsReceived` event with the sender, amount received, and the current balance of the contract.
 - MUST emit the `FeesDeposited` event only if the threshold is reached.
 
