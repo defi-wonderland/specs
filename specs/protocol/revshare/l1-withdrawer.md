@@ -38,7 +38,11 @@ receive() external payable
 ```
 
 - MUST initiate a withdrawal to the set recipient if and only if the `minWithdrawalAmount` threshold is reached,
-  using `L2CrossDomainMessenger.sendMessage()` with the contract's entire balance and the configured `withdrawalGasLimit`.
+  using `L2CrossDomainMessenger.sendMessage()` with the following parameters:
+  - `_target`: the configured `recipient` address
+  - `_message`: empty bytes (`hex""`) for direct ETH transfer
+  - `_minGasLimit`: the configured `withdrawalGasLimit` value
+  - `msg.value`: the contract's entire balance
 - MUST emit the `FundsReceived` event with the sender, amount received and balance.
 - MUST emit the `WithdrawalInitiated` event only if the threshold is reached.
 

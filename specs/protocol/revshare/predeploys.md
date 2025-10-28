@@ -94,8 +94,8 @@ sequenceDiagram
 
 ## FeeVault
 
-Legacy getters are preserved as part of the interface, but default to the newly added storage variables, this means that
-now both the legacy and the new storage variables values will match.
+Legacy uppercase getters (e.g., `MIN_WITHDRAWAL_AMOUNT()`, `RECIPIENT()`, `WITHDRAWAL_NETWORK()`) are preserved for
+backward compatibility but simply return the values from the storage variables.
 
 The `withdraw` function returns the value that was withdrawn from the vault at the time of the function call.
 
@@ -278,7 +278,7 @@ function initialize(
 - MUST only be callable once.
 - MUST set `sharesCalculator` to `_sharesCalculator`.
 - MUST set `feeDisbursementInterval` to `1 days`.
-- MUST emit an `Initialized(uint8 version)` event.
+- Emits an `Initialized(uint8 version)` event via OpenZeppelin's `initializer` modifier.
 
 #### `disburseFees`
 
