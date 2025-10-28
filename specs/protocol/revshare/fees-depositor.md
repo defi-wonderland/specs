@@ -2,20 +2,22 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
-- [Summary](#summary)
-- [Functions](#functions)
-  - [`receive`](#receive)
-  - [`setMinDepositAmount`](#setmindepositamount)
-  - [`setL2Recipient`](#setl2recipient)
-  - [`setGasLimit`](#setgaslimit)
-- [Events](#events)
-  - [`FeesDeposited`](#feesdeposited)
-  - [`MinDepositAmountUpdated`](#mindepositamountupdated)
-  - [`L2RecipientUpdated`](#l2recipientupdated)
-  - [`FundsReceived`](#fundsreceived)
-  - [`GasLimitUpdated`](#gaslimitupdated)
+- [FeesDepositor](#feesdepositor)
+  - [Summary](#summary)
+  - [Functions](#functions)
+    - [`receive`](#receive)
+    - [`setMinDepositAmount`](#setmindepositamount)
+    - [`setL2Recipient`](#setl2recipient)
+    - [`setGasLimit`](#setgaslimit)
+  - [Events](#events)
+    - [`FeesDeposited`](#feesdeposited)
+    - [`MinDepositAmountUpdated`](#mindepositamountupdated)
+    - [`L2RecipientUpdated`](#l2recipientupdated)
+    - [`FundsReceived`](#fundsreceived)
+    - [`GasLimitUpdated`](#gaslimitupdated)
 
 <!-- END doctoc generated TOC please keep comment here to allow auto update -->
 

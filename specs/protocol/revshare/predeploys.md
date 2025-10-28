@@ -278,6 +278,7 @@ function initialize(
 - MUST only be callable once.
 - MUST set `sharesCalculator` to `_sharesCalculator`.
 - MUST set `feeDisbursementInterval` to `1 days`.
+- MUST set `lastDisbursementTime` to `block.timestamp`.
 - Emits an `Initialized(uint8 version)` event via OpenZeppelin's `initializer` modifier.
 
 #### `disburseFees`
