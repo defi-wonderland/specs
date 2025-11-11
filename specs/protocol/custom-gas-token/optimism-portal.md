@@ -2,6 +2,7 @@
 
 <!-- START doctoc generated TOC please keep comment here to allow auto update -->
 <!-- DON'T EDIT THIS SECTION, INSTEAD RE-RUN doctoc TO UPDATE -->
+
 **Table of Contents**
 
 - [Definitions](#definitions)
@@ -27,9 +28,12 @@ which is then assigned to the contract's `isCustomGasToken` state variable.
 
 ## Rationale
 
-The OptimismPortal's ETH-related logic must revert when Custom Gas Token mode is enabled to prevent ETH from
+The OptimismPortal's deposit logic must revert when Custom Gas Token mode is enabled to prevent ETH from
 acting as the native asset. Since the client side does not discern native asset supply creation, allowing
 ETH deposits would incorrectly imply that it can be minted in the chain.
+
+The `donateETH` function is permitted to accept ETH even in Custom Gas Token mode, but such donations
+cannot be withdrawn through normal withdrawal mechanisms due to the restrictions on value-bearing withdrawals.
 
 ## Function Specification
 
@@ -39,7 +43,8 @@ Returns true if the gas token is a custom gas token, false otherwise.
 
 ### donateETH
 
-- MUST revert if `isCustomGasToken()` returns `true` and `msg.value > 0`.
+- Accepts ETH value without triggering a deposit to L2.
+- When `isCustomGasToken()` returns `true`, donated ETH will remain in the contract but cannot be withdrawn through normal withdrawal mechanisms.
 
 ### depositTransaction
 
