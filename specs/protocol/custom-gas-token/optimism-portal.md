@@ -28,9 +28,10 @@ its own local storage for this flag.
 
 ## Rationale
 
-The OptimismPortal's deposit logic must revert when Custom Gas Token mode is enabled to prevent ETH from
-acting as the native asset. Since the client side does not discern native asset supply creation, allowing
-ETH deposits would incorrectly imply that it can be minted in the chain.
+The OptimismPortal's deposit logic must revert only for deposits with ETH value when Custom Gas Token mode
+is enabled to prevent ETH from acting as the native asset. Deposits without value (msg.value == 0) are
+permitted. Since the client side does not discern native asset supply creation, allowing ETH deposits with
+value would incorrectly imply that ETH can be minted in the chain.
 
 The `donateETH` function is permitted to accept ETH even in Custom Gas Token mode, but such donations
 cannot be withdrawn through normal withdrawal mechanisms due to the restrictions on value-bearing withdrawals.
