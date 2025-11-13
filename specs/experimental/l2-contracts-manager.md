@@ -144,7 +144,7 @@ function upgrade() external;
 #### Behavior
 
 - MUST always succeed when called via `delegatecall` by `L2ProxyAdmin`.
-- MUST gather network-specific configuration values from existing predeploys before performing upgrades. These values are read from the current predeploy implementations and used to initialize or configure the upgraded implementations.
+- MUST gather all network-specific configuration values from existing predeploys before performing upgrades. These values are read from the current predeploy implementations and used to initialize or configure the upgraded implementations.
 - MUST upgrade ALL predeploys that are supported by the target hard fork, including:
   - Predeploys with unchanged implementations (they will be upgraded to the same implementation address).
   - Predeploys with feature-flagged implementations when executed in alphanets or testing environments.
