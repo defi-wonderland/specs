@@ -43,7 +43,6 @@ graph TD
     E -->|delegatecall| F[L2ContractsManager.upgrade]
     F -->|gather_config| G[Existing Predeploys]
     F -->|upgradeTo/upgradeToAndCall| H[All Predeploys]
-    B -.->|Predeploy addresses</br>passed to L2CM| F
 ```
 
 1. Implementation contracts are deployed via the `ConditionalDeployer` contract using the NUT bundle, ensuring deterministic addresses.
