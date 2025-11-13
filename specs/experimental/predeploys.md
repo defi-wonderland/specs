@@ -12,10 +12,7 @@
     - [Impact](#impact-1)
 - [Functions](#functions)
   - [`upgradePredeploys`](#upgradepredeploys)
-  - [`setProxyType`](#setproxytype)
   - [`setImplementationName`](#setimplementationname)
-  - [`setAddressManager`](#setaddressmanager)
-  - [`setAddress`](#setaddress)
   - [`setUpgrading`](#setupgrading)
   - [`isUpgrading`](#isupgrading)
   - [`getProxyImplementation`](#getproxyimplementation)
@@ -31,7 +28,7 @@
 
 ## L2ProxyAdmin
 
-The `ProxyAdmin` predeploy at `0x4200000000000000000000000000000000000018` is upgraded with a new L2-specific implementation, `L2ProxyAdmin`, that supports predeploy upgrades during hard forks. The `L2ProxyAdmin` contract inherits from the universal `ProxyAdmin` contract and adds the `upgradePredeploys()` function, which is called during a hard fork activation block by the `DEPOSITOR_ACCOUNT` to upgrade all predeploys in a single transaction.
+The `ProxyAdmin` predeploy at `0x4200000000000000000000000000000000000018` is upgraded with a new L2-specific implementation, `L2ProxyAdmin`, that supports predeploy upgrades during hard forks. The `L2ProxyAdmin` contract adds the `upgradePredeploys()` function, which is called during a hard fork activation block by the `DEPOSITOR_ACCOUNT` to upgrade all predeploys in a single transaction.
 
 The `L2ProxyAdmin` implementation also removes unused logic from the universal `ProxyAdmin` contract. Previously, the L2 ProxyAdmin used the same "universal" implementation deployed on L1, which supports multiple proxy types (ERC1967, ChugSplash, and ResolvedDelegate) and includes proxy type validation logic. Since all L2 predeploys use ERC1967 proxies exclusively, `L2ProxyAdmin` overrides functions related to legacy proxy types to remove their support while keeping the same public interface for backward compatibility. Setters for configuration values regarding proxy types are overridden to result in no-ops, and getters are overridden to either return default values or values that are relevant in the ERC1967 context only.
 
@@ -67,37 +64,10 @@ function upgradePredeploys(address _l2ContractsManager) external;
 - MUST perform a single `delegatecall` to `_l2ContractsManager`
 - MUST never revert
 
-### `setProxyType`
-
-```solidity
-function setProxyType(address _address, ProxyType _type) external;
-```
-
-- MUST NOT revert
-- MUST NOT modify any state
-
 ### `setImplementationName`
 
 ```solidity
 function setImplementationName(address _address, string memory _name) external;
-```
-
-- MUST NOT revert
-- MUST NOT modify any state
-
-### `setAddressManager`
-
-```solidity
-function setAddressManager(IAddressManager _address) external;
-```
-
-- MUST NOT revert
-- MUST NOT modify any state
-
-### `setAddress`
-
-```solidity
-function setAddress(string memory _name, address _address) external;
 ```
 
 - MUST NOT revert
