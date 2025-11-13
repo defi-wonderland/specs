@@ -47,7 +47,7 @@ to determine the Custom Gas Token mode status.
 
 ### donateETH
 
-- MUST revert if Custom Gas Token mode is active and `msg.value > 0`.
+- Accepts ETH value without triggering a deposit to L2.
 
 ### depositTransaction
 
