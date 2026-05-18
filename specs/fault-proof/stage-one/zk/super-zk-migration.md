@@ -81,10 +81,14 @@ The following steps are executed in every migration path via `OPCMv2.upgrade()`:
    to call `rootClaimByChainId` on `SuperZKDG` games during withdrawal verification. If this was
    already shipped at initial `SuperZKDG` launch, this step is a no-op.
 
-6. **Reinitialize `AnchorStateRegistry`.** An ASR reinitializer sets the new anchor root to a
-   valid super root for `SUPER_ZK_GAME_TYPE`. This is required because the previous anchor root
-   committed to an output root (SFDG/SPDG) and is not a valid starting point for `SuperZKDG`
-   parent validation.
+6. **Reinitialize `AnchorStateRegistry` (no-op for these paths).** Both SFDG and SPDG already
+   commit to super roots — the same `bytes32` hash format that `SuperZKDG` uses as its starting
+   state. The existing anchor root is therefore a valid starting point for `SuperZKDG` parent
+   validation without modification. No ASR reinitializer is required for Path A, B, or C.
+
+   > **Note:** An ASR reinitializer would only be necessary when migrating from a classic
+   > `FaultDisputeGame` (which commits to a per-chain output root rather than a super root). That
+   > path is not in scope here.
 
 ## Path A: SFDG → SuperZKDG (Isolated Chain)
 
@@ -115,19 +119,19 @@ Multiple chains (e.g., OPM + Unichain) sharing a single `DisputeGameFactory`,
 `AnchorStateRegistry`, and `ETHLockbox` under the interop model.
 
 Execute [Common Mechanics](#common-mechanics). Because multiple chains share the same
-`AnchorStateRegistry`, the reinitializer in step 6 may be triggered multiple times (once per
-chain processed by `OPCMv2.upgrade()`).
+`AnchorStateRegistry`, steps 4 and 5 (updating the respected game type and the `isSuperGame`
+allowlist) affect the shared ASR and must be applied exactly once regardless of how many chains
+are in the interop set.
 
-### Shared Infrastructure and Idempotent Reinitialization
+### Shared Infrastructure and Idempotent Upgrades
 
 `OPCMv2.upgrade()` was designed to process one chain at a time. When applied to an interop set,
-the shared `AnchorStateRegistry` reinitializer fires once per chain in the set. Two approaches
-are available:
+the shared `AnchorStateRegistry` upgrade steps may be triggered multiple times (once per chain
+processed). Two approaches are available:
 
-Option 1 — Idempotent reinitializer: Design the ASR reinitializer so that applying it a second
-time (for the second chain in the set) is a safe no-op. This requires careful handling of
-OpenZeppelin's `reinitializer(uint8)` guard, which blocks re-entry by default. A stateful check
-(e.g., "already upgraded to this version") can substitute for the OZ guard.
+Option 1 — Idempotent operations: Design the ASR update steps so that applying them a second time
+for a subsequent chain in the set is a safe no-op (e.g., a stateful check such as "already set to
+this game type").
 
 Option 2 — Multi-chain bulk function: Introduce a function that accepts multiple `SystemConfig`
 addresses, upgrades shared infrastructure once, and handles per-chain state in a loop. This
@@ -136,3 +140,6 @@ follows the existing bulk migration patterns but is scoped to the SFDG → Super
 The choice between these options is left to the OPCM implementation. Either approach MUST
 guarantee that shared infrastructure (ASR, ETHLockbox) is updated exactly once, regardless of
 how many chains are in the interop set.
+
+Because SFDG already commits to super roots, no ASR anchor reinitialization is required (see
+step 6 in [Common Mechanics](#common-mechanics)).

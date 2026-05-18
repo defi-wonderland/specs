@@ -140,6 +140,12 @@ timestamp. Computed as `hashSuperRootProof(superRootProof)`. The `rootClaim` of 
 An ABI-encoded struct that is the preimage of a super root. It carries the timestamp and the list
 of per-chain output roots that the super root commits to. Its hash MUST equal `rootClaim`.
 
+The `(chainId, outputRoot)` pairs MUST be sorted in strictly ascending order by `chainId`.
+Encoding the same logical chain set in a different order produces a different hash and therefore a
+different super root. Proposers who submit an unsorted preimage will fail the
+`hashSuperRootProof(decode(extraData.superRootProof)) == rootClaim()` check in `initialize()`, and
+any ZK proof generated over the correct (sorted) super root will not verify against it.
+
 ### Chain Set
 
 The set of chains whose output roots are committed to by a super root. Defined by the
@@ -259,11 +265,19 @@ where `superRootProof` is the ABI-encoded `SuperRootProof` struct stored in `ext
 
 The `SuperRootProof` preimage carries:
 - The super root timestamp (`l2SequenceNumber`).
-- A list of `(chainId, outputRoot)` pairs for every chain in the interop set.
+- A list of `(chainId, outputRoot)` pairs for every chain in the interop set, sorted in strictly
+  ascending order by `chainId`.
 
 In a standalone deployment, this list contains exactly one entry. In an interop set, it contains
 one entry per chain. The contract does not distinguish between these cases; the preimage size is
 the only difference.
+
+> **Note on chain ordering:** The ZK program identified by `absolutePrestate` is compiled to
+> produce and verify proofs over preimages with chains sorted ascending by `chainId`. A proposer
+> who submits an unsorted preimage will produce a `rootClaim` that differs from any super root a
+> correct prover can generate a proof for — the game will expire unchallenged only if no one
+> notices, but any subsequent `prove()` call against the correctly sorted super root will not
+> match `rootClaim` and will therefore revert.
 
 `rootClaim` MUST NOT be interpreted as an L2 output root for any specific chain. Per-chain output
 roots are extracted via [`rootClaimByChainId`](#rootclaimbychain-id).
@@ -445,6 +459,10 @@ set with correct chain IDs and output roots. No chain is omitted, duplicated, or
   An incorrect preimage cannot produce a matching hash.
 - The ZK program independently verifies that the output roots in the preimage match the actual
   chain states (see [iSZKVM-002](../../super-zk-fault-proof-vm.md#iszkvm-002-super-root-preimage-must-commit-to-all-chain-outputs)).
+- The ZK program (identified by `absolutePrestate`) is compiled to produce and verify proofs over
+  preimages with chains sorted in strictly ascending order by `chainId`. An unsorted preimage
+  produces a different hash and therefore a different `rootClaim`; no valid proof can be generated
+  for it, so verification will always fail for such proposals.
 
 ### aSZKG-009: Chain Set Is Stable During the Prove Window
 
